@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+	<AbilityDef ParentName="PsycastBaseSkip">
+		<defName>EO_BreachSkip</defName>
+		<label>breach skip</label>
+		<description>Teleport to a target location instantly without the need for line of sight. The arrival always creates a high-explosive blast to clear potential obstructions.</description>
+		<level>6</level>
+		<iconPath>UI/Abilities/BreachSkip</iconPath>
+		<writeCombatLog>true</writeCombatLog>
+		<canUseAoeToGetTargets>false</canUseAoeToGetTargets>
+		<casterMustBeCapableOfViolence>true</casterMustBeCapableOfViolence>
+		<hostile>false</hostile>
+
+		<!-- Costs -->
+		<statBases>
+			<Ability_EntropyGain>40</Ability_EntropyGain>
+			<Ability_PsyfocusCost>0.04</Ability_PsyfocusCost>
+		</statBases>
+
+		<verbProperties>
+			<warmupTime>2.0</warmupTime>
+			<range>15.0</range>
+			<requireLineOfSight>false</requireLineOfSight>
+			<targetParams>
+				<canTargetSelf>true</canTargetSelf>
+				<canTargetLocations>true</canTargetLocations>
+				<canTargetPawns>true</canTargetPawns>
+				<canTargetBuildings>true</canTargetBuildings>
+			</targetParams>
+		</verbProperties>
+
+		<comps>
+			<li Class="TrueMogician.RimWorld.EntropyOverflow.Comp.BreachSkipProperties">
+				<minRadius>1.0</minRadius>
+				<baseRadius>2.0</baseRadius>
+				<sensitivityFactor>0.5</sensitivityFactor>
+				<stunTicks>240~360</stunTicks>
+			</li>
+		</comps>
+	</AbilityDef>
+</Defs>
