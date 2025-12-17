@@ -1,5 +1,7 @@
 .vs
 .vscode
+.github
+*.code-workspace
 bin
 obj
 [Dd]ist
