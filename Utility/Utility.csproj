@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net472</TargetFramework>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<Authors>true_mogician</Authors>
+		<Description>Common utilities for true_mogician's mods</Description>
+		<Version>1.0.0</Version>
+		<Title>true_mogician's RimWorld Mod Utilities</Title>
+		<RootNamespace>TrueMogician.RimWorld.Utility</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="TrueMogician.Extensions.Enumerable" Version="2.1.0" />
+	</ItemGroup>
+
+</Project>

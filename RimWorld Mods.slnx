@@ -1,3 +1,4 @@
 <Solution>
 	<Project Path="EntropyOverflow/EntropyOverflow.csproj" Id="48e1ae72-d0a3-4c09-95c3-c2c4f6d45ab2" />
+	<Project Path="Utility/Utility.csproj" Id="9535d14c-5dda-4c64-8651-ac260e5e792a" />
 </Solution>
