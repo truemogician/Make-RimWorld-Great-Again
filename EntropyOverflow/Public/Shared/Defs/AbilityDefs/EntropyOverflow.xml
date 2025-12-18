@@ -30,7 +30,7 @@
 		</verbProperties>
 
 		<comps>
-			<li Class="TrueMogician.RimWorld.EntropyOverflow.Comp.BreachSkipProperties">
+			<li Class="TrueMogician.RimWorld.EntropyOverflow.Ability.BreachSkipProperties">
 				<minRadius>1.0</minRadius>
 				<baseRadius>2.0</baseRadius>
 				<sensitivityFactor>0.5</sensitivityFactor>

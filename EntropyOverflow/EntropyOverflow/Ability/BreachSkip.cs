@@ -3,7 +3,7 @@ using RimWorld;
 using Verse;
 using Verse.Sound;
 
-namespace TrueMogician.RimWorld.EntropyOverflow.Comp;
+namespace TrueMogician.RimWorld.EntropyOverflow.Ability;
 
 public class BreachSkipProperties : CompProperties_AbilityEffect {
 	public float minRadius = 1.0f;
