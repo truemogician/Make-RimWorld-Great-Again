@@ -21,9 +21,13 @@
 
 	<ItemGroup>
 		<ProjectProperty Include="PackageId" />
+		<Compile Remove="Rimsonable.*\**\*.cs" />
+		<None Remove="Dist\**\*" />
+		<None Remove="References\**\*" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Enums.NET" Version="5.0.0" />
 		<PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.44.1">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>native; contentfiles; analyzers; buildtransitive</IncludeAssets>

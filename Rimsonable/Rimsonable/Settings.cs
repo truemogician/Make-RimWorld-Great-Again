@@ -5,38 +5,50 @@ using Verse;
 
 namespace TrueMogician.RimWorld.Rimsonable;
 
-public class Settings : ModSettings {
-	private readonly HashSet<Type> _patchTypes = [];
+[Flags]
+public enum Features : ulong {
+	[Description("Allow Grenades Through Shields")]
+	AllowGrenadesThroughShields = 1 << 0,
+	All = ulong.MaxValue
+}
 
-	public Settings() {
-		ShieldPatchEnabled = true;
-	}
+public class Settings : ModSettings {
+	private static readonly Dictionary<Features, List<Type>> FeaturePatches = new() {
+		{ Features.AllowGrenadesThroughShields, [typeof(CompShieldPatches)] }
+	};
+
+	private Features _features = Features.All;
 
 	public static Settings Default { get; internal set; } = null!;
 
-	public bool ShieldPatchEnabled {
-		get => this[typeof(CompShieldPatches)];
-		set => this[typeof(CompShieldPatches)] = value;
+	public bool this[Features feature] {
+		get => (_features & feature) == feature;
+		internal set {
+			if (value)
+				_features |= feature;
+			else
+				_features &= ~feature;
+		}
 	}
 
-	internal ICollection<Type> PatchTypes => _patchTypes;
+	public static void AddFeaturePatches(Features feature, params Type[] patchTypes) {
+		if (!FeaturePatches.TryGetValue(feature, out var list))
+			FeaturePatches[feature] = list = [];
+		list.AddRange(patchTypes);
+	}
 
-	internal bool this[Type patchType] {
-		get => _patchTypes.Contains(patchType);
-		set {
-			if (value)
-				_patchTypes.Add(patchType);
-			else
-				_patchTypes.Remove(patchType);
+	internal IReadOnlyList<Type> GetPatchTypes() {
+		var collection = new List<Type>();
+		foreach (var (feature, types) in FeaturePatches) {
+			if (this[feature])
+				collection.AddRange(types);
 		}
+		return collection;
 	}
 
 	public override void ExposeData() {
 		base.ExposeData();
-		bool shieldPatchEnabled = ShieldPatchEnabled;
-		Scribe_Values.Look(ref shieldPatchEnabled, "shieldPatchEnabled", true);
-		if (Scribe.mode == LoadSaveMode.LoadingVars)
-			ShieldPatchEnabled = shieldPatchEnabled;
+		Scribe_Values.Look(ref _features, "featureFlags", Features.All);
 	}
 
 	public void Apply() {

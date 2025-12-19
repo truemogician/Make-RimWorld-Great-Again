@@ -1,0 +1,62 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net472</TargetFramework>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<Authors>true_mogician</Authors>
+		<Description>A template mod for RimWorld</Description>
+		<PackageId>TrueMogician.Rimsonable.CE</PackageId>
+		<Version>0.0.1</Version>
+		<Title>Rimsonable</Title>
+		<RootNamespace>TrueMogician.RimWorld</RootNamespace>
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+		<EnableDefaultItems>false</EnableDefaultItems>
+		<DistDir>$(MSBuildProjectDirectory)\Dist\</DistDir>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Include="Rimsonable.CE\**\*.cs" />
+		<None Include="References\CE\**\*" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Build.Framework" Version="18.0.2">
+			<PrivateAssets>all</PrivateAssets>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.0.2">
+			<PrivateAssets>all</PrivateAssets>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="5.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ThisAssembly.AssemblyInfo" Version="2.1.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ThisAssembly.Project" Version="2.1.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<ProjectReference Include=".\Rimsonable.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="CombatExtended">
+			<HintPath>References\CE\CombatExtended.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<Target Name="Distribute" AfterTargets="Build">
+		<Copy SourceFiles="$(TargetPath)" DestinationFiles="$(DistDir)CE\1.6\Assemblies\$(AssemblyName).dll" />
+		<Message Importance="High" Text="Distributed $(TargetPath) -> $(DistDir)CE\1.6\Assemblies\" />
+	</Target>
+</Project>

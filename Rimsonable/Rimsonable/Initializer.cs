@@ -8,11 +8,10 @@ public static class Initializer {
 		// Placeholder for any static initialization logic if needed in the future
 	}
 
-	public static void Initialize() {
+	public static void ApplyPatches() {
 		var harmony = new Harmony(ThisAssembly.Project.PackageId);
-		var patchTypes = Settings.Default.PatchTypes;
-		foreach (var patchType in patchTypes)
+		foreach (var patchType in Settings.Default.GetPatchTypes())
 			harmony.PatchAll(patchType.Assembly);
-		Log.Message($"[{ThisAssembly.Info.Title}] Initialized");
+		Log.Message($"[{ThisAssembly.Info.Title}] Patches Applied");
 	}
 }

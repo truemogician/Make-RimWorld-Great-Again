@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using Verse;
@@ -11,7 +13,11 @@ namespace TrueMogician.RimWorld.Rimsonable.Patches;
 public static class CompShieldPatches {
 	private static readonly ThingCategoryDef Grenades = DefDatabase<ThingCategoryDef>.GetNamed("Grenades");
 
-	private static readonly Type? CELaunchVerbType = Type.GetType("CombatExtended.Verb_LaunchProjectileCE, CombatExtended", false);
+	private static readonly HashSet<Type> LaunchVerbs = [typeof(Verb_LaunchProjectile)];
+
+	public static void AddLaunchVerb(Type verbType) {
+		LaunchVerbs.Add(verbType);
+	}
 
 	[HarmonyPatch(nameof(CompShield.CompAllowVerbCast))]
 	[HarmonyPriority(Priority.First)]
@@ -19,7 +25,7 @@ public static class CompShieldPatches {
 	public static bool CompAllowVerbCast_Prefix(CompShield __instance, Verb verb, ref bool __result) {
 		if (!__instance.Props.blocksRangedWeapons)
 			return true;
-		if (verb is not Verb_LaunchProjectile && (CELaunchVerbType is null || !CELaunchVerbType.IsInstanceOfType(verb)))
+		if (!LaunchVerbs.Any(t => t.IsInstanceOfType(verb)))
 			return true;
 		if (verb.EquipmentSource?.def.thingCategories is not { } categories || !categories.Contains(Grenades))
 			return true;
