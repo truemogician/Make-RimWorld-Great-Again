@@ -6,6 +6,7 @@ namespace TrueMogician.RimWorld.Rimsonable;
 public class Mod : Verse.Mod {
 	public Mod(ModContentPack content) : base(content) {
 		Settings.Default = GetSettings<Settings>();
+		Initializer.Initialize();
 	}
 
 	public override string SettingsCategory() => ThisAssembly.Info.Title;
@@ -14,8 +15,10 @@ public class Mod : Verse.Mod {
 		var listing = new Listing_Standard();
 		listing.Begin(inRect);
 
-		listing.Label($"Market Value Multiplier: {Settings.Default.Multiplier:F2}");
-		Settings.Default.Multiplier = listing.Slider(Settings.Default.Multiplier, 0.1f, 5.0f);
+		var shieldPatchEnabled = Settings.Default.ShieldPatchEnabled;
+		listing.CheckboxLabeled("Enable Shield Patch", ref shieldPatchEnabled);
+		Settings.Default.ShieldPatchEnabled = shieldPatchEnabled;
+
 		Settings.Default.Apply();
 
 		listing.End();
