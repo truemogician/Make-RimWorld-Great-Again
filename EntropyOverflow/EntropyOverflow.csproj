@@ -12,7 +12,7 @@
 		<Title>Entropy Overflow</Title>
 		<RootNamespace>TrueMogician.RimWorld</RootNamespace>
 		<DistDir>$(MSBuildProjectDirectory)\Dist\</DistDir>
-		<GameDir>G:\Game Files\Steam\steamapps\common\RimWorld</GameDir>
+		<GameDir>$(SolutionDir)RimWorld</GameDir>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
