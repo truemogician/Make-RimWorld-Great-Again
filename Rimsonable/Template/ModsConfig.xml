@@ -4,6 +4,8 @@
 	<activeMods>
 		<li>brrainz.harmony</li>
 		<li>ludeon.rimworld</li>
+		<li>ceteam.combatextended</li>
+		<li>ceteam.combatextendedarmory</li>
 		<li>{{PackageId}}</li>
 	</activeMods>
 	<knownExpansions>
