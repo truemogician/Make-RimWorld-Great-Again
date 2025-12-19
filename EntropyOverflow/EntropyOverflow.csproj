@@ -21,9 +21,6 @@
 
 	<ItemGroup>
 		<ProjectProperty Include="PackageId" />
-		<Compile Remove="Tasks\*.cs" />
-		<Compile Include="Tasks\*.cs" Condition="'$(DesignTimeBuild)' == 'true'" />
-		<None Include="Tasks\*.cs" Condition="'$(DesignTimeBuild)' != 'true'" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -36,14 +33,6 @@
 		<PackageReference Include="Microsoft.Build.Framework" Version="18.0.2">
 			<PrivateAssets>all</PrivateAssets>
 			<ExcludeAssets>runtime</ExcludeAssets>
-		</PackageReference>
-		<PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.0.2">
-			<PrivateAssets>all</PrivateAssets>
-			<ExcludeAssets>runtime</ExcludeAssets>
-		</PackageReference>
-		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="5.0.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="ThisAssembly.AssemblyInfo" Version="2.1.2">
 			<PrivateAssets>all</PrivateAssets>
@@ -62,7 +51,7 @@
 			<Reference Include="Microsoft.Build" />
 			<Reference Include="Microsoft.Build.Framework" />
 			<Reference Include="Microsoft.Build.Utilities.Core" />
-			<Code Type="Class" Language="cs" Source="$(ProjectDir)Tasks\BuildXml.cs" />
+			<Code Type="Class" Language="cs" Source="$(ProjectDir)..\Utility\Tasks\BuildXml.cs" />
 		</Task>
 	</UsingTask>
 
@@ -72,7 +61,7 @@
 			<Reference Include="Microsoft.Build" />
 			<Reference Include="Microsoft.Build.Framework" />
 			<Reference Include="Microsoft.Build.Utilities.Core" />
-			<Code Type="Class" Language="cs" Source="$(ProjectDir)Tasks\CreateLink.cs" />
+			<Code Type="Class" Language="cs" Source="$(ProjectDir)..\Utility\Tasks\CreateLink.cs" />
 		</Task>
 	</UsingTask>
 
