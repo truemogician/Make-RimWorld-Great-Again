@@ -9,22 +9,19 @@
 		<Description>A template mod for RimWorld</Description>
 		<PackageId>TrueMogician.Rimsonable.CE</PackageId>
 		<Version>0.0.1</Version>
-		<Title>Rimsonable</Title>
-		<RootNamespace>TrueMogician.RimWorld</RootNamespace>
-		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-		<EnableDefaultItems>false</EnableDefaultItems>
-		<BaseOutputPath>bin.CE\</BaseOutputPath>
-		<DistDir>$(MSBuildProjectDirectory)\Dist\</DistDir>
+		<Title>Rimsonable CE Compatibility</Title>
+		<RootNamespace>TrueMogician.RimWorld.Rimsonable.CE</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ProjectRoot>$(ProjectDir)..\</ProjectRoot>
+		<DistDir>$(ProjectRoot)Dist\</DistDir>
+		<AssemblyDistDir>$(DistDir)CE\1.6\Assemblies\</AssemblyDistDir>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 		<DebugType>embedded</DebugType>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<Compile Include="Rimsonable.CE\**\*.cs" />
-		<None Include="References\CE\**\*" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="5.0.0">
@@ -39,18 +36,17 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<ProjectReference Include=".\Rimsonable.csproj" />
-		<ProjectReference Include="..\Utility\Utility.csproj" />
+		<ProjectReference Include="..\Source\Rimsonable.csproj" />
+		<ProjectReference Include="$(SolutionDir)Utility\Utility.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Reference Include="CombatExtended">
-			<HintPath>References\CE\CombatExtended.dll</HintPath>
-		</Reference>
+		<None Remove="References\*.dll" />
+		<Reference Include="CombatExtended" HintPath="References\CombatExtended.dll" />
 	</ItemGroup>
 
 	<Target Name="Distribute" AfterTargets="Build">
-		<Copy SourceFiles="$(TargetPath)" DestinationFiles="$(DistDir)CE\1.6\Assemblies\$(AssemblyName).dll" />
-		<Message Importance="High" Text="Distributed $(TargetPath) -&gt; $(DistDir)CE\1.6\Assemblies\" />
+		<Copy SourceFiles="$(TargetPath)" DestinationFiles="$(AssemblyDistDir)$(AssemblyName).dll" />
+		<Message Importance="High" Text="Distributed $(TargetPath) -&gt; $(AssemblyDistDir)" />
 	</Target>
 </Project>

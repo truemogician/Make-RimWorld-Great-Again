@@ -10,8 +10,13 @@
 		<PackageId>TrueMogician.Rimsonable</PackageId>
 		<Version>0.0.1</Version>
 		<Title>Rimsonable</Title>
-		<RootNamespace>TrueMogician.RimWorld</RootNamespace>
-		<DistDir>$(MSBuildProjectDirectory)\Dist\</DistDir>
+		<RootNamespace>TrueMogician.RimWorld.Rimsonable</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ProjectRoot>$(ProjectDir)..\</ProjectRoot>
+		<DistDir>$(ProjectRoot)Dist\</DistDir>
+		<AssemblyDistDir>$(DistDir)1.6\Assemblies\</AssemblyDistDir>
 		<GameDir>$(SolutionDir)RimWorld</GameDir>
 	</PropertyGroup>
 
@@ -21,10 +26,6 @@
 
 	<ItemGroup>
 		<ProjectProperty Include="PackageId" />
-		<Compile Remove="Rimsonable.*\**\*.cs" />
-		<None Remove="bin.*\**\*" />
-		<None Remove="Dist\**\*" />
-		<None Remove="References\**\*" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -53,7 +54,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<ProjectReference Include="..\Utility\Utility.csproj" />
+		<ProjectReference Include="$(SolutionDir)Utility\Utility.csproj" />
 	</ItemGroup>
 
 	<UsingTask TaskName="BuildXml" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
@@ -62,7 +63,7 @@
 			<Reference Include="Microsoft.Build" />
 			<Reference Include="Microsoft.Build.Framework" />
 			<Reference Include="Microsoft.Build.Utilities.Core" />
-			<Code Type="Class" Language="cs" Source="$(ProjectDir)..\Utility\Tasks\BuildXml.cs" />
+			<Code Type="Class" Language="cs" Source="$(SolutionDir)Utility\Tasks\BuildXml.cs" />
 		</Task>
 	</UsingTask>
 
@@ -72,14 +73,14 @@
 			<Reference Include="Microsoft.Build" />
 			<Reference Include="Microsoft.Build.Framework" />
 			<Reference Include="Microsoft.Build.Utilities.Core" />
-			<Code Type="Class" Language="cs" Source="$(ProjectDir)..\Utility\Tasks\CreateLink.cs" />
+			<Code Type="Class" Language="cs" Source="$(SolutionDir)Utility\Tasks\CreateLink.cs" />
 		</Task>
 	</UsingTask>
 
 	<Target Name="Distribute" AfterTargets="Build">
 		<!-- 1. Copy Assets -->
 		<ItemGroup>
-			<ModAssets Include="$(ProjectDir)Public\**\*.*" />
+			<ModAssets Include="$(ProjectRoot)Public\**\*.*" />
 		</ItemGroup>
 		<Copy SourceFiles="@(ModAssets)" DestinationFolder="$(DistDir)%(RecursiveDir)" SkipUnchangedFiles="true" />
 		<!-- 2. Generate About.xml -->
@@ -90,9 +91,9 @@
 			<AboutToken Include="Version" Value="$(Version)" />
 			<AboutToken Include="Description" Value="$(Description)" />
 		</ItemGroup>
-		<BuildXml Template="$(ProjectDir)Template\About.xml" Destination="$(DistDir)About\About.xml" Tokens="@(AboutToken)" />
+		<BuildXml Template="$(ProjectRoot)Template\About.xml" Destination="$(DistDir)About\About.xml" Tokens="@(AboutToken)" />
 		<!-- 3. Copy Utility.dll -->
-		<Copy SourceFiles="$(TargetDir)Utility.dll" DestinationFolder="$(DistDir)1.6\Assemblies" SkipUnchangedFiles="true" />
+		<Copy SourceFiles="$(TargetDir)Utility.dll" DestinationFolder="$(AssemblyDistDir)" SkipUnchangedFiles="true" />
 		<Message Text="Distribution build complete at: $(DistDir)" Importance="high" />
 	</Target>
 
@@ -101,7 +102,7 @@
 		<ItemGroup>
 			<ModsConfigToken Include="PackageId" Value="$(PackageId)" />
 		</ItemGroup>
-		<BuildXml Template="$(ProjectDir)Template\ModsConfig.xml" Destination="$(SolutionDir)SaveData\Config\ModsConfig.xml" Tokens="@(ModsConfigToken)" />
+		<BuildXml Template="$(ProjectRoot)Template\ModsConfig.xml" Destination="$(SolutionDir)SaveData\Config\ModsConfig.xml" Tokens="@(ModsConfigToken)" />
 		<!-- 2. Generate Launch Script -->
 		<ItemGroup>
 			<LaunchCmd Include="start &quot;RimWorld Mod Test&quot; &quot;$(GameDir)\RimWorldWin64.exe&quot; -popupwindow &quot;-savedatafolder=$(SolutionDir)SaveData&quot;" />
@@ -119,7 +120,6 @@
 			<DirsToDelete Include="$(GameDir)\Mods\$(AssemblyName)" />
 			<FilesToDelete Include="$(SolutionDir)SaveData\Config\ModsConfig.xml" />
 			<FilesToDelete Include="$(TargetDir)LaunchRimWorld.bat" />
-			<FilesToDelete Include="$(TargetDir)Bundle.dll" />
 		</ItemGroup>
 		<RemoveDir Directories="@(DirsToDelete)" />
 		<Delete Files="@(FilesToDelete)" />

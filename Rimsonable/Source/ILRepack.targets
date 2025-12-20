@@ -16,7 +16,7 @@
 			LibraryPath="$(TargetDir);$(GameDir)\RimWorldWin64_Data\Managed"
 			InputAssemblies="@(InputAssemblies)"
 			TargetKind="Dll"
-			OutputFile="$(DistDir)1.6\Assemblies\$(AssemblyName).dll"
+			OutputFile="$(AssemblyDistDir)$(AssemblyName).dll"
 		/>
 	</Target>
 </Project>
