@@ -76,7 +76,7 @@
 		</Task>
 	</UsingTask>
 
-	<Target Name="Distribute" AfterTargets="Merge">
+	<Target Name="Distribute" AfterTargets="Build">
 		<!-- 1. Copy Assets -->
 		<ItemGroup>
 			<ModAssets Include="$(ProjectDir)Public\**\*.*" />
@@ -91,12 +91,10 @@
 			<AboutToken Include="Description" Value="$(Description)" />
 		</ItemGroup>
 		<BuildXml Template="$(ProjectDir)Template\About.xml" Destination="$(DistDir)About\About.xml" Tokens="@(AboutToken)" />
-		<!-- 3. Copy Assembly -->
-		<Copy SourceFiles="$(TargetDir)Bundle.dll" DestinationFiles="$(DistDir)1.6\Assemblies\$(AssemblyName).dll" />
 		<Message Text="Distribution build complete at: $(DistDir)" Importance="high" />
 	</Target>
 
-	<Target Name="PrepareLaunch" AfterTargets="Merge">
+	<Target Name="PrepareLaunch" AfterTargets="Build">
 		<!-- 1. Generate ModsConfig.xml -->
 		<ItemGroup>
 			<ModsConfigToken Include="PackageId" Value="$(PackageId)" />
