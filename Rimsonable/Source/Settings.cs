@@ -21,17 +21,17 @@ public enum Features : ulong {
 }
 
 public class Settings : ModSettings {
-	private static readonly Dictionary<Features, List<Type>> FeaturePatches = new() {
+	private static readonly Dictionary<Features, HashSet<Type>> FeaturePatches = new() {
 		{ Features.AllowGrenadesThroughShields, [typeof(CompShieldPatches)] }
 	};
 
 	private Features _features = Features.All;
 
-	private IReadOnlyList<Type> _appliedPatches = [];
+	private ISet<Type> _appliedPatches = new HashSet<Type>();
 
 	public static Settings Default { get; internal set; } = null!;
 
-	internal Harmony Harmony { get; } = new Harmony(ThisAssembly.Project.PackageId);
+	internal Harmony Harmony { get; } = new(ThisAssembly.Project.PackageId);
 
 	public Features Features {
 		get => _features;
@@ -54,11 +54,11 @@ public class Settings : ModSettings {
 		list.AddRange(patchTypes);
 	}
 
-	internal IReadOnlyList<Type> GetPatchTypes() {
-		var collection = new List<Type>();
+	internal ISet<Type> GetPatchTypes() {
+		var collection = new HashSet<Type>();
 		foreach (var (feature, types) in FeaturePatches) {
 			if (this[feature])
-				collection.AddRange(types);
+				collection.UnionWith(types);
 		}
 		return collection;
 	}
@@ -70,12 +70,14 @@ public class Settings : ModSettings {
 
 	public void Apply() {
 		if (_appliedPatches.Count > 0) {
-			Harmony.UnpatchAll();
+			Harmony.UnpatchAll(Harmony.Id);
 			Helper.Logger.Message($"Removed {_appliedPatches.Count} patches");
 		}
 		_appliedPatches = GetPatchTypes();
-		foreach (var patchType in _appliedPatches)
-			Harmony.PatchAll(patchType.Assembly);
-		Helper.Logger.Message($"Applied {_appliedPatches.Count} patches");
+		if (_appliedPatches.Count > 0) {
+			foreach (var patchType in _appliedPatches)
+				Harmony.PatchAll(patchType.Assembly);
+			Helper.Logger.Message($"Applied {_appliedPatches.Count} patches");
+		}
 	}
 }
