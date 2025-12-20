@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<Target Name="Merge" AfterTargets="Distribute">
 		<ItemGroup>
@@ -6,7 +6,7 @@
 			<InputAssemblies Include="$(TargetDir)$(TargetName).dll" />
 			<InputAssemblies
 				Include="$(TargetDir)*.dll"
-				Exclude="$(TargetDir)$(TargetName).dll;$(TargetDir)0Harmony.dll;$(TargetDir)System.*.dll"
+				Exclude="$(TargetDir)$(TargetName).dll;$(TargetDir)0Harmony.dll;$(TargetDir)Utility.dll;$(TargetDir)System.*.dll"
 			/>
 		</ItemGroup>
 		<ILRepack

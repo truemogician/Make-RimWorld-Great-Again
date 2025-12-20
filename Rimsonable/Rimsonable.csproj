@@ -91,6 +91,8 @@
 			<AboutToken Include="Description" Value="$(Description)" />
 		</ItemGroup>
 		<BuildXml Template="$(ProjectDir)Template\About.xml" Destination="$(DistDir)About\About.xml" Tokens="@(AboutToken)" />
+		<!-- 3. Copy Utility.dll -->
+		<Copy SourceFiles="$(TargetDir)Utility.dll" DestinationFolder="$(DistDir)1.6\Assemblies" SkipUnchangedFiles="true" />
 		<Message Text="Distribution build complete at: $(DistDir)" Importance="high" />
 	</Target>
 
