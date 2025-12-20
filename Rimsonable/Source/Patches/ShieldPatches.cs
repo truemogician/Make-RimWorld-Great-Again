@@ -12,10 +12,12 @@ namespace TrueMogician.RimWorld.Rimsonable.Patches;
 
 [HarmonyPatch(typeof(CompShield))]
 public static class CompShieldPatches {
-	private static readonly HashSet<Type> LaunchVerbs = [typeof(Verb_LaunchProjectile)];
+	private static readonly HashSet<Type> _launchVerbs = [typeof(Verb_LaunchProjectile)];
+
+	public static IReadOnlyCollection<Type> LaunchVerbs => _launchVerbs;
 
 	public static void AddLaunchVerb(Type verbType) {
-		LaunchVerbs.Add(verbType);
+		_launchVerbs.Add(verbType);
 	}
 
 	[HarmonyPatch(nameof(CompShield.CompAllowVerbCast))]
@@ -24,7 +26,7 @@ public static class CompShieldPatches {
 	public static bool CompAllowVerbCast_Prefix(CompShield __instance, Verb verb, ref bool __result) {
 		if (!__instance.Props.blocksRangedWeapons)
 			return true;
-		if (!LaunchVerbs.Any(t => t.IsInstanceOfType(verb)))
+		if (!_launchVerbs.Any(t => t.IsInstanceOfType(verb)))
 			return true;
 		if (verb.EquipmentSource?.def.thingCategories is not { } categories || !categories.Contains(Defs.Grenades))
 			return true;
