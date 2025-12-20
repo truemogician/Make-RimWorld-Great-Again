@@ -100,7 +100,7 @@
 	<Target Name="PrepareLaunch" AfterTargets="Build">
 		<!-- 1. Generate ModsConfig.xml -->
 		<ItemGroup>
-			<ModsConfigToken Include="PackageId" Value="$(PackageId)" />
+			<ModsConfigToken Include="PackageId" Value="$(PackageId.ToLower())" />
 		</ItemGroup>
 		<BuildXml Template="$(ProjectRoot)Template\ModsConfig.xml" Destination="$(SolutionDir)SaveData\Config\ModsConfig.xml" Tokens="@(ModsConfigToken)" />
 		<!-- 2. Generate Launch Script -->
