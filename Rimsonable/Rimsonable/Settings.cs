@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using HarmonyLib;
 using TrueMogician.RimWorld.Rimsonable.Patches;
+using TrueMogician.RimWorld.Rimsonable.Static;
 using TrueMogician.RimWorld.Utility.Attributes;
 using Verse;
+using DescriptionAttribute = System.ComponentModel.DescriptionAttribute;
 
 namespace TrueMogician.RimWorld.Rimsonable;
 
@@ -24,7 +27,11 @@ public class Settings : ModSettings {
 
 	private Features _features = Features.All;
 
+	private IReadOnlyList<Type> _appliedPatches = [];
+
 	public static Settings Default { get; internal set; } = null!;
+
+	internal Harmony Harmony { get; } = new Harmony(ThisAssembly.Project.PackageId);
 
 	public Features Features {
 		get => _features;
@@ -62,6 +69,13 @@ public class Settings : ModSettings {
 	}
 
 	public void Apply() {
-		// Placeholder for any future application logic
+		if (_appliedPatches.Count > 0) {
+			Harmony.UnpatchAll();
+			Helper.Logger.Message($"Removed {_appliedPatches.Count} patches");
+		}
+		_appliedPatches = GetPatchTypes();
+		foreach (var patchType in _appliedPatches)
+			Harmony.PatchAll(patchType.Assembly);
+		Helper.Logger.Message($"Applied {_appliedPatches.Count} patches");
 	}
 }

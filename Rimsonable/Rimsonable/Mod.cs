@@ -9,7 +9,7 @@ namespace TrueMogician.RimWorld.Rimsonable;
 public class Mod : Verse.Mod {
 	public Mod(ModContentPack content) : base(content) {
 		Settings.Default = GetSettings<Settings>();
-		Initializer.ApplyPatches();
+		Settings.Default.Apply();
 	}
 
 	public override string SettingsCategory() => ThisAssembly.Info.Title;
@@ -30,8 +30,10 @@ public class Mod : Verse.Mod {
 				updatedFeatures |= feature;
 		}
 
-		Settings.Default.Features = updatedFeatures;
-		Settings.Default.Apply();
+		if (updatedFeatures != Settings.Default.Features) {
+			Settings.Default.Features = updatedFeatures;
+			Settings.Default.Apply();
+		}
 
 		listing.End();
 	}
