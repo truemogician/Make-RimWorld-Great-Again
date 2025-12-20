@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using EnumsNET;
+using TrueMogician.RimWorld.Utility;
 using UnityEngine;
 using Verse;
 
@@ -18,18 +18,19 @@ public class Mod : Verse.Mod {
 		var listing = new Listing_Standard();
 		listing.Begin(inRect);
 
-		var features = Enum.GetValues(typeof(Features)).Cast<Features>().ToArray();
-		foreach (var feature in features) {
-			var label = feature.AsString(EnumFormat.Description);
-			if (string.IsNullOrEmpty(label)) // Composite flags have no description
+		var allFeatures = Enum.GetValues(typeof(Features)).Cast<Features>().ToArray();
+		var updatedFeatures = Features.None;
+		foreach (var feature in allFeatures) {
+			if (!feature.IsSingleBitFlag)
 				continue;
+			var label = feature.Label ?? feature.Name;
 			var enabled = Settings.Default[feature];
-			var oldValue = enabled;
 			listing.CheckboxLabeled(label, ref enabled);
-			if (oldValue != enabled)
-				Settings.Default[feature] = enabled;
+			if (enabled)
+				updatedFeatures |= feature;
 		}
 
+		Settings.Default.Features = updatedFeatures;
 		Settings.Default.Apply();
 
 		listing.End();

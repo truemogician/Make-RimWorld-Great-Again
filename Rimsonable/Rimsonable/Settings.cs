@@ -1,14 +1,19 @@
 using System;
 using System.Collections.Generic;
 using TrueMogician.RimWorld.Rimsonable.Patches;
+using TrueMogician.RimWorld.Utility.Attributes;
 using Verse;
 
 namespace TrueMogician.RimWorld.Rimsonable;
 
 [Flags]
 public enum Features : ulong {
-	[Description("Allow Grenades Through Shields")]
+	None = 0,
+
+	[Label("Allow Grenades Through Shields")]
+	[Description("Allows grenades to pass through shield bubbles.")]
 	AllowGrenadesThroughShields = 1 << 0,
+
 	All = ulong.MaxValue
 }
 
@@ -20,6 +25,11 @@ public class Settings : ModSettings {
 	private Features _features = Features.All;
 
 	public static Settings Default { get; internal set; } = null!;
+
+	public Features Features {
+		get => _features;
+		internal set => _features = value;
+	}
 
 	public bool this[Features feature] {
 		get => (_features & feature) == feature;
