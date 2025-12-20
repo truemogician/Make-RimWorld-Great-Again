@@ -11,6 +11,10 @@
 		<RootNamespace>TrueMogician.RimWorld.Utility</RootNamespace>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<Compile Remove="Tasks\*.cs" />
 		<Compile Include="Tasks\*.cs" Condition="'$(DesignTimeBuild)' == 'true'" />
@@ -19,14 +23,13 @@
 
 	<ItemGroup>
 		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4633" />
-		<PackageReference Include="Lib.Harmony" Version="2.4.2" />
 		<PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.0.2">
 			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="5.0.0">
 			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
 		<PackageReference Include="TrueMogician.Extensions.Enumerable" Version="2.1.0" />
 	</ItemGroup>
