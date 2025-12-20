@@ -22,6 +22,7 @@
 	<ItemGroup>
 		<ProjectProperty Include="PackageId" />
 		<Compile Remove="Rimsonable.*\**\*.cs" />
+		<None Remove="bin.*\**\*" />
 		<None Remove="Dist\**\*" />
 		<None Remove="References\**\*" />
 	</ItemGroup>

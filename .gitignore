@@ -1,12 +1,13 @@
-.vs
-.vscode
-.github
-bin
-obj
-[Dd]ist
+.vs/
+.vscode/
+.github/
+bin/
+bin.*/
+obj/
+[Dd]ist/
 
-SaveData
-RimWorld
+SaveData/
+RimWorld/
 
 *.code-workspace
 *.dll

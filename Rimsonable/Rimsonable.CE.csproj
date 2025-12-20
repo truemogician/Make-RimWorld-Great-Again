@@ -13,6 +13,7 @@
 		<RootNamespace>TrueMogician.RimWorld</RootNamespace>
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 		<EnableDefaultItems>false</EnableDefaultItems>
+		<BaseOutputPath>bin.CE\</BaseOutputPath>
 		<DistDir>$(MSBuildProjectDirectory)\Dist\</DistDir>
 	</PropertyGroup>
 
@@ -26,14 +27,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Build.Framework" Version="18.0.2">
-			<PrivateAssets>all</PrivateAssets>
-			<ExcludeAssets>runtime</ExcludeAssets>
-		</PackageReference>
-		<PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.0.2">
-			<PrivateAssets>all</PrivateAssets>
-			<ExcludeAssets>runtime</ExcludeAssets>
-		</PackageReference>
 		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="5.0.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -57,6 +50,6 @@
 
 	<Target Name="Distribute" AfterTargets="Build">
 		<Copy SourceFiles="$(TargetPath)" DestinationFiles="$(DistDir)CE\1.6\Assemblies\$(AssemblyName).dll" />
-		<Message Importance="High" Text="Distributed $(TargetPath) -> $(DistDir)CE\1.6\Assemblies\" />
+		<Message Importance="High" Text="Distributed $(TargetPath) -&gt; $(DistDir)CE\1.6\Assemblies\" />
 	</Target>
 </Project>
