@@ -6,10 +6,9 @@
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
 		<Authors>true_mogician</Authors>
-		<Description>A template mod for RimWorld</Description>
 		<PackageId>TrueMogician.Rimsonable.VEF</PackageId>
 		<Version>0.0.1</Version>
-		<Title>Rimsonable VEF Compatibility</Title>
+		<Title>Rimsonable for Vanilla Expanded Framework</Title>
 		<RootNamespace>TrueMogician.RimWorld.Rimsonable.VEF</RootNamespace>
 	</PropertyGroup>
 

@@ -6,10 +6,9 @@
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
 		<Authors>true_mogician</Authors>
-		<Description>A template mod for RimWorld</Description>
 		<PackageId>TrueMogician.Rimsonable.CE</PackageId>
 		<Version>0.0.1</Version>
-		<Title>Rimsonable CE Compatibility</Title>
+		<Title>Rimsonable for Combat Extended</Title>
 		<RootNamespace>TrueMogician.RimWorld.Rimsonable.CE</RootNamespace>
 	</PropertyGroup>
 
