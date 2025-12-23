@@ -69,10 +69,10 @@ public class Profiler(string id) : IEnumerable<ProfilerRecord> {
 		}
 	}
 
-	public void Log(Color? labelColor = null, Color? numberColor = null) {
+	public bool Log(Color? labelColor = null, Color? numberColor = null) {
 		var records = this.ToArray();
 		if (records.Length == 0)
-			return;
+			return false;
 		labelColor ??= Color.cyan;
 		numberColor ??= Color.green;
 		var sb = new StringBuilder();
@@ -86,6 +86,7 @@ public class Profiler(string id) : IEnumerable<ProfilerRecord> {
 			sb.AppendLine();
 		}
 		Verse.Log.Message(sb.ToString());
+		return true;
 	}
 
 	private static void Prefix(out long __state) {
