@@ -17,6 +17,7 @@
 		<DistDir>$(MSBuildProjectDirectory)\Dist\</DistDir>
 		<AssemblyDistDir>$(DistDir)1.6\Assemblies\</AssemblyDistDir>
 		<GameDir>$(SolutionDir)RimWorld</GameDir>
+		<SteamGameDir>G:\Game Files\Steam\steamapps\common\RimWorld</SteamGameDir>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -127,5 +128,17 @@
 		<RemoveDir Directories="@(DirsToDelete)" />
 		<Delete Files="@(FilesToDelete)" />
 		<Message Text="Custom files and directories cleaned" Importance="High" />
+	</Target>
+
+	<Target Name="DeployToSteam">
+		<CreateLink Source="$(DistDir)" Destination="$(SteamGameDir)\Mods\$(AssemblyName)" Condition="Exists('$(SteamGameDir)\Mods')" />
+		<Message Text="Linked mod $(AssemblyName) to Steam game directory" Importance="High" />
+	</Target>
+	<Target Name="RemoveFromSteam">
+		<ItemGroup>
+			<LinkedDir Include="$(SteamGameDir)\Mods\$(AssemblyName)" />
+		</ItemGroup>
+		<RemoveDir Directories="@(LinkedDir)" />
+		<Message Text="Removed mod $(AssemblyName) from Steam game directory" Importance="High" />
 	</Target>
 </Project>
