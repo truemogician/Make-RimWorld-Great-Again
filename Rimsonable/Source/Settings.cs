@@ -17,7 +17,7 @@ public enum Features : ulong {
 	[Description("Allows grenades to pass through shield bubbles.")]
 	AllowGrenadesThroughShields = 1 << 0,
 
-	All = ulong.MaxValue
+	All = (1 << 1) - 1
 }
 
 public class Settings : ModSettings {
@@ -25,7 +25,7 @@ public class Settings : ModSettings {
 		{ Features.AllowGrenadesThroughShields, [typeof(CompShieldPatches)] }
 	};
 
-	private Features _features = Features.All;
+	private Features _disabledFeatures = Features.None;
 
 	private ISet<Type> _appliedPatches = new HashSet<Type>();
 
@@ -34,17 +34,22 @@ public class Settings : ModSettings {
 	internal Harmony Harmony { get; } = new(ThisAssembly.Project.PackageId);
 
 	public Features Features {
-		get => _features;
-		internal set => _features = value;
+		get => ~_disabledFeatures & Features.All;
+		internal set => _disabledFeatures = ~value & Features.All;
+	}
+
+	public Features DisabledFeatures {
+		get => _disabledFeatures;
+		internal set => _disabledFeatures = value;
 	}
 
 	public bool this[Features feature] {
-		get => (_features & feature) == feature;
+		get => (~_disabledFeatures & feature) == feature;
 		internal set {
 			if (value)
-				_features |= feature;
+				_disabledFeatures &= ~feature;
 			else
-				_features &= ~feature;
+				_disabledFeatures |= feature;
 		}
 	}
 
@@ -65,7 +70,7 @@ public class Settings : ModSettings {
 
 	public override void ExposeData() {
 		base.ExposeData();
-		Scribe_Values.Look(ref _features, "featureFlags", Features.All);
+		Scribe_Values.Look(ref _disabledFeatures, "disabledFeatures");
 	}
 
 	public void Apply() {
