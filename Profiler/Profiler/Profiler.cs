@@ -76,16 +76,17 @@ public class Profiler(string id) : IEnumerable<ProfilerRecord> {
 		labelColor ??= Color.cyan;
 		numberColor ??= Color.green;
 		var sb = new StringBuilder();
-		sb.AppendLine($"Profiler {Colored(Id, labelColor)}:");
+		Verse.Log.Message($"Profiler {Colored(Id, labelColor)}:");
 		foreach ((string label, int count, long ticks) in records) {
 			var time = (double)ticks * 1000 / Stopwatch.Frequency;
 			sb.Append($"  {Colored(label, labelColor)}: ");
-			sb.Append($"Count={Colored(count.ToString(), numberColor)}, ");
+			sb.Append($"Count={Colored(count, numberColor)}, ");
 			sb.Append($"Time={Colored($"{time:F2}ms", numberColor)}, ");
-			sb.Append($"Average={Colored($"{time * 1000 / count:F2}μs", numberColor)}");
-			sb.AppendLine();
+			if (count > 0)
+				sb.Append($"Average={Colored($"{time * 1000 / count:F2}μs", numberColor)}");
+			Verse.Log.Message(sb.ToString());
+			sb.Clear();
 		}
-		Verse.Log.Message(sb.ToString());
 		return true;
 	}
 
