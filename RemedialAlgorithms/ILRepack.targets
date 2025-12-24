@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Target Name="Merge" AfterTargets="Build">
+		<ItemGroup>
+			<!-- ILRepack treats the first assembly as the primary assembly -->
+			<InputAssemblies Include="$(TargetPath)" />
+			<InputAssemblies
+				Include="$(TargetDir)*.dll"
+				Exclude="$(TargetPath);$(TargetDir)$(TargetName).Bundle.dll;$(TargetDir)Utility.dll;$(TargetDir)0Harmony.dll;$(TargetDir)System.*.dll"
+			/>
+		</ItemGroup>
+		<Message Text="BundledTarget: $(BundledTarget)" Importance="High" />
+		<ILRepack
+			Parallel="true"
+			DebugInfo="true"
+			Internalize="true"
+			LibraryPath="$(TargetDir);$(GameDir)\RimWorldWin64_Data\Managed"
+			InputAssemblies="@(InputAssemblies)"
+			TargetKind="Dll"
+			OutputFile="$(TargetDir)$(TargetName).Bundle.dll"
+		/>
+	</Target>
+</Project>
