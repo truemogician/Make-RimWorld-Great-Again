@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace TrueMogician.RimWorld.Utility;
@@ -8,19 +9,37 @@ public static class Formatter {
 	public static string Colored(string text, string color) => $"<color={color}>{text}</color>";
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static string Colored(IFormattable obj, string color) => Colored(obj.ToString(), color);
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static string Colored(string text, Color color) => Colored(text, $"#{ColorUtility.ToHtmlStringRGB(color)}");
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static string Colored(IFormattable obj, Color color) => Colored(obj.ToString(), color);
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static string Colored(string text, Color? color) => color is null ? text : Colored(text, color.Value);
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static string Colored(IFormattable obj, Color? color) => Colored(obj.ToString(), color);
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static string Bold(string text) => $"<b>{text}</b>";
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static string Bold(IFormattable obj) => Bold(obj.ToString());
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static string Italic(string text) => $"<i>{text}</i>";
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static string Italic(IFormattable obj) => Italic(obj.ToString());
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static string Size(string text, int size) => $"<size={size}>{text}</size>";
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static string Size(IFormattable obj, int size) => Size(obj.ToString(), size);
 
 	public static string Styled(string text, string? color = null, bool bold = false, bool italic = false, int? size = null) {
 		if (bold)
@@ -33,18 +52,24 @@ public static class Formatter {
 			text = Colored(text, color);
 		return text;
 	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static string Styled(IFormattable obj, string? color = null, bool bold = false, bool italic = false, int? size = null) =>
+		Styled(obj.ToString(), color, bold, italic, size);
 }
 
 public class StyledString(string text) {
+	public StyledString(IFormattable obj) : this(obj.ToString()) { }
+
 	public string Text { get; } = text;
 
-	public string? Color { get; set; } = null;
+	public string? Color { get; set; }
 
-	public bool Bold { get; set; } = false;
+	public bool Bold { get; set; }
 
-	public bool Italic { get; set; } = false;
+	public bool Italic { get; set; }
 
-	public int? Size { get; set; } = null;
+	public int? Size { get; set; }
 
 	public override string ToString() => Formatter.Styled(Text, Color, Bold, Italic, Size);
 
@@ -55,6 +80,8 @@ public class StyledString(string text) {
 
 public class StyleBuilder(string text) {
 	private readonly StyledString _styledString = new(text);
+
+	public StyleBuilder(IFormattable obj) : this(obj.ToString()) { }
 
 	public StyleBuilder Color(string color) {
 		_styledString.Color = color;
