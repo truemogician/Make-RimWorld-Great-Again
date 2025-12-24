@@ -1,13 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
+using TrueMogician.RimWorld.Utility;
+using UnityEngine;
 using Verse;
 
 // ReSharper disable InconsistentNaming
 
 namespace TrueMogician.RimWorld.RemedialAlgorithms.Patches;
+
+#if DEBUG
+using static Helper;
+using static Formatter;
+#endif
 
 [HarmonyPatch(typeof(TradeDeal))]
 public static class TradeDealPatches {
@@ -34,6 +42,15 @@ public static class TradeDealPatches {
 	[HarmonyPatch("AddAllTradeables")]
 	[HarmonyFinalizer]
 	public static void AddAllTradeables_Postfix() {
+#if DEBUG
+		if (_enabled) {
+			var totalCount = _tradeables.Values.Sum(l => l.Count);
+			var largestBucket = _tradeables.MaxBy(p => p.Value.Count);
+			var color = Color.green;
+			Logger.Message($"Tradeable Buckets: {Colored(_tradeables.Count, color)}, Total Tradeables: {Colored(totalCount, color)}, Average={Colored($"{(double)totalCount / _tradeables.Count:F2}", color)}");
+			Logger.Message($"Largest Bucket: Size={Colored(largestBucket.Value.Count, color)}, Def={Colored(largestBucket.Key.Def.defName, color)}");
+		}
+#endif
 		_tradeables.Clear();
 		_originalTradeables = null;
 		_enabled = false;
