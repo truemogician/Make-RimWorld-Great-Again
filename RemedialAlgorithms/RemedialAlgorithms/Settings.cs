@@ -7,16 +7,16 @@ using TrueMogician.RimWorld.Utility.Attributes;
 namespace TrueMogician.RimWorld.RemedialAlgorithms;
 
 [Flags]
+[FeaturesEnum("RemedialAlgorithms.Settings", true)]
 public enum Optimizations : ulong {
 	None = 0,
 
-	[Label("Trade Iteration")]
-	TradeIteration = 1 << 0,
+	TradeSetup = 1 << 0,
 }
 
-public class Settings() : FeatureSettings<Optimizations>(Helper.Logger, "disabledOptimizations") {
+public class Settings() : FeatureSettings<Optimizations>(Helper.Logger) {
 	static Settings() {
-		AddFeaturePatches(Optimizations.TradeIteration, typeof(TradeDealPatches));
+		AddFeaturePatches(Optimizations.TradeSetup, typeof(TradeDealPatches));
 	}
 
 	public static Settings Default { get; internal set; } = null!;
