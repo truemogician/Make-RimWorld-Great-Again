@@ -7,14 +7,15 @@ using TrueMogician.RimWorld.Utility.Attributes;
 namespace TrueMogician.RimWorld.Profiler;
 
 [Flags]
+[FeaturesEnum(DefaultEnabled = false)]
 public enum ProfileTargets : ulong {
 	None = 0,
 
-	[Label("Trade Deal")]
+	[Feature(Label = "Trade Deal")]
 	TradeDeal = 1 << 0,
 }
 
-public class Settings() : FeatureSettings<ProfileTargets>(Helper.Logger, "disabledTargets") {
+public class Settings() : FeatureSettings<ProfileTargets>(Helper.Logger) {
 	static Settings() {
 		AddFeaturePatches(ProfileTargets.TradeDeal, typeof(TradePatches));
 	}

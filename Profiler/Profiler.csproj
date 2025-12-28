@@ -16,6 +16,7 @@
 	<PropertyGroup>
 		<DistDir>$(MSBuildProjectDirectory)\Dist\</DistDir>
 		<AssemblyDistDir>$(DistDir)1.6\Assemblies\</AssemblyDistDir>
+		<CustomTaskDir>$(SolutionDir)Utility\Tasks\</CustomTaskDir>
 		<GameDir>$(SolutionDir)RimWorld</GameDir>
 		<SteamGameDir>G:\Game Files\Steam\steamapps\common\RimWorld</SteamGameDir>
 	</PropertyGroup>
@@ -65,7 +66,7 @@
 			<Reference Include="Microsoft.Build" />
 			<Reference Include="Microsoft.Build.Framework" />
 			<Reference Include="Microsoft.Build.Utilities.Core" />
-			<Code Type="Class" Language="cs" Source="$(SolutionDir)Utility\Tasks\BuildXml.cs" />
+			<Code Type="Class" Language="cs" Source="$(CustomTaskDir)BuildXml.cs" />
 		</Task>
 	</UsingTask>
 
@@ -75,7 +76,7 @@
 			<Reference Include="Microsoft.Build" />
 			<Reference Include="Microsoft.Build.Framework" />
 			<Reference Include="Microsoft.Build.Utilities.Core" />
-			<Code Type="Class" Language="cs" Source="$(SolutionDir)Utility\Tasks\CreateLink.cs" />
+			<Code Type="Class" Language="cs" Source="$(CustomTaskDir)CreateLink.cs" />
 		</Task>
 	</UsingTask>
 
