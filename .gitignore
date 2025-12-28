@@ -1,6 +1,7 @@
 .vs/
 .vscode/
 .github/
+.history/
 bin/
 bin.*/
 obj/
@@ -11,3 +12,6 @@ RimWorld/
 
 *.code-workspace
 *.dll
+Ideas.md
+Overview.md
+TODO.md
