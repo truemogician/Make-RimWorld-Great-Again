@@ -16,7 +16,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 	where T : struct, Enum {
 	protected static readonly Dictionary<T, HashSet<Type>> FeaturePatches = [];
 
-	protected static readonly ulong All = Enum.GetValues(typeof(T)).Cast<ulong>().Aggregate(0UL, (a, b) => a | b);
+	protected static readonly ulong All = Enum.GetValues(typeof(T)).Cast<T>().Aggregate(0UL, (a, v) => a | ToUlong(v));
 
 	protected static readonly string? TranslationKeyPrefix = typeof(T).GetCustomAttribute<FeaturesEnumAttribute>()?.TranslationKey;
 
@@ -127,16 +127,20 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 	}
 
 	public void Apply() {
-		if (AppliedPatches.Count > 0) {
-			Harmony.UnpatchAll(Harmony.Id);
-			Logger?.Message($"Removed {AppliedPatches.Count} patches");
+		var newPatches = GetEnabledPatches();
+		var patchesToRemove = AppliedPatches.Except(newPatches).ToList();
+		var patchesToAdd = newPatches.Except(AppliedPatches).ToList();
+		if (patchesToRemove.Count > 0) {
+			foreach (var patch in patchesToRemove)
+				Harmony.CreateClassProcessor(patch).Unpatch();
+			Logger?.Message($"Removed {patchesToRemove.Count} patches");
 		}
-		AppliedPatches = GetPatchTypes();
-		if (AppliedPatches.Count > 0) {
-			foreach (var patchType in AppliedPatches)
-				Harmony.PatchAll(patchType.Assembly);
-			Logger?.Message($"Applied {AppliedPatches.Count} patches");
+		if (patchesToAdd.Count > 0) {
+			foreach (var patch in patchesToAdd)
+				Harmony.CreateClassProcessor(patch).Patch();
+			Logger?.Message($"Applied {patchesToAdd.Count} patches");
 		}
+		AppliedPatches = newPatches;
 	}
 
 	public virtual void DrawContents(Listing_Standard listing, SettingsMenuConfig? config = null) {
@@ -211,7 +215,14 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 		}
 	}
 
-	protected ISet<Type> GetPatchTypes() {
+	protected static ISet<Type> GetAllPatches() {
+		var collection = new HashSet<Type>();
+		foreach (var types in FeaturePatches.Values)
+			collection.UnionWith(types);
+		return collection;
+	}
+
+	protected ISet<Type> GetEnabledPatches() {
 		var collection = new HashSet<Type>();
 		foreach (var (feature, types) in FeaturePatches) {
 			if (this[feature])
