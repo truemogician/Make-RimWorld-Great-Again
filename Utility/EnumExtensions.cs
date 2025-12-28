@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using TrueMogician.RimWorld.Utility.Attributes;
 using Verse;
 
 namespace TrueMogician.RimWorld.Utility;
@@ -17,8 +16,6 @@ public static class EnumExtensions {
 			? null
 			: @field.GetCustomAttribute<DescriptionAttribute>()?.description ??
 			@field.GetCustomAttribute<System.ComponentModel.DescriptionAttribute>()?.Description;
-
-		public string? Label => self.FieldInfo?.GetCustomAttribute<LabelAttribute>()?.Label;
 
 		public byte BitFlagCount {
 			get {
