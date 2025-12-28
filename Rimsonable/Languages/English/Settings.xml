@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<Rimsonable.Settings.Features>
+		<AllowGrenadesThroughShields>
+			<label>Allow Grenades Through Shields</label>
+			<description>Allows grenades to pass through shield bubbles.</description>
+		</AllowGrenadesThroughShields>
+	</Rimsonable.Settings.Features>
+</LanguageData>

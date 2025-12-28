@@ -17,6 +17,7 @@
 		<ProjectRoot>$(ProjectDir)..\</ProjectRoot>
 		<DistDir>$(ProjectRoot)Dist\</DistDir>
 		<AssemblyDistDir>$(DistDir)1.6\Assemblies\</AssemblyDistDir>
+		<CustomTaskDir>$(SolutionDir)Utility\Tasks\</CustomTaskDir>
 		<GameDir>$(SolutionDir)RimWorld</GameDir>
 		<SteamGameDir>G:\Game Files\Steam\steamapps\common\RimWorld</SteamGameDir>
 	</PropertyGroup>
@@ -58,13 +59,23 @@
 		<ProjectReference Include="$(SolutionDir)Utility\Utility.csproj" />
 	</ItemGroup>
 
+	<UsingTask TaskName="ProcessTranslations" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+		<ParameterGroup />
+		<Task>
+			<Reference Include="Microsoft.Build" />
+			<Reference Include="Microsoft.Build.Framework" />
+			<Reference Include="Microsoft.Build.Utilities.Core" />
+			<Code Type="Class" Language="cs" Source="$(CustomTaskDir)ProcessTranslations.cs" />
+		</Task>
+	</UsingTask>
+
 	<UsingTask TaskName="BuildXml" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
 		<ParameterGroup />
 		<Task>
 			<Reference Include="Microsoft.Build" />
 			<Reference Include="Microsoft.Build.Framework" />
 			<Reference Include="Microsoft.Build.Utilities.Core" />
-			<Code Type="Class" Language="cs" Source="$(SolutionDir)Utility\Tasks\BuildXml.cs" />
+			<Code Type="Class" Language="cs" Source="$(CustomTaskDir)BuildXml.cs" />
 		</Task>
 	</UsingTask>
 
@@ -74,7 +85,7 @@
 			<Reference Include="Microsoft.Build" />
 			<Reference Include="Microsoft.Build.Framework" />
 			<Reference Include="Microsoft.Build.Utilities.Core" />
-			<Code Type="Class" Language="cs" Source="$(SolutionDir)Utility\Tasks\CreateLink.cs" />
+			<Code Type="Class" Language="cs" Source="$(CustomTaskDir)CreateLink.cs" />
 		</Task>
 	</UsingTask>
 
@@ -93,7 +104,9 @@
 			<AboutToken Include="Description" Value="$(Description)" />
 		</ItemGroup>
 		<BuildXml Template="$(ProjectRoot)Template\About.xml" Destination="$(DistDir)About\About.xml" Tokens="@(AboutToken)" />
-		<!-- 3. Copy Utility.dll -->
+		<!-- 3. Process Language Files -->
+		<ProcessTranslations SourceFolder="$(ProjectRoot)Languages" DestinationFolder="$(DistDir)Shared\Languages" />
+		<!-- 4. Copy Utility.dll -->
 		<Copy SourceFiles="$(TargetDir)Utility.dll" DestinationFolder="$(AssemblyDistDir)" SkipUnchangedFiles="true" />
 		<Message Text="Distribution build complete at: $(DistDir)" Importance="high" />
 	</Target>
