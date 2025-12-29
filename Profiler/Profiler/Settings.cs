@@ -13,11 +13,15 @@ public enum ProfileTargets : ulong {
 
 	[Feature(Label = "Trade Deal")]
 	TradeDeal = 1 << 0,
+
+	[Feature(Label = "Thing Tick")]
+	ThingTick = 1 << 1
 }
 
 public class Settings() : FeatureSettings<ProfileTargets>(Helper.Logger) {
 	static Settings() {
 		AddFeaturePatches(ProfileTargets.TradeDeal, typeof(TradePatches));
+		AddFeaturePatches(ProfileTargets.ThingTick, typeof(TickPatches));
 	}
 
 	public static Settings Default { get; internal set; } = null!;

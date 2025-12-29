@@ -103,12 +103,12 @@ public class Profiler(string id) : IEnumerable<ProfilerRecord> {
 	}
 }
 
-public record ProfilerRecord(string Label, int Count = 0, long Ticks = 0) {
-	private int _count = Count;
+public class ProfilerRecord(string label, int count = 0, long ticks = 0) {
+	private int _count = count;
 
-	private long _ticks = Ticks;
+	private long _ticks = ticks;
 
-	public string Label { get; } = Label;
+	public string Label { get; } = label;
 
 	public int Count => _count;
 
@@ -126,5 +126,13 @@ public record ProfilerRecord(string Label, int Count = 0, long Ticks = 0) {
 	public void Reset() {
 		_count = 0;
 		_ticks = 0;
+	}
+
+	public ProfilerRecord Clone() => new(Label, Count, Ticks);
+
+	public void Deconstruct(out string label, out int count, out long ticks) {
+		label = Label;
+		count = Count;
+		ticks = Ticks;
 	}
 }
