@@ -28,13 +28,11 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 
 	private ulong _specifiedMask;
 
-	public record SettingsMenuConfig {
-		public string ResetButtonText { get; init; } = "Reset";
-
-		public float ResetButtonWidth { get; init; } = 80f;
-
-		public float RowGap { get; init; } = 4f;
-	}
+	public record SettingsMenuConfig(
+		string ResetButtonText = "Reset",
+		float ResetButtonWidth = 80f,
+		float RowGap = 4f
+	);
 
 	public virtual T DefaultFeatures { get; } = GetDefaultFeatures();
 
@@ -157,9 +155,10 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 			ulong effectiveFeatures = (ToUlong(DefaultFeatures) & ~newMask) | (newFeatures & newMask);
 			bool enabled = (effectiveFeatures & featureMask) == featureMask;
 
-			var rowRect = listing.GetRect(Mathf.Max(Text.LineHeight, 24f));
-			var buttonRect = new Rect(rowRect.xMax - config.ResetButtonWidth, rowRect.y, config.ResetButtonWidth, rowRect.height);
-			var checkRect = new Rect(rowRect.x, rowRect.y, rowRect.width - config.ResetButtonWidth - config.RowGap, rowRect.height);
+			var rects = listing.GetRect(Mathf.Max(Text.LineHeight, 24f))
+				.ToFlexbox(["1fr", config.ResetButtonWidth], config.RowGap)
+				.ToArray();
+			Rect checkRect = rects[0], buttonRect = rects[1];
 
 			if (description is { } tip && !tip.NullOrEmpty())
 				TooltipHandler.TipRegion(checkRect, tip);
