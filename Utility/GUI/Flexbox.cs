@@ -1,8 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -17,8 +17,8 @@ public class Flexbox(Rect rect, params Flexbox.Length[] lengths) : IEnumerable<R
 		string mainAxisName = isRow ? "width" : "height";
 
 		int count = Lengths.Count;
-		float totalFixedPx = Lengths.Where(l => l.UnitType == Length.Unit.Px).Sum(l => l.Value);
-		float totalFr = Lengths.Where(l => l.UnitType == Length.Unit.Fr).Sum(l => l.Value);
+		float totalFixedPx = Lengths.Sum(l => l.Px);
+		float totalFr = Lengths.Sum(l => l.Fr);
 		float totalGapPx = Gap * (count - 1);
 		float totalFixedAndGapPx = totalFixedPx + totalGapPx;
 
@@ -63,8 +63,7 @@ public class Flexbox(Rect rect, params Flexbox.Length[] lengths) : IEnumerable<R
 		if (!isReverse) {
 			float current = mainAxisStart + startOffset;
 			for (var i = 0; i < count; i++) {
-				(float val, var unit) = Lengths[i];
-				float len = unit == Length.Unit.Fr ? val * pxPerFr : val;
+				float len = Lengths[i].CalculatedLength(pxPerFr);
 				yield return isRow
 					? new Rect(current, rect.y, len, rect.height)
 					: new Rect(rect.x, current, rect.width, len);
@@ -76,8 +75,7 @@ public class Flexbox(Rect rect, params Flexbox.Length[] lengths) : IEnumerable<R
 		else {
 			float current = mainAxisEnd - startOffset;
 			for (var i = 0; i < count; i++) {
-				(float val, var unit) = Lengths[i];
-				float len = unit == Length.Unit.Fr ? val * pxPerFr : val;
+				float len = Lengths[i].CalculatedLength(pxPerFr);
 				current -= len;
 				yield return isRow
 					? new Rect(current, rect.y, len, rect.height)
@@ -90,54 +88,68 @@ public class Flexbox(Rect rect, params Flexbox.Length[] lengths) : IEnumerable<R
 
 	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-	public record Length(float Value, Length.Unit UnitType) {
+	public readonly record struct Length(float Px, float Fr) {
 		private static readonly Regex FlexPattern = new(
 			@"^(?<val>\d+(?:\.\d+)?)\s*(?<unit>fr|px)?$",
 			RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase
 		);
 
-		public enum Unit : byte {
-			Px,
-			Fr
-		}
+		public static Length Auto { get; } = Fraction(1);
 
-		public static Length Px(float value) => new(value, Unit.Px);
+		public bool Valid => Fr > 0 || Fr == 0 && Px >= 0;
 
-		public static Length Fr(float value) => new(value, Unit.Fr);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static Length Pixel(float value) => new(value, 0f);
 
-		public static bool TryParse(string s, [MaybeNullWhen(false)] out Length length) {
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static Length Fraction(float value) => new(0, value);
+
+		public static bool TryParse(string s, out Length length) {
 			var match = FlexPattern.Match(s);
 			if (!match.Success) {
-				length = null;
+				length = 0;
 				return false;
 			}
 			float val = float.Parse(match.Groups["val"].Value);
 			string unit = match.Groups["unit"].Value.ToLowerInvariant();
-			length = new Length(
-				val,
-				unit switch {
-					"fr"       => Unit.Fr,
-					"px" or "" => Unit.Px,
-					_          => throw new FormatException($"Invalid unit in flexbox length: {unit}")
-				}
-			);
+			length = unit switch {
+				"fr"       => Fraction(val),
+				"px" or "" => Pixel(val),
+				_          => throw new FormatException($"Invalid flexbox length unit: {unit}")
+			};
 			return true;
 		}
 
-		public override string ToString() => UnitType switch {
-			Unit.Px => $"{Value:F1}px",
-			Unit.Fr => $"{Value:F1}fr",
-			_       => throw new InvalidOperationException()
-		};
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public float CalculatedLength(float pxPerFr) => Px + Fr * pxPerFr;
 
-		public static implicit operator Length(float value) => Px(value);
+		public override string ToString() {
+			var frPart = Fr != 0 ? $"{Fr}fr" : null;
+			var pxPart = Px != 0 ? $"{MathF.Abs(Px)}px" : null;
+			return pxPart is not null && frPart is not null
+				? $"{frPart}{(Px < 0 ? '-' : '+')}{pxPart}"
+				: pxPart ?? frPart ?? "0px";
+		}
+
+		public static Length operator *(Length l, float k) => new(l.Px * k, l.Fr * k);
+
+		public static Length operator /(Length l, float k) => new(l.Px / k, l.Fr / k);
+
+		public static Length operator +(Length a, Length b) => new(a.Px + b.Px, a.Fr + b.Fr);
+
+		public static Length operator -(Length a, Length b) => new(a.Px - b.Px, a.Fr - b.Fr);
+
+		public static implicit operator Length(float value) => Pixel(value);
 
 		public static implicit operator Length(string s)
 			=> TryParse(s, out var length) ? length : throw new FormatException($"Invalid flexbox length format: {s}");
 	}
 
-	public IReadOnlyList<Length> Lengths { get; } =
-		lengths.Length > 0 ? lengths : throw new ArgumentException("At least one length must be specified.", nameof(lengths));
+	public IReadOnlyList<Length> Lengths { get; } = lengths switch {
+		null or { Length: 0 }                    => throw new ArgumentException("At least one length must be specified.", nameof(lengths)),
+		not null when lengths.Any(l => !l.Valid) => throw new ArgumentException("All lengths must be non-negative.", nameof(lengths)),
+		_                                        => lengths
+	};
 
 	public FlexDirection Direction { get; init; } = FlexDirection.Row;
 

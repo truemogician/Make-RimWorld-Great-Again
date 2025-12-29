@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -23,6 +23,17 @@ public static class RectExtensions {
 			float gap = 0f,
 			JustifyContent justifyContent = JustifyContent.FlexStart
 		) => new(rect, lengths.ToArray()) {
+			Gap = gap,
+			JustifyContent = justifyContent
+		};
+
+		public Flexbox ToFlexbox(
+			FlexDirection direction,
+			int count,
+			float gap = 0f,
+			JustifyContent justifyContent = JustifyContent.FlexStart
+		) => new(rect, Enumerable.Repeat(Flexbox.Length.Auto, count).ToArray()) {
+			Direction = direction,
 			Gap = gap,
 			JustifyContent = justifyContent
 		};
