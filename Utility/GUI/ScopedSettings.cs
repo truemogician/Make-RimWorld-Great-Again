@@ -11,38 +11,43 @@ public static class Scoped {
 	public static ScopedGUI GUI(bool? enabled = null)
 		=> new() { Enabled = enabled };
 
-	public static ScopedText Text(TextAnchor? anchor = null, GameFont? font = null)
-		=> new() { Anchor = anchor, Font = font };
+	public static ScopedText Text(
+		TextAnchor? anchor = null,
+		GameFont? font = null,
+		bool? wordWrap = null
+	) => new() { Anchor = anchor, Font = font, WordWrap = wordWrap };
 }
 
 public class ScopedGUI : IDisposable {
-	private readonly bool? _oldEnabled;
+	private readonly bool? _enabled;
 
 	public bool? Enabled {
 		init {
 			if (value is null)
 				return;
-			_oldEnabled = GUI.enabled;
+			_enabled = GUI.enabled;
 			GUI.enabled = value.Value;
 		}
 	}
 
 	public void Dispose() {
-		if (_oldEnabled.HasValue)
-			GUI.enabled = _oldEnabled.Value;
+		if (_enabled.HasValue)
+			GUI.enabled = _enabled.Value;
 	}
 }
 
 public class ScopedText : IDisposable {
-	private readonly TextAnchor? _oldAnchor;
+	private readonly TextAnchor? _anchor;
 
-	private readonly GameFont? _oldFont;
+	private readonly GameFont? _font;
+
+	private readonly bool? _wordWrap;
 
 	public TextAnchor? Anchor {
 		init {
 			if (value is null)
 				return;
-			_oldAnchor = Text.Anchor;
+			_anchor = Text.Anchor;
 			Text.Anchor = value.Value;
 		}
 	}
@@ -51,15 +56,26 @@ public class ScopedText : IDisposable {
 		init {
 			if (value is null)
 				return;
-			_oldFont = Text.Font;
+			_font = Text.Font;
 			Text.Font = value.Value;
 		}
 	}
 
+	public bool? WordWrap {
+		init {
+			if (value is null)
+				return;
+			_wordWrap = Text.WordWrap;
+			Text.WordWrap = value.Value;
+		}
+	}
+
 	public void Dispose() {
-		if (_oldAnchor.HasValue)
-			Text.Anchor = _oldAnchor.Value;
-		if (_oldFont.HasValue)
-			Text.Font = _oldFont.Value;
+		if (_anchor.HasValue)
+			Text.Anchor = _anchor.Value;
+		if (_font.HasValue)
+			Text.Font = _font.Value;
+		if (_wordWrap.HasValue)
+			Text.WordWrap = _wordWrap.Value;
 	}
 }
