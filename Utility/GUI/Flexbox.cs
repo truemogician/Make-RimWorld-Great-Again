@@ -5,33 +5,86 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace TrueMogician.RimWorld.Utility.GUI;
 
 public class Flexbox(Rect rect, params Flexbox.Length[] lengths) : IEnumerable<Rect> {
 	public IEnumerator<Rect> GetEnumerator() {
+		bool isRow = Direction is FlexDirection.Row or FlexDirection.RowReverse;
+		bool isReverse = Direction is FlexDirection.RowReverse or FlexDirection.ColumnReverse;
+		float mainAxisSize = isRow ? rect.width : rect.height;
+		string mainAxisName = isRow ? "width" : "height";
+
+		int count = Lengths.Count;
 		float totalFixedPx = Lengths.Where(l => l.UnitType == Length.Unit.Px).Sum(l => l.Value);
 		float totalFr = Lengths.Where(l => l.UnitType == Length.Unit.Fr).Sum(l => l.Value);
-		float totalGapPx = Gap * (Lengths.Count - 1);
+		float totalGapPx = Gap * (count - 1);
 		float totalFixedAndGapPx = totalFixedPx + totalGapPx;
 
-		if (totalFixedAndGapPx > rect.width) {
+		if (totalFixedAndGapPx > mainAxisSize) {
 			throw new ArgumentOutOfRangeException(
 				nameof(Lengths),
-				$"Total fixed width + gaps ({totalFixedAndGapPx}px) exceeds the available Rect width ({rect.width}px)."
+				$"Total fixed {mainAxisName} + gaps ({totalFixedAndGapPx}px) exceeds the available Rect {mainAxisName} ({mainAxisSize}px)."
 			);
 		}
 
-		float availableSpace = rect.width - totalFixedAndGapPx;
-		float pxPerFr = totalFr > 0 ? availableSpace / totalFr : 0;
-		float currentX = rect.x;
-		for (var i = 0; i < Lengths.Count; i++) {
-			(float val, var unit) = Lengths[i];
-			float width = unit == Length.Unit.Fr ? val * pxPerFr : val;
-			yield return new Rect(currentX, rect.y, width, rect.height);
-			currentX += width;
-			if (i < Lengths.Count - 1)
-				currentX += Gap;
+		float availableSpace = mainAxisSize - totalFixedAndGapPx;
+		float pxPerFr = totalFr > 0 ? availableSpace / totalFr : 0f;
+		float freeSpace = totalFr > 0 ? 0f : availableSpace;
+
+		var startOffset = 0f;
+		var extraBetween = 0f;
+		if (freeSpace > 0f) {
+			switch (JustifyContent) {
+				case JustifyContent.FlexStart: break;
+				case JustifyContent.FlexEnd:   startOffset = freeSpace; break;
+				case JustifyContent.Center:    startOffset = freeSpace / 2f; break;
+				case JustifyContent.SpaceBetween:
+					if (count > 1)
+						extraBetween = freeSpace / (count - 1);
+					break;
+				case JustifyContent.SpaceAround:
+					extraBetween = freeSpace / count;
+					startOffset = extraBetween / 2f;
+					break;
+				case JustifyContent.SpaceEvenly:
+					extraBetween = freeSpace / (count + 1);
+					startOffset = extraBetween;
+					break;
+				default: throw new ArgumentOutOfRangeException(nameof(JustifyContent), JustifyContent, "Unsupported justify content.");
+			}
+		}
+
+		float effectiveGap = Gap + extraBetween;
+		float mainAxisStart = isRow ? rect.x : rect.y;
+		float mainAxisEnd = mainAxisStart + mainAxisSize;
+
+		if (!isReverse) {
+			float current = mainAxisStart + startOffset;
+			for (var i = 0; i < count; i++) {
+				(float val, var unit) = Lengths[i];
+				float len = unit == Length.Unit.Fr ? val * pxPerFr : val;
+				yield return isRow
+					? new Rect(current, rect.y, len, rect.height)
+					: new Rect(rect.x, current, rect.width, len);
+				current += len;
+				if (i < count - 1)
+					current += effectiveGap;
+			}
+		}
+		else {
+			float current = mainAxisEnd - startOffset;
+			for (var i = 0; i < count; i++) {
+				(float val, var unit) = Lengths[i];
+				float len = unit == Length.Unit.Fr ? val * pxPerFr : val;
+				current -= len;
+				yield return isRow
+					? new Rect(current, rect.y, len, rect.height)
+					: new Rect(rect.x, current, rect.width, len);
+				if (i < count - 1)
+					current -= effectiveGap;
+			}
 		}
 	}
 
@@ -83,7 +136,12 @@ public class Flexbox(Rect rect, params Flexbox.Length[] lengths) : IEnumerable<R
 			=> TryParse(s, out var length) ? length : throw new FormatException($"Invalid flexbox length format: {s}");
 	}
 
-	public IReadOnlyList<Length> Lengths { get; } = lengths;
+	public IReadOnlyList<Length> Lengths { get; } =
+		lengths.Length > 0 ? lengths : throw new ArgumentException("At least one length must be specified.", nameof(lengths));
+
+	public FlexDirection Direction { get; init; } = FlexDirection.Row;
+
+	public JustifyContent JustifyContent { get; init; } = JustifyContent.FlexStart;
 
 	public Rect Rect => rect;
 
@@ -95,4 +153,13 @@ public class Flexbox(Rect rect, params Flexbox.Length[] lengths) : IEnumerable<R
 			field = value;
 		}
 	} = 0f;
+}
+
+public enum JustifyContent : byte {
+	FlexStart,
+	FlexEnd,
+	Center,
+	SpaceBetween,
+	SpaceAround,
+	SpaceEvenly
 }
