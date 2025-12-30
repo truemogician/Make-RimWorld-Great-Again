@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,15 +6,15 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading;
 using HarmonyLib;
+using TrueMogician.RimWorld.Utility;
 using UnityEngine;
 
 // ReSharper disable InconsistentNaming
 
 namespace TrueMogician.RimWorld.Profiler;
 
-using static Utility.Formatter;
+using static Formatter;
 
 public class Profiler(string id) : IEnumerable<ProfilerRecord> {
 	private static readonly List<ProfilerRecord> _records = [];
@@ -104,28 +104,24 @@ public class Profiler(string id) : IEnumerable<ProfilerRecord> {
 }
 
 public class ProfilerRecord(string label, int count = 0, long ticks = 0) {
-	private int _count = count;
-
-	private long _ticks = ticks;
-
 	public string Label { get; } = label;
 
-	public int Count => _count;
+	public int Count { get; private set; } = count;
 
-	public long Ticks => _ticks;
+	public long Ticks { get; private set; } = ticks;
 
 	public double AverageTicks => Count == 0 ? 0 : (double)Ticks / Count;
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void Increment(long ticks) {
-		Interlocked.Increment(ref _count);
-		Interlocked.Add(ref _ticks, ticks);
+		++Count;
+		Ticks += ticks;
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void Reset() {
-		_count = 0;
-		_ticks = 0;
+		Count = 0;
+		Ticks = 0;
 	}
 
 	public ProfilerRecord Clone() => new(Label, Count, Ticks);

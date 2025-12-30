@@ -42,32 +42,35 @@ public static class TickPatches {
 	public static void Stop() => Enabled = false;
 
 	[HarmonyPatch(typeof(TickManager), nameof(TickManager.DoSingleTick))]
+	[HarmonyPriority(Priority.Last)]
 	[HarmonyPrefix]
 	private static void TickManager_DoSingleTick_Prefix() {
 		TickStarted = Enabled ? Stopwatch.GetTimestamp() : 0L;
 	}
 
 	[HarmonyPatch(typeof(TickManager), nameof(TickManager.DoSingleTick))]
+	[HarmonyPriority(Priority.First)]
 	[HarmonyFinalizer]
 	private static void TickManager_DoSingleTick_Finalizer() {
-		if (TickStarted != 0) {
-			var time = Stopwatch.GetTimestamp() - TickStarted;
-			var record = new SingleTickRecord {
-				Time = time,
-				KeyedRecords = CurrentKeyedRecords,
-				TypedRecords = CurrentTypedRecords
-			};
-			lock (RecordsLock) {
-				AllRecords.Add(record);
-				Summary.Increment(time);
-				CurrentKeyedRecords = [];
-				CurrentTypedRecords = [];
-				TickStarted = 0;
-			}
+		if (TickStarted == 0)
+			return;
+		var time = Stopwatch.GetTimestamp() - TickStarted;
+		var record = new SingleTickRecord {
+			Time = time,
+			KeyedRecords = CurrentKeyedRecords,
+			TypedRecords = CurrentTypedRecords
+		};
+		lock (RecordsLock) {
+			AllRecords.Add(record);
+			Summary.Increment(time);
+			CurrentKeyedRecords = [];
+			CurrentTypedRecords = [];
+			TickStarted = 0;
 		}
 	}
 
 	[HarmonyPatch(typeof(Thing), nameof(Thing.DoTick))]
+	[HarmonyPriority(Priority.Last)]
 	[HarmonyPrefix]
 	private static void Thing_DoTick_Prefix(ref long __state) {
 		if (!Enabled || TickStarted == 0)
@@ -76,8 +79,9 @@ public static class TickPatches {
 	}
 
 	[HarmonyPatch(typeof(Thing), nameof(Thing.DoTick))]
-	[HarmonyFinalizer]
-	private static void Thing_DoTick_Finalizer(Thing __instance, long __state) {
+	[HarmonyPriority(Priority.First)]
+	[HarmonyPostfix]
+	private static void Thing_DoTick_Postfix(Thing __instance, long __state) {
 		if (!Enabled || TickStarted == 0)
 			return;
 		long time = Stopwatch.GetTimestamp() - __state;
