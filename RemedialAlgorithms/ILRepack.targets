@@ -6,7 +6,7 @@
 			<InputAssemblies Include="$(TargetPath)" />
 			<InputAssemblies
 				Include="$(TargetDir)*.dll"
-				Exclude="$(TargetPath);$(TargetDir)$(TargetName).Bundle.dll;$(TargetDir)Utility.dll;$(TargetDir)0Harmony.dll;$(TargetDir)System.*.dll"
+				Exclude="$(TargetPath);$(TargetDir)$(TargetName).Bundle.dll;$(TargetDir)TrueMogician.*.dll;$(TargetDir)0Harmony.dll;$(TargetDir)System.*.dll"
 			/>
 		</ItemGroup>
 		<Message Text="BundledTarget: $(BundledTarget)" Importance="High" />

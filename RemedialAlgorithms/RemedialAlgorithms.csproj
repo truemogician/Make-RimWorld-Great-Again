@@ -91,25 +91,22 @@
 	</UsingTask>
 
 	<Target Name="Distribute" AfterTargets="Merge">
-		<!-- 1. Copy Assets -->
 		<ItemGroup>
 			<ModAssets Include="$(ProjectDir)Public\**\*.*" />
-		</ItemGroup>
-		<Copy SourceFiles="@(ModAssets)" DestinationFolder="$(DistDir)%(RecursiveDir)" SkipUnchangedFiles="true" />
-		<!-- 2. Generate About.xml -->
-		<ItemGroup>
 			<AboutToken Include="Name" Value="$(Title)" />
 			<AboutToken Include="Author" Value="$(Authors)" />
 			<AboutToken Include="PackageId" Value="$(PackageId)" />
 			<AboutToken Include="Version" Value="$(Version)" />
 			<AboutToken Include="Description" Value="$(Description)" />
+			<LibraryAssemblies Include="$(TargetDir)TrueMogician.*.dll" />
 		</ItemGroup>
+		<!-- 1. Copy Assets -->
+		<Copy SourceFiles="@(ModAssets)" DestinationFolder="$(DistDir)%(RecursiveDir)" SkipUnchangedFiles="true" />
+		<!-- 2. Generate About.xml -->
 		<BuildXml Template="$(ProjectDir)Template\About.xml" Destination="$(DistDir)About\About.xml" Tokens="@(AboutToken)" />
-		<!-- 3. Process Language Files -->
-		<ProcessTranslations SourceFolder="$(ProjectDir)Languages" DestinationFolder="$(DistDir)Shared\Languages" />
-		<!-- 4. Copy Assembly -->
+		<!-- 3. Copy Assembly -->
 		<Copy SourceFiles="$(TargetDir)$(TargetName).Bundle.dll" DestinationFiles="$(AssemblyDistDir)$(AssemblyName).dll" />
-		<Copy SourceFiles="$(TargetDir)Utility.dll" DestinationFolder="$(AssemblyDistDir)" SkipUnchangedFiles="true" />
+		<Copy SourceFiles="@(LibraryAssemblies)" DestinationFolder="$(AssemblyDistDir)" SkipUnchangedFiles="true" />
 		<Message Text="Distribution build complete at: $(DistDir)" Importance="high" />
 	</Target>
 
