@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+	<MainButtonDef>
+		<defName>TickProfiler</defName>
+		<label>Tick Profiler</label>
+		<description>Tick profiler management and report.</description>
+		<tabWindowClass>TrueMogician.RimWorld.Profiler.Windows.TickProfilerMainTabWindow</tabWindowClass>
+		<order>100</order>
+	</MainButtonDef>
+</Defs>
