@@ -7,15 +7,21 @@ using TrueMogician.RimWorld.Utility.GUI;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Verse;
+using static TrueMogician.RimWorld.Utility.Formatter;
 
 namespace TrueMogician.RimWorld.Profiler.Windows;
 
 public sealed class TickProfilerReportWindow : Window {
 	private const float _ROW_HEIGHT = 24f;
-	private const int _MAX_LONG_TICKS_SHOWN = 10;
 	private const float _SCROLLBAR_WIDTH = 16f;
+	private const float _CLOSE_BUTTON_RESERVE_HEIGHT = 45f;
+	private const float _SECTION_GAP = 8f;
+	private const float _SECTION_PADDING = 8f;
+	private const float _TABLE_ROW_GAP = 4f;
+	private const float _TABLE_COLUMN_GAP = 6f;
+
+	private static readonly Flexbox.Length[] _TABLE_COLUMNS = [80f, 35f, 60f, 80f, Flexbox.Length.Auto];
 	private readonly List<AggregateEntry> _keyEntries;
-	private readonly List<(int Index, long Ticks)> _longTicks;
 	private readonly long _maxTickTicks;
 	private readonly long _minTickTicks;
 
@@ -31,7 +37,6 @@ public sealed class TickProfilerReportWindow : Window {
 	public TickProfilerReportWindow(IEnumerable<SingleTickRecord> records) {
 		_records = records as IReadOnlyList<SingleTickRecord> ?? records.ToArray();
 		if (_records.Count == 0) {
-			_longTicks = [];
 			_typeEntries = [];
 			_keyEntries = [];
 		}
@@ -39,12 +44,6 @@ public sealed class TickProfilerReportWindow : Window {
 			_totalTickTicks = _records.Sum(r => r.Time);
 			_minTickTicks = _records.Min(r => r.Time);
 			_maxTickTicks = _records.Max(r => r.Time);
-
-			_longTicks = _records
-				.Select((r, i) => (Index: i + 1, Ticks: r.Time))
-				.OrderByDescending(t => t.Ticks)
-				.Take(_MAX_LONG_TICKS_SHOWN)
-				.ToList();
 
 			var byType = new Dictionary<string, AggregateEntry>();
 			var byKey = new Dictionary<string, AggregateEntry>();
@@ -77,32 +76,31 @@ public sealed class TickProfilerReportWindow : Window {
 		absorbInputAroundWindow = true;
 	}
 
-	public override Vector2 InitialSize => new(1100f, 750f);
+	public override Vector2 InitialSize => new(1200f, 750f);
 
 	public override void DoWindowContents(Rect inRect) {
-		var rows = inRect.ToFlexbox(FlexDirection.Column, [35f, 70f, 90f, "1fr"], 5f).ToList();
-		using (Scoped.Text(font: GameFont.Medium))
+		var content = inRect;
+		content.height = Mathf.Max(0f, content.height - _CLOSE_BUTTON_RESERVE_HEIGHT);
+		var rows = content.ToFlexbox(FlexDirection.Column, [30f, 60f, "1fr"], _SECTION_GAP).ToList();
+		using (Scoped.Text(TextAnchor.MiddleCenter, GameFont.Medium))
 			Widgets.Label(rows[0], "Tick Profiler Report");
 		using (Scoped.Text(font: GameFont.Small)) {
 			DrawSummary(rows[1]);
-			DrawLongTicks(rows[2]);
-			DrawLists(rows[3]);
+			DrawLists(rows[2]);
 		}
 	}
 
 	private static void DrawAggregateTable(Rect rect, string title, List<AggregateEntry> entries, long totalTicks, ref Vector2 scrollPos) {
 		Widgets.DrawMenuSection(rect);
-		var inner = rect.ContractedBy(8f);
+		var inner = rect.ContractedBy(_SECTION_PADDING);
 
-		Widgets.Label(new Rect(inner.x, inner.y, inner.width, 22f), $"{title} — {entries.Count} entries");
-
-		float headerY = inner.y + 26f;
-		var headerRect = new Rect(inner.x, headerY, inner.width, 22f);
-		DrawHeaderRow(headerRect);
-
-		var outRect = new Rect(inner.x, headerRect.yMax + 2f, inner.width, inner.yMax - (headerRect.yMax + 2f));
+		var rows = inner.ToFlexbox(FlexDirection.Column, [22f, 22f, "1fr"], _TABLE_ROW_GAP).ToList();
+		Widgets.Label(rows[0], $"{title} — {Bold(entries.Count)} entries");
+		DrawHeaderRow(rows[1]);
+		var outRect = rows[2];
 		float viewHeight = entries.Count * _ROW_HEIGHT;
-		var viewRect = new Rect(0f, 0f, outRect.width - _SCROLLBAR_WIDTH, Math.Max(outRect.height, viewHeight));
+		var widths = outRect.ToFlexbox(["1fr", _SCROLLBAR_WIDTH]).ToList();
+		var viewRect = new Rect(0f, 0f, widths[0].width, Math.Max(outRect.height, viewHeight));
 
 		Widgets.BeginScrollView(outRect, ref scrollPos, viewRect);
 		try {
@@ -121,28 +119,28 @@ public sealed class TickProfilerReportWindow : Window {
 	}
 
 	private static void DrawHeaderRow(Rect rect) {
-		var cols = rect.ToFlexbox([90f, 55f, 60f, 90f, "1fr"], 6f).ToList();
-		using (Scoped.Text(TextAnchor.MiddleLeft)) {
-			Widgets.Label(cols[0], "Time");
-			Widgets.Label(cols[1], "%");
-			Widgets.Label(cols[2], "Count");
-			Widgets.Label(cols[3], "Avg");
-			Widgets.Label(cols[4], "Label");
+		var cols = rect.ToFlexbox(_TABLE_COLUMNS, _TABLE_COLUMN_GAP).ToList();
+		using (Scoped.Text(TextAnchor.MiddleRight)) {
+			Widgets.Label(cols[0], Bold("Time"));
+			Widgets.Label(cols[1], Bold("%"));
+			Widgets.Label(cols[2], Bold("Count"));
+			Widgets.Label(cols[3], Bold("Avg"));
 		}
+		using (Scoped.Text(TextAnchor.MiddleLeft))
+			Widgets.Label(cols[4], Bold("Label"));
 	}
 
 	private static void DrawEntryRow(Rect rect, AggregateEntry entry, long totalTicks) {
-		var cols = rect.ToFlexbox([90f, 55f, 60f, 90f, "1fr"], 6f).ToList();
+		var cols = rect.ToFlexbox(_TABLE_COLUMNS, _TABLE_COLUMN_GAP).ToList();
 
-		double timeMs = TicksToMs(entry.Ticks);
 		double pct = totalTicks == 0 ? 0 : entry.Ticks * 100.0 / totalTicks;
-		double avgUs = entry.Count == 0 ? 0 : entry.AverageTicks * 1_000_000.0 / Stopwatch.Frequency;
+		double avg = entry.Count == 0 ? 0 : entry.AverageTicks * 1_000_000.0 / Stopwatch.Frequency;
 
 		using (Scoped.Text(TextAnchor.MiddleRight)) {
-			Widgets.Label(cols[0], $"{timeMs:F2}ms");
+			Widgets.Label(cols[0], FormatTicks(entry.Ticks));
 			Widgets.Label(cols[1], $"{pct:F1}");
-			Widgets.Label(cols[2], entry.Count.ToString());
-			Widgets.Label(cols[3], $"{avgUs:F1}μs");
+			Widgets.Label(cols[2], FormatCount(entry.Count));
+			Widgets.Label(cols[3], FormatTime(avg, "µs"));
 		}
 
 		using (Scoped.Text(TextAnchor.MiddleLeft)) {
@@ -156,49 +154,59 @@ public sealed class TickProfilerReportWindow : Window {
 
 	private static double TicksToMs(long ticks) => ticks * 1000.0 / Stopwatch.Frequency;
 
-	private static string TicksToMsString(long ticks) => $"{TicksToMs(ticks):F3}ms";
+	private static string FormatTime(double time, string unit = "ms") => Colored(time.ToString("F2"), Color.green) + $" {unit}";
 
-	private void DrawSummary(Rect rect) {
-		Widgets.DrawMenuSection(rect);
-		var inner = rect.ContractedBy(8f);
+	private static string FormatTicks(long ticks) => FormatTime(TicksToMs(ticks));
 
-		int tickCount = _records.Count;
-		double avgTickMs = tickCount == 0 ? 0 : TicksToMs(_totalTickTicks) / tickCount;
+	private static string FormatCount(int count) => Colored(count, Color.cyan);
 
-		string[] lines = [
-			$"Ticks captured: {tickCount}\tTotal tick time: {TicksToMsString(_totalTickTicks)}\tAvg: {avgTickMs:F3}ms",
-			$"Min: {TicksToMsString(_minTickTicks)}\tMax: {TicksToMsString(_maxTickTicks)}",
-			$"Thing.DoTick typed total: {TicksToMsString(_totalTypedTicks)}\tkeyed total: {TicksToMsString(_totalKeyedTicks)}"
-		];
-		if (_totalTickTicks > 0)
-			lines[2] += $"\t(typed {_totalTypedTicks * 100.0 / _totalTickTicks:F1}% of tick time)";
-		var rows = inner.ToFlexbox(FlexDirection.Column, [22f, 22f, 22f]).ToArray();
-		using (Scoped.Text(TextAnchor.UpperLeft, wordWrap: false)) {
-			for (var i = 0; i < 3; ++i)
-				Widgets.Label(rows[i], lines[i]);
-		}
-	}
-
-	private void DrawLongTicks(Rect rect) {
-		Widgets.DrawMenuSection(rect);
-		var inner = rect.ContractedBy(8f);
-		Widgets.Label(new Rect(inner.x, inner.y, inner.width, 22f), "Longest ticks (by total tick time):");
-		float y = inner.y + 24f;
-		if (_longTicks.Count == 0) {
-			Widgets.Label(new Rect(inner.x, y, inner.width, 22f), "(none)");
-			return;
-		}
-		using (Scoped.Text(wordWrap: false)) {
-			for (var i = 0; i < _longTicks.Count; i++) {
-				(int index, long ticks) = _longTicks[i];
-				var line = $"#{index}: {TicksToMsString(ticks)}";
-				Widgets.Label(new Rect(inner.x, y + i * 18f, inner.width, 18f), line);
+	private static void DrawSummaryRow(Rect rect, params (string Label, string Value)?[] items) {
+		var flexbox = rect.ToFlexbox(
+			FlexDirection.Row,
+			Enumerable.Repeat<Flexbox.Length>(200f, items.Length),
+			justifyContent: JustifyContent.SpaceBetween
+		);
+		foreach (var (item, group) in items.Zip(flexbox, (i, g) => (i, g))) {
+			if (item is null)
+				continue;
+			(string label, string value) = item.Value;
+			var cols = group.ToFlexbox([55f, Flexbox.Length.Auto], 4f).ToList();
+			using (Scoped.Text(TextAnchor.MiddleLeft)) {
+				Widgets.Label(cols[0], Bold(label + ":"));
+				Widgets.Label(cols[1], value);
 			}
 		}
 	}
 
+	private void DrawSummary(Rect rect) {
+		Widgets.DrawMenuSection(rect);
+		var inner = rect.ContractedBy(_SECTION_PADDING);
+
+		int tickCount = _records.Count;
+		double avgTickMs = tickCount == 0 ? 0 : TicksToMs(_totalTickTicks) / tickCount;
+		var rows = inner.ToFlexbox(FlexDirection.Column, 2, 2f).ToList();
+		var typedPct = _totalTickTicks == 0 ? 0 : _totalTypedTicks * 100.0 / _totalTickTicks;
+		var keyedPct = _totalTickTicks == 0 ? 0 : _totalKeyedTicks * 100.0 / _totalTickTicks;
+		using (Scoped.Text(TextAnchor.UpperLeft, wordWrap: false)) {
+			DrawSummaryRow(
+				rows[0],
+				("Ticks", FormatCount(tickCount)),
+				("Total", FormatTicks(_totalTickTicks)),
+				("Typed", FormatTicks(_totalTypedTicks) + $" ({typedPct:F1}%)"),
+				("Keyed", FormatTicks(_totalKeyedTicks) + $" ({keyedPct:F1}%)")
+			);
+			DrawSummaryRow(
+				rows[1],
+				("Avg", FormatTime(avgTickMs)),
+				("Min", FormatTicks(_minTickTicks)),
+				("Max", FormatTicks(_maxTickTicks)),
+				null
+			);
+		}
+	}
+
 	private void DrawLists(Rect rect) {
-		var cols = rect.ToFlexbox(["1fr", "1fr"], 10f).ToList();
+		var cols = rect.ToFlexbox(FlexDirection.Row, 2, _SECTION_GAP).ToList();
 		DrawAggregateTable(cols[0], "By type (Thing.DoTick)", _typeEntries, _totalTypedTicks, ref _scrollTypes);
 		DrawAggregateTable(cols[1], "By key (selected pawns)", _keyEntries, _totalKeyedTicks, ref _scrollKeys);
 	}

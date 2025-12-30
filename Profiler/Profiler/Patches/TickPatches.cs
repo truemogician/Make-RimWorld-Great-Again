@@ -96,9 +96,9 @@ public static class TickPatches {
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static string? GetKey(Thing thing) {
 		return thing switch {
-			Pawn pawn when pawn.RaceProps.Humanlike => $"Human: {pawn.Name.ToStringFull}",
-			Pawn pawn when pawn.RaceProps.Animal => $"Animal: {pawn.KindLabel} ({pawn.Name.ToStringFull})",
-			_ => null
+			Pawn human when human.RaceProps.Humanlike => $"Human: {human.Name?.ToStringFull ?? human.ThingID}",
+			Pawn animal  when animal.RaceProps.Animal    => $"Animal: {animal.KindLabel} ({animal.Name?.ToStringFull ?? animal.ThingID})",
+			_                                       => null
 		};
 	}
 }
