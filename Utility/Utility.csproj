@@ -2,13 +2,18 @@
 
 	<PropertyGroup>
 		<TargetFramework>net472</TargetFramework>
+		<RootNamespace>TrueMogician.RimWorld.Utility</RootNamespace>
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
+		<PackageId>TrueMogician.RimWorld.Utility</PackageId>
+		<Version>1.0.0</Version>
 		<Authors>true_mogician</Authors>
 		<Description>Common utilities for true_mogician's mods</Description>
-		<Version>1.0.0</Version>
 		<Title>true_mogician's RimWorld Mod Utilities</Title>
-		<RootNamespace>TrueMogician.RimWorld.Utility</RootNamespace>
+		<AssemblyName>$(PackageId)</AssemblyName>
+	</PropertyGroup>
+
+	<PropertyGroup>
 		<GameDir>$(SolutionDir)RimWorld</GameDir>
 	</PropertyGroup>
 
@@ -23,10 +28,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.44.1">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
 		<PackageReference Include="IsExternalInit" Version="1.0.3">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -41,6 +42,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
-		<PackageReference Include="TrueMogician.Extensions.Enumerable" Version="2.1.0" PrivateAssets="all" />
+		<PackageReference Include="TrueMogician.Extensions.Enumerable" Version="2.1.1" />
+		<PackageReference Include="TrueMogician.Extensions.List" Version="1.3.1" />
 	</ItemGroup>
 </Project>
