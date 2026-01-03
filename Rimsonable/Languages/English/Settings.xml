@@ -9,5 +9,9 @@
 			<label>Safe Rest Location</label>
 			<description>Pawns (including animals) will only rest/sleep in safe locations without hazards like fire, pollution, or gas. They'll also avoid doors.</description>
 		</SafeRestLocation>
+		<TargetMarkEnhancement>
+			<label>Target Mark Enhancement</label>
+			<description>Artillery and mortars will prioritize firing at targets marked by the spotters. Other turrets gain a small accuracy boost when firing at marked targets.</description>
+		</TargetMarkEnhancement>
 	</Rimsonable.Settings.Features>
 </LanguageData>

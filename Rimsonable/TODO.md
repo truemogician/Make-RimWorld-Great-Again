@@ -68,9 +68,10 @@
 - **Implementation Difficulty:** High
 - **Performance Impact:** Medium
 
-### Target Mark Enhancement
+### ~~Target Mark Enhancement~~
 - **Description:** Artillery and mortars should prioritize firing at targets marked by spotters with binoculars. Other turrets gain a small accuracy boost when firing at marked targets.
+- **Completion Date:** 2026-01-03
 - **Mod Requirements:** Combat Extended
 - **Priority:** Medium
-- **Implementation Difficulty:** Medium
+- **Implementation Difficulty:** Low
 - **Performance Impact:** Low

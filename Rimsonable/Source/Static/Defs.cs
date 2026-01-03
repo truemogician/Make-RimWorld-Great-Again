@@ -1,13 +1,14 @@
 using RimWorld;
 using Verse;
 
+#pragma warning disable CS8618
+// ReSharper disable UnassignedField.Global
+
 namespace TrueMogician.RimWorld.Rimsonable.Static;
 
 [DefOf]
 public static class Defs {
-	static Defs() {
-		DefOfHelper.EnsureInitializedInCtor(typeof(Defs));
-	}
+	public static ThingCategoryDef Grenades;
 
-	public static ThingCategoryDef Grenades = null!;
+	static Defs() => DefOfHelper.EnsureInitializedInCtor(typeof(Defs));
 }

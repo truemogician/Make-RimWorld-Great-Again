@@ -14,7 +14,10 @@ public enum Features : ulong {
 
 	AllowGrenadesThroughShields = 1 << 0,
 
-	SafeRestLocation = 1 << 1
+	SafeRestLocation = 1 << 1,
+
+	[Feature(ModDependencies = [ModIds.CombatExtended])]
+	TargetMarkEnhancement = 1 << 2
 }
 
 public class Settings() : FeatureSettings<Features>(Helper.Logger) {

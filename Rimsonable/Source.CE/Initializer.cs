@@ -1,4 +1,5 @@
 using CombatExtended;
+using TrueMogician.RimWorld.Rimsonable.CE.Patches;
 using TrueMogician.RimWorld.Rimsonable.Static;
 using Verse;
 
@@ -9,7 +10,8 @@ using BasePatches = Rimsonable.Patches;
 [StaticConstructorOnStartup]
 public static class Initializer {
 	static Initializer() {
-		BasePatches.CompShieldPatches.AddLaunchVerb(typeof(Verb_LaunchProjectileCE));
+		BasePatches.AllowGrenadesThroughShields.AddLaunchVerb(typeof(Verb_LaunchProjectileCE));
+		Settings.AddFeaturePatches(Features.TargetMarkEnhancement, typeof(TargetMarkEnhancements));
 		Helper.Logger.Message("Combat Extended support initialized");
 	}
 }
