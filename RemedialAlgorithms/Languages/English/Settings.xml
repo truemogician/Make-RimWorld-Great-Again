@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
-	<Rimsonable.Settings>
+	<RemedialAlgorithms.Settings>
 		<TradeSetup>
 			<label>Trade Setup</label>
 			<description>Speed up the initialization of a trade.</description>
 		</TradeSetup>
-	</Rimsonable.Settings>
+	</RemedialAlgorithms.Settings>
 </LanguageData>
