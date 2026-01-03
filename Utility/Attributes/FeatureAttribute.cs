@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace TrueMogician.RimWorld.Utility.Attributes;
 
@@ -38,6 +38,16 @@ public class FeatureAttribute : FeatureAttributeBase {
 	///     <see cref="FeaturesEnumAttribute.DefaultEnabled" /> is used.
 	/// </summary>
 	public bool? DefaultEnabled { get; init; }
+
+	/// <summary>
+	///		An array of mod identifiers that this feature depends on.
+	/// </summary>
+	public string[]? ModDependencies { get; init; }
+
+	/// <summary>
+	///		An array of mod identifiers that this feature is incompatible with.
+	/// </summary>
+	public string[]? ModIncompatibilities { get; init; }
 }
 
 /// <summary>

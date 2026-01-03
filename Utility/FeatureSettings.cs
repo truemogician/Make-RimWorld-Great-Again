@@ -31,7 +31,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 	public record SettingsMenuConfig(
 		string ResetButtonText = "Reset",
 		float ResetButtonWidth = 80f,
-		float RowGap = 4f
+		float RowGap = 10f
 	);
 
 	public virtual T DefaultFeatures { get; } = GetDefaultFeatures();
@@ -41,6 +41,9 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 	protected string SpecifiedFeaturesLabel { get; init; } = "specifiedFeatures";
 
 	public T Features => FromUlong(FeaturesUlong);
+
+	protected static IReadOnlyList<string> ModIds
+		=> field ??= ModsConfig.ActiveModsInLoadOrder.Select(m => m.PackageId).ToArray();
 
 	protected ulong FeaturesUlong => GetEffectiveFeatures(ToUlong(DefaultFeatures), _specifiedFeatures, _specifiedMask);
 
@@ -72,7 +75,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 		bool defaultEnabled = typeof(T).GetCustomAttribute<FeaturesEnumAttribute>()?.DefaultEnabled ?? true;
 		ulong result = defaultEnabled ? All : 0;
 		foreach (var (feature, attributes) in GetFeatureAttributes()) {
-			var enabled = attributes.OfType<FeatureAttribute>().FirstOrDefault()?.DefaultEnabled;
+			bool? enabled = attributes.OfType<FeatureAttribute>().FirstOrDefault()?.DefaultEnabled;
 			if (enabled.HasValue && enabled.Value != defaultEnabled) {
 				if (enabled.Value)
 					result |= ToUlong(feature);
@@ -84,6 +87,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 	}
 
 	public static IEnumerable<(T Feature, TaggedString Label, TaggedString? Description)> GetSettingsMenuEntries() {
+		var modIds = ModIds.ToHashSet(StringComparer.OrdinalIgnoreCase);
 		foreach (var (feature, attributes) in GetFeatureAttributes()) {
 			if (attributes.Length == 0) {
 				if (!feature.IsSingleBitFlag)
@@ -92,7 +96,11 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 			else if (attributes.OfType<FeatureIgnoreAttribute>().Any())
 				continue;
 			var attr = attributes.OfType<FeatureAttribute>().FirstOrDefault();
-			var translationKey = attr?.TranslationKey ?? (TranslationKeyPrefix is { } prefix ? $"{prefix}.{feature}" : null);
+			if (attr?.ModDependencies is { Length: > 0 } dependencies && !dependencies.All(modIds.Contains))
+				continue;
+			if (attr?.ModIncompatibilities is { Length: > 0 } incompatibilities && incompatibilities.Any(modIds.Contains))
+				continue;
+			string? translationKey = attr?.TranslationKey ?? (TranslationKeyPrefix is { } prefix ? $"{prefix}.{feature}" : null);
 			TaggedString label;
 			TaggedString? description;
 			if (translationKey is null) {
@@ -100,7 +108,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 				description = attr?.Description;
 			}
 			else {
-				label = $"{translationKey}.label".TryTranslate(out var l) ? l : (attr?.Label ?? feature.ToString());
+				label = $"{translationKey}.label".TryTranslate(out var l) ? l : attr?.Label ?? feature.ToString();
 				description = $"{translationKey}.description".TryTranslate(out var d) ? d : attr?.Description;
 			}
 			yield return (feature, label, description);
@@ -113,7 +121,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 	}
 
 	public void ResetFeature(T feature) {
-		var value = ToUlong(feature);
+		ulong value = ToUlong(feature);
 		_specifiedMask &= ~value;
 		_specifiedFeatures &= ~value;
 	}
@@ -143,12 +151,12 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 
 	public virtual void DrawContents(Listing_Standard listing, SettingsMenuConfig? config = null) {
 		config ??= new SettingsMenuConfig();
-		var newMask = _specifiedMask;
-		var newFeatures = _specifiedFeatures;
-		var curFeatures = FeaturesUlong;
+		ulong newMask = _specifiedMask;
+		ulong newFeatures = _specifiedFeatures;
+		ulong curFeatures = FeaturesUlong;
 
 		foreach (var (feature, label, description) in GetSettingsMenuEntries()) {
-			var featureMask = ToUlong(feature);
+			ulong featureMask = ToUlong(feature);
 
 			// Compute from locals so the UI reflects edits made earlier in this draw pass.
 			bool specified = (newMask & featureMask) != 0;
@@ -156,16 +164,12 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 			bool enabled = (effectiveFeatures & featureMask) == featureMask;
 
 			var rects = listing.GetRect(Mathf.Max(Text.LineHeight, 24f))
-				.ToFlexbox(["1fr", config.ResetButtonWidth], config.RowGap)
+				.ToFlexbox([Flexbox.Length.Auto, config.ResetButtonWidth], config.RowGap)
 				.ToArray();
-			Rect checkRect = rects[0], buttonRect = rects[1];
-
 			if (description is { } tip && !tip.NullOrEmpty())
-				TooltipHandler.TipRegion(checkRect, tip);
-
+				TooltipHandler.TipRegion(rects[0], tip);
 			bool newEnabled = enabled;
-			Widgets.CheckboxLabeled(checkRect, label, ref newEnabled, placeCheckboxNearText: true);
-
+			Widgets.CheckboxLabeled(rects[0], label, ref newEnabled);
 			if (newEnabled != enabled) {
 				newMask |= featureMask;
 				if (newEnabled)
@@ -174,9 +178,8 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 					newFeatures &= ~featureMask;
 				specified = true; // keep button state consistent within the same row/frame
 			}
-
 			using (Scoped.GUI(specified)) {
-				if (Widgets.ButtonText(buttonRect, config.ResetButtonText)) {
+				if (Widgets.ButtonText(rects[1], config.ResetButtonText)) {
 					newMask &= ~featureMask;
 					newFeatures &= ~featureMask;
 				}
