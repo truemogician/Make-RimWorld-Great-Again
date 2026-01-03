@@ -5,7 +5,7 @@ using Verse;
 
 namespace TrueMogician.RimWorld.Rimsonable.Patches;
 
-public static class RestLocationPatches {
+public static class SafeRestLocation {
 	[Flags]
 	private enum Hazards : byte {
 		None = 0,

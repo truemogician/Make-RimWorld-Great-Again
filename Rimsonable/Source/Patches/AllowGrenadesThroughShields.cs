@@ -6,12 +6,10 @@ using RimWorld;
 using TrueMogician.RimWorld.Rimsonable.Static;
 using Verse;
 
-// ReSharper disable InconsistentNaming
-
 namespace TrueMogician.RimWorld.Rimsonable.Patches;
 
 [HarmonyPatch(typeof(CompShield))]
-public static class CompShieldPatches {
+public static class AllowGrenadesThroughShields {
 	private static readonly HashSet<Type> _launchVerbs = [typeof(Verb_LaunchProjectile)];
 
 	public static IReadOnlyCollection<Type> LaunchVerbs => _launchVerbs;

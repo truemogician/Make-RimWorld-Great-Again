@@ -19,8 +19,8 @@ public enum Features : ulong {
 
 public class Settings() : FeatureSettings<Features>(Helper.Logger) {
 	static Settings() {
-		AddFeaturePatches(Features.AllowGrenadesThroughShields, typeof(CompShieldPatches));
-		AddFeaturePatches(Features.SafeRestLocation, typeof(RestLocationPatches));
+		AddFeaturePatches(Features.AllowGrenadesThroughShields, typeof(AllowGrenadesThroughShields));
+		AddFeaturePatches(Features.SafeRestLocation, typeof(SafeRestLocation));
 	}
 
 	public static Settings Default { get; internal set; } = null!;

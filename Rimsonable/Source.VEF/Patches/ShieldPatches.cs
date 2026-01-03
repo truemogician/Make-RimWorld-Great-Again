@@ -17,7 +17,7 @@ public static class CompShieldBubblePatches {
 	public static bool Prefix(CompShieldBubble __instance, Verb verb, ref bool __result) {
 		if (!__instance.Props.dontAllowRangedAttack)
 			return true;
-		if (!CompShieldPatches.LaunchVerbs.Any(t => t.IsInstanceOfType(verb)))
+		if (!AllowGrenadesThroughShields.LaunchVerbs.Any(t => t.IsInstanceOfType(verb)))
 			return true;
 		if (verb.EquipmentSource?.def.thingCategories is not { } categories || !categories.Contains(Defs.Grenades))
 			return true;
