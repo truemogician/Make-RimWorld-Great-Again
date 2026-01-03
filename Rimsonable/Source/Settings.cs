@@ -13,11 +13,14 @@ public enum Features : ulong {
 	None = 0,
 
 	AllowGrenadesThroughShields = 1 << 0,
+
+	SafeRestLocation = 1 << 1
 }
 
 public class Settings() : FeatureSettings<Features>(Helper.Logger) {
 	static Settings() {
 		AddFeaturePatches(Features.AllowGrenadesThroughShields, typeof(CompShieldPatches));
+		AddFeaturePatches(Features.SafeRestLocation, typeof(RestLocationPatches));
 	}
 
 	public static Settings Default { get; internal set; } = null!;

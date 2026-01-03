@@ -52,8 +52,9 @@
 - **Difficulty:** High
 - **Performance Impact:** Medium (Hooks into NeedInterval)
 
-### Safe Rest Location
+### ~~Safe Rest Location~~
 - **Description:** Pawns should avoid sleeping at doors or in hazardous locations, including fire, pollution, gas, and corpses.
+- **Completion Date:** 2026-01-03
 - **Priority:** Medium
 - **Implementation Difficulty:** Low
 - **Performance Impact:** Low

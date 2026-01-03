@@ -5,5 +5,9 @@
 			<label>Allow Grenades Through Shields</label>
 			<description>Allows grenades to pass through shield bubbles.</description>
 		</AllowGrenadesThroughShields>
+		<SafeRestLocation>
+			<label>Safe Rest Location</label>
+			<description>Pawns (including animals) will only rest/sleep in safe locations without hazards like fire, pollution, or gas. They'll also avoid doors.</description>
+		</SafeRestLocation>
 	</Rimsonable.Settings.Features>
 </LanguageData>
