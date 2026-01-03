@@ -1,0 +1,153 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net472</TargetFramework>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<Authors>true_mogician</Authors>
+		<Description>Rimfined brings a splash of logic to the Rim by finally making life a little more reasonable. This collection overhauls various head-scratching mechanics to ensure your colonists behave according to the laws of reality rather than game-y quirks. These changes prioritize grounded rationale over ease of play, meaning some things will feel more intuitive while others become much more punishing. Every feature can be toggled individually in the mod options if you ever decide you prefer the original chaos.</Description>
+		<PackageId>TrueMogician.Rimfined</PackageId>
+		<Version>0.0.1</Version>
+		<Title>Rimfined</Title>
+		<RootNamespace>TrueMogician.RimWorld.Rimfined</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ProjectRoot>$(ProjectDir)..\</ProjectRoot>
+		<DistDir>$(ProjectRoot)Dist\</DistDir>
+		<AssemblyDistDir>$(DistDir)1.6\Assemblies\</AssemblyDistDir>
+		<CustomTaskDir>$(SolutionDir)Utility\Tasks\</CustomTaskDir>
+		<GameDir>$(SolutionDir)RimWorld</GameDir>
+		<SteamGameDir>G:\Game Files\Steam\steamapps\common\RimWorld</SteamGameDir>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectProperty Include="PackageId" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.44.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Lib.Harmony" Version="2.4.2" />
+		<PackageReference Include="Microsoft.Build.Framework" Version="18.0.2">
+			<PrivateAssets>all</PrivateAssets>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.0.2">
+			<PrivateAssets>all</PrivateAssets>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="5.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ThisAssembly.AssemblyInfo" Version="2.1.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ThisAssembly.Project" Version="2.1.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<ProjectReference Include="$(SolutionDir)Utility\Utility.csproj" />
+	</ItemGroup>
+
+	<UsingTask TaskName="ProcessTranslations" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+		<ParameterGroup />
+		<Task>
+			<Reference Include="Microsoft.Build" />
+			<Reference Include="Microsoft.Build.Framework" />
+			<Reference Include="Microsoft.Build.Utilities.Core" />
+			<Code Type="Class" Language="cs" Source="$(CustomTaskDir)ProcessTranslations.cs" />
+		</Task>
+	</UsingTask>
+
+	<UsingTask TaskName="BuildXml" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+		<ParameterGroup />
+		<Task>
+			<Reference Include="Microsoft.Build" />
+			<Reference Include="Microsoft.Build.Framework" />
+			<Reference Include="Microsoft.Build.Utilities.Core" />
+			<Code Type="Class" Language="cs" Source="$(CustomTaskDir)BuildXml.cs" />
+		</Task>
+	</UsingTask>
+
+	<UsingTask TaskName="CreateLink" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+		<ParameterGroup />
+		<Task>
+			<Reference Include="Microsoft.Build" />
+			<Reference Include="Microsoft.Build.Framework" />
+			<Reference Include="Microsoft.Build.Utilities.Core" />
+			<Code Type="Class" Language="cs" Source="$(CustomTaskDir)CreateLink.cs" />
+		</Task>
+	</UsingTask>
+
+	<Target Name="Distribute" AfterTargets="Build">
+		<ItemGroup>
+			<ModAssets Include="$(ProjectRoot)Public\**\*.*" />
+			<AboutToken Include="Name" Value="$(Title)" />
+			<AboutToken Include="Author" Value="$(Authors)" />
+			<AboutToken Include="PackageId" Value="$(PackageId)" />
+			<AboutToken Include="Version" Value="$(Version)" />
+			<AboutToken Include="Description" Value="$(Description)" />
+			<LibraryAssemblies Include="$(TargetDir)TrueMogician.*.dll" />
+		</ItemGroup>
+		<!-- 1. Copy Assets -->
+		<Copy SourceFiles="@(ModAssets)" DestinationFolder="$(DistDir)%(RecursiveDir)" SkipUnchangedFiles="true" />
+		<!-- 2. Generate About.xml -->
+		<BuildXml Template="$(ProjectRoot)Template\About.xml" Destination="$(DistDir)About\About.xml" Tokens="@(AboutToken)" />
+		<!-- 3. Process Language Files -->
+		<ProcessTranslations SourceFolder="$(ProjectRoot)Languages" DestinationFolder="$(DistDir)Shared\Languages" />
+		<!-- 4. Copy Dependencies -->
+		<Copy SourceFiles="@(LibraryAssemblies)" DestinationFolder="$(AssemblyDistDir)" SkipUnchangedFiles="true" />
+		<Message Text="Distribution build complete at: $(DistDir)" Importance="high" />
+	</Target>
+
+	<Target Name="PrepareLaunch" AfterTargets="Build">
+		<!-- 1. Generate ModsConfig.xml -->
+		<ItemGroup>
+			<ModsConfigToken Include="PackageId" Value="$(PackageId.ToLower())" />
+		</ItemGroup>
+		<BuildXml Template="$(ProjectRoot)Template\ModsConfig.xml" Destination="$(SolutionDir)SaveData\Config\ModsConfig.xml" Tokens="@(ModsConfigToken)" />
+		<!-- 2. Generate Launch Script -->
+		<ItemGroup>
+			<LaunchCmd Include="start &quot;RimWorld Mod Test&quot; &quot;$(GameDir)\RimWorldWin64.exe&quot; -popupwindow &quot;-savedatafolder=$(SolutionDir)SaveData&quot;" />
+		</ItemGroup>
+		<WriteLinesToFile File="$(TargetDir)LaunchRimWorld.bat" Lines="@(LaunchCmd)" Overwrite="true" />
+	</Target>
+
+	<Target Name="Deploy" AfterTargets="Distribute">
+		<CreateLink Source="$(DistDir)" Destination="$(GameDir)\Mods\$(AssemblyName)" Condition="Exists('$(GameDir)\Mods')" />
+	</Target>
+
+	<Target Name="CustomClean" AfterTargets="Clean">
+		<ItemGroup>
+			<DirsToDelete Include="$(DistDir)" />
+			<DirsToDelete Include="$(GameDir)\Mods\$(AssemblyName)" />
+			<FilesToDelete Include="$(SolutionDir)SaveData\Config\ModsConfig.xml" />
+			<FilesToDelete Include="$(TargetDir)LaunchRimWorld.bat" />
+		</ItemGroup>
+		<RemoveDir Directories="@(DirsToDelete)" />
+		<Delete Files="@(FilesToDelete)" />
+		<Message Text="Custom files and directories cleaned" Importance="High" />
+	</Target>
+
+	<Target Name="DeployToSteam">
+		<CreateLink Source="$(DistDir)" Destination="$(SteamGameDir)\Mods\$(AssemblyName)" Condition="Exists('$(SteamGameDir)\Mods')" />
+		<Message Text="Linked mod $(AssemblyName) to Steam game directory" Importance="High" />
+	</Target>
+	<Target Name="RemoveFromSteam">
+		<ItemGroup>
+			<LinkedDir Include="$(SteamGameDir)\Mods\$(AssemblyName)" />
+		</ItemGroup>
+		<RemoveDir Directories="@(LinkedDir)" />
+		<Message Text="Removed mod $(AssemblyName) from Steam game directory" Importance="High" />
+	</Target>
+</Project>
