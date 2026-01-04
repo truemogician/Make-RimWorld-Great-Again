@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 	<Rimfined.Settings.Features>
+		<NoTarget>
+			<label>Add a new gizmo "No Target" to hostile pawns</label>
+			<description>When enabled, this prevents colonists and turrets from auto-targeting the pawn. Enemy pawns that have relationships with colonists will be automatically marked as "No Target".</description>
+		</NoTarget>
 	</Rimfined.Settings.Features>
 </LanguageData>
