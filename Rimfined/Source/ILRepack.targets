@@ -4,10 +4,6 @@
 		<ItemGroup>
 			<!-- ILRepack treats the first assembly as the primary assembly -->
 			<InputAssemblies Include="$(TargetPath)" />
-			<InputAssemblies
-				Include="$(TargetDir)*.dll"
-				Exclude="$(TargetPath);$(TargetDir)TrueMogician.*.dll;$(TargetDir)0Harmony.dll;$(TargetDir)System.*.dll"
-			/>
 		</ItemGroup>
 		<ILRepack
 			Parallel="true"

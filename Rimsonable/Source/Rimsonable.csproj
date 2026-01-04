@@ -97,7 +97,11 @@
 			<AboutToken Include="PackageId" Value="$(PackageId)" />
 			<AboutToken Include="Version" Value="$(Version)" />
 			<AboutToken Include="Description" Value="$(Description)" />
-			<LibraryAssemblies Include="$(TargetDir)TrueMogician.*.dll" />
+			<LibraryAssemblies Include="$(TargetDir)*.dll" />
+			<LibraryAssemblies Remove="$(TargetPath)" />
+			<LibraryAssemblies Remove="$(TargetDir)$(AssemblyName).Bundle.dll" />
+			<LibraryAssemblies Remove="$(TargetDir)0Harmony.dll" />
+			<LibraryAssemblies Remove="$(TargetDir)System.*.dll" />
 		</ItemGroup>
 		<!-- 1. Copy Assets -->
 		<Copy SourceFiles="@(ModAssets)" DestinationFolder="$(DistDir)%(RecursiveDir)" SkipUnchangedFiles="true" />

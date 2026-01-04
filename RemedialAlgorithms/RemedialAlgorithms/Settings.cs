@@ -7,7 +7,8 @@ using TrueMogician.RimWorld.Utility.Attributes;
 namespace TrueMogician.RimWorld.RemedialAlgorithms;
 
 [Flags]
-[FeaturesEnum("RemedialAlgorithms.Settings", true)]
+[FeaturesEnum(true)]
+[Translation("RemedialAlgorithms.Settings", ImplicitMembers = true)]
 public enum Optimizations : ulong {
 	None = 0,
 

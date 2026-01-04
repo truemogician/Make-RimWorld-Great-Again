@@ -6,7 +6,8 @@ using TrueMogician.RimWorld.Utility.Attributes;
 namespace TrueMogician.RimWorld.Rimfined;
 
 [Flags]
-[FeaturesEnum("Rimfined.Settings.Features", true)]
+[FeaturesEnum(true)]
+[Translation("Rimfined.Settings.Features", ImplicitMembers = true)]
 public enum Features : ulong {
 	None = 0
 }

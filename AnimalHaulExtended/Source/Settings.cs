@@ -6,7 +6,8 @@ using TrueMogician.RimWorld.Utility.Attributes;
 namespace TrueMogician.RimWorld.AnimalHaulExtended;
 
 [Flags]
-[FeaturesEnum("AnimalHaulExtended.Settings", true)]
+[FeaturesEnum(true)]
+[Translation("AnimalHaulExtended.Settings", ImplicitMembers = true)]
 public enum Features : ulong {
 	None = 0
 }
