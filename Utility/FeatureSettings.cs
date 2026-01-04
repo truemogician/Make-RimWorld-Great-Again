@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using CaseExtensions;
 using HarmonyLib;
 using JetBrains.Annotations;
 using TrueMogician.RimWorld.Utility.Attributes;
@@ -18,7 +19,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 
 	protected static readonly ulong All = Enum.GetValues(typeof(T)).Cast<T>().Aggregate(0UL, (a, v) => a | ToUlong(v));
 
-	protected static readonly string? TranslationKeyPrefix = typeof(T).GetCustomAttribute<FeaturesEnumAttribute>()?.TranslationKey;
+	protected static readonly string? TranslationKeyPrefix = typeof(T).GetTranslationKey();
 
 	protected ISet<Type> AppliedPatches = new HashSet<Type>();
 
@@ -27,6 +28,14 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 	private ulong _specifiedFeatures;
 
 	private ulong _specifiedMask;
+
+	protected delegate void DrawFeatureRowEventHandler(object sender, DrawFeatureRowEventArgs args);
+
+	protected event DrawFeatureRowEventHandler? AfterDrawFeatureRow;
+
+	protected event DrawFeatureRowEventHandler? BeforeDrawFeatureRow;
+
+	protected record DrawFeatureRowEventArgs(T Feature, Listing_Standard Listing, SettingsMenuConfig Config);
 
 	public record SettingsMenuConfig(
 		string ResetButtonText = "Reset",
@@ -74,7 +83,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 	public static T GetDefaultFeatures() {
 		bool defaultEnabled = typeof(T).GetCustomAttribute<FeaturesEnumAttribute>()?.DefaultEnabled ?? true;
 		ulong result = defaultEnabled ? All : 0;
-		foreach (var (feature, attributes) in GetFeatureAttributes()) {
+		foreach (var (feature, attributes, _) in GetFeatureAttributes()) {
 			bool? enabled = attributes.OfType<FeatureAttribute>().FirstOrDefault()?.DefaultEnabled;
 			if (enabled.HasValue && enabled.Value != defaultEnabled) {
 				if (enabled.Value)
@@ -88,7 +97,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 
 	public static IEnumerable<(T Feature, TaggedString Label, TaggedString? Description)> GetSettingsMenuEntries() {
 		var modIds = ModIds.ToHashSet(StringComparer.OrdinalIgnoreCase);
-		foreach (var (feature, attributes) in GetFeatureAttributes()) {
+		foreach ((var feature, var attributes, string? translationKey) in GetFeatureAttributes()) {
 			if (attributes.Length == 0) {
 				if (!feature.IsSingleBitFlag)
 					continue;
@@ -100,15 +109,14 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 				continue;
 			if (attr?.ModIncompatibilities is { Length: > 0 } incompatibilities && incompatibilities.Any(modIds.Contains))
 				continue;
-			string? translationKey = attr?.TranslationKey ?? (TranslationKeyPrefix is { } prefix ? $"{prefix}.{feature}" : null);
 			TaggedString label;
 			TaggedString? description;
 			if (translationKey is null) {
-				label = attr?.Label ?? feature.ToString();
+				label = attr?.Label ?? feature.ToString().ToTrainCase().Replace('-', ' ');
 				description = attr?.Description;
 			}
 			else {
-				label = $"{translationKey}.label".TryTranslate(out var l) ? l : attr?.Label ?? feature.ToString();
+				label = $"{translationKey}.label".TryTranslate(out var l) ? l : attr?.Label ?? feature.ToString().ToTrainCase().Replace('-', ' ');
 				description = $"{translationKey}.description".TryTranslate(out var d) ? d : attr?.Description;
 			}
 			yield return (feature, label, description);
@@ -163,6 +171,8 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 			ulong effectiveFeatures = (ToUlong(DefaultFeatures) & ~newMask) | (newFeatures & newMask);
 			bool enabled = (effectiveFeatures & featureMask) == featureMask;
 
+			var eventArgs = new DrawFeatureRowEventArgs(feature, listing, config);
+			BeforeDrawFeatureRow?.Invoke(this, eventArgs);
 			var rects = listing.GetRect(Mathf.Max(Text.LineHeight, 24f))
 				.ToFlexbox([Flexbox.Length.Auto, config.ResetButtonWidth], config.RowGap)
 				.ToArray();
@@ -184,6 +194,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 					newFeatures &= ~featureMask;
 				}
 			}
+			AfterDrawFeatureRow?.Invoke(this, eventArgs);
 		}
 
 		if (newMask != _specifiedMask || newFeatures != _specifiedFeatures) {
@@ -208,12 +219,12 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 	protected static ulong GetEffectiveFeatures(ulong @default, ulong specified, ulong mask)
 		=> (@default & ~mask) | (specified & mask);
 
-	protected static IEnumerable<(T, FeatureAttributeBase[])> GetFeatureAttributes() {
+	protected static IEnumerable<(T, FeatureAttributeBase[], string?)> GetFeatureAttributes() {
 		var values = Enum.GetValues(typeof(T)).Cast<T>();
 		foreach (var value in values) {
 			var member = typeof(T).GetMember(value.ToString()).First();
 			var attributes = member.GetCustomAttributes(typeof(FeatureAttributeBase), false).Cast<FeatureAttributeBase>().ToArray();
-			yield return (value, attributes);
+			yield return (value, attributes, member.GetTranslationKey());
 		}
 	}
 
