@@ -8,22 +8,9 @@ using Verse.AI;
 
 namespace TrueMogician.RimWorld.Rimfined.Patches;
 
+using static NoTargetHelper;
+
 internal class NoTargetPatches {
-	private static System.WeakReference<Game>? _curGame;
-
-	internal static Texture2D NoTargetIcon => field ??= ContentFinder<Texture2D>.Get("UI/Commands/NoTarget");
-
-	internal static NoTargetGameComponent Component {
-		get {
-			_curGame ??= new System.WeakReference<Game>(Current.Game);
-			if (_curGame.TryGetTarget(out var game) && Current.Game == game)
-				return field ??= game.GetComponent<NoTargetGameComponent>();
-			var newGame = Current.Game;
-			_curGame.SetTarget(newGame);
-			return field = newGame.GetComponent<NoTargetGameComponent>();
-		}
-	}
-
 	[HarmonyPatch(typeof(AttackTargetFinder), nameof(AttackTargetFinder.IsAutoTargetable))]
 	[HarmonyPrefix]
 	internal static bool AttackTargetFinder_IsAutoTargetable_Prefix(IAttackTarget target, ref bool __result) {
@@ -91,6 +78,8 @@ internal class NoTargetPatches {
 public sealed class NoTargetGameComponent : GameComponent {
 	private HashSet<string> _noTargetPawnIds = new(StringComparer.Ordinal);
 
+	public NoTargetGameComponent(Game game) { }
+
 	public bool this[Pawn pawn] {
 		get => _noTargetPawnIds.Contains(pawn.GetUniqueLoadID());
 		set {
@@ -112,5 +101,22 @@ public sealed class NoTargetGameComponent : GameComponent {
 		Scribe_Collections.Look(ref _noTargetPawnIds, "noTargetPawnIds", LookMode.Value);
 		if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			_noTargetPawnIds ??= new HashSet<string>(StringComparer.Ordinal);
+	}
+}
+
+public static class NoTargetHelper {
+	private static System.WeakReference<Game>? _curGame;
+
+	public static Texture2D NoTargetIcon => field ??= ContentFinder<Texture2D>.Get("UI/Commands/NoTarget");
+
+	public static NoTargetGameComponent Component {
+		get {
+			_curGame ??= new System.WeakReference<Game>(Current.Game);
+			if (_curGame.TryGetTarget(out var game) && Current.Game == game)
+				return field ??= game.GetComponent<NoTargetGameComponent>();
+			var newGame = Current.Game;
+			_curGame.SetTarget(newGame);
+			return field = newGame.GetComponent<NoTargetGameComponent>();
+		}
 	}
 }
