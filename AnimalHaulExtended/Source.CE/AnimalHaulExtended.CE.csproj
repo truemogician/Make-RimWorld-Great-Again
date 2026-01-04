@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net472</TargetFramework>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<Authors>true_mogician</Authors>
+		<PackageId>TrueMogician.AnimalHaulExtended.CE</PackageId>
+		<Version>0.0.1</Version>
+		<Title>Animal Haul Extended for Combat Extended</Title>
+		<RootNamespace>TrueMogician.RimWorld.AnimalHaulExtended.CE</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ProjectRoot>$(ProjectDir)..\</ProjectRoot>
+		<DistDir>$(ProjectRoot)Dist\</DistDir>
+		<AssemblyDistDir>$(DistDir)CE\1.6\Assemblies\</AssemblyDistDir>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="5.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ThisAssembly.AssemblyInfo" Version="2.1.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ThisAssembly.Project" Version="2.1.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<ProjectReference Include="..\Source\AnimalHaulExtended.csproj" />
+		<ProjectReference Include="$(SolutionDir)Utility\Utility.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="References\*.dll" />
+		<Reference Include="CombatExtended" HintPath="References\CombatExtended.dll" />
+	</ItemGroup>
+
+	<Target Name="Distribute" AfterTargets="Build">
+		<Copy SourceFiles="$(TargetPath)" DestinationFiles="$(AssemblyDistDir)$(AssemblyName).dll" />
+		<Message Importance="High" Text="Distributed $(TargetPath) -&gt; $(AssemblyDistDir)" />
+	</Target>
+</Project>
