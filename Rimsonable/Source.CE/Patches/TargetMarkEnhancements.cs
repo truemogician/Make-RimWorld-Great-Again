@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using CombatExtended;
@@ -9,9 +10,8 @@ using Verse;
 namespace TrueMogician.RimWorld.Rimsonable.CE.Patches;
 
 public static class TargetMarkEnhancements {
-	public const float ACCURACY_BONUS = 0.10f;
-
 	private const string _MARKER_TYPE_NAME = "CombatExtended.ArtilleryMarker";
+	public static readonly Func<int, float> AccuracyBonusFormula = level => MathF.Log(level / 10f + 1) / MathF.Log(3) * 0.2f;
 
 	private static string? markerDefName;
 	private static ThingDef? markerDef;
@@ -40,13 +40,9 @@ public static class TargetMarkEnhancements {
 		if (__instance.AttackVerb is not { } verb || verb.verbProps?.range is not { } maxRange || maxRange <= 0f)
 			return;
 
-		var markers = map.listerThings.ThingsOfDef(MarkerDef);
-		if (markers is null || markers.Count == 0)
-			return;
-
 		var bestTarget = __result;
 		float bestScore = float.NegativeInfinity;
-		foreach (var marker in markers.OfType<AttachableThing>()) {
+		foreach (var marker in EnumerateArtilleryMarkers(map)) {
 			var caster = GetMarkerCaster(marker);
 			if (caster?.Faction != faction)
 				continue;
@@ -80,13 +76,15 @@ public static class TargetMarkEnhancements {
 	) {
 		if (__result is null)
 			return;
-		if (__instance.caster is not Building_TurretGunCE turret || turret.Map is null)
+		if (__instance.caster is not Building_TurretGunCE { Map: { } map } turret)
 			return;
 		if (turret.IsMortarOrProjectileFliesOverhead)
 			return;
 		if (!HasArtilleryMarker(target, turret.Map))
 			return;
-		__result.aimingAccuracy = Math.Min(1.5f, __result.aimingAccuracy + ACCURACY_BONUS);
+		int skillLevelSum = EnumerateArtilleryMarkers(map)
+			.Sum(t => GetMarkerCaster(t)?.skills?.GetSkill(SkillDefOf.Shooting).Level ?? 0);
+		__result.aimingAccuracy = Math.Min(1.5f, __result.aimingAccuracy + AccuracyBonusFormula(skillLevelSum));
 		AccuracyFactorIntField?.SetValue(__result, -1f);
 	}
 
@@ -117,5 +115,10 @@ public static class TargetMarkEnhancements {
 		if (target.HasThing)
 			return target.Thing.HasAttachment(MarkerDef);
 		return target.Cell.InBounds(map) && target.Cell.GetFirstThing(map, MarkerDef) is not null;
+	}
+
+	private static IEnumerable<AttachableThing> EnumerateArtilleryMarkers(Map map) {
+		var list = map.listerThings.ThingsOfDef(MarkerDef);
+		return list is null ? [] : list.OfType<AttachableThing>();
 	}
 }
