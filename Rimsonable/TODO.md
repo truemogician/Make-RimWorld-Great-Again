@@ -59,15 +59,6 @@
 - **Implementation Difficulty:** Low
 - **Performance Impact:** Low
 
-### Animal Load
-- **Description:** Animals capable of hauling should also be capable of hauling materials to construction sites, loading items into vehicles, and loading turrets.
-- **Mod Compatibility:**
-    - [ ] Combat Extended
-    - [ ] Vehicle Framework
-- **Priority:** Medium
-- **Implementation Difficulty:** High
-- **Performance Impact:** Medium
-
 ### ~~Target Mark Enhancement~~
 - **Description:** Artillery and mortars should prioritize firing at targets marked by spotters with binoculars. Other turrets gain a small accuracy boost when firing at marked targets.
 - **Completion Date:** 2026-01-03
