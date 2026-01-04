@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using Verse;
 
@@ -30,5 +30,33 @@ public static class EnumExtensions {
 		}
 
 		public bool IsSingleBitFlag => self.BitFlagCount == 1;
+
+		public int LsbIndex {
+			get {
+				ulong value = Convert.ToUInt64(self);
+				if (value == 0)
+					throw new InvalidOperationException("Cannot get LSB index of zero value.");
+				int index = 0;
+				while ((value & 1) == 0) {
+					value >>= 1;
+					index++;
+				}
+				return index;
+			}
+		}
+
+		public int MsbIndex {
+			get {
+				ulong value = Convert.ToUInt64(self);
+				if (value == 0)
+					throw new InvalidOperationException("Cannot get MSB index of zero value.");
+				int index = 0;
+				while (value != 0) {
+					value >>= 1;
+					index++;
+				}
+				return index - 1;
+			}
+		}
 	}
 }
