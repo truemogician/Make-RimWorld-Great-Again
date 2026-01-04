@@ -121,9 +121,11 @@
 		<ItemGroup>
 			<ModsConfigToken Include="PackageId" Value="$(PackageId.ToLower())" />
 		</ItemGroup>
-		<BuildXml Template="$(ProjectDir)Template\ModsConfig.xml" Destination="$(SolutionDir)SaveData\Config\ModsConfig.xml" Tokens="@(ModsConfigToken)" />
+		<BuildXml Template="$(ProjectDir)Template\ModsConfig.xml" Destination="$(TargetDir)ModsConfig.xml" Tokens="@(ModsConfigToken)" />
 		<!-- 2. Generate Launch Script -->
 		<ItemGroup>
+			<LaunchCmd Include="@echo off" />
+			<LaunchCmd Include="copy /Y &quot;$(TargetDir)ModsConfig.xml&quot; &quot;$(SolutionDir)SaveData\Config\ModsConfig.xml&quot;" />
 			<LaunchCmd Include="start &quot;RimWorld Mod Test&quot; &quot;$(GameDir)\RimWorldWin64.exe&quot; -popupwindow &quot;-savedatafolder=$(SolutionDir)SaveData&quot;" />
 		</ItemGroup>
 		<WriteLinesToFile File="$(TargetDir)LaunchRimWorld.bat" Lines="@(LaunchCmd)" Overwrite="true" />
@@ -139,6 +141,7 @@
 			<DirsToDelete Include="$(GameDir)\Mods\$(AssemblyName)" />
 			<FilesToDelete Include="$(SolutionDir)SaveData\Config\ModsConfig.xml" />
 			<FilesToDelete Include="$(TargetDir)LaunchRimWorld.bat" />
+			<FilesToDelete Include="$(TargetDir)ModsConfig.xml" />
 			<FilesToDelete Include="$(TargetDir)$(TargetName).Bundle.dll" />
 		</ItemGroup>
 		<RemoveDir Directories="@(DirsToDelete)" />
