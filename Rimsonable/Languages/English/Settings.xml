@@ -1,17 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
-	<Rimsonable.Settings.Features>
-		<AllowGrenadesThroughShields>
-			<label>Allow Grenades Through Shields</label>
-			<description>Allows grenades to pass through shield bubbles.</description>
-		</AllowGrenadesThroughShields>
-		<SafeRestLocation>
-			<label>Safe Rest Location</label>
-			<description>Pawns (including animals) will only rest/sleep in safe locations without hazards like fire, pollution, or gas. They'll also avoid doors.</description>
-		</SafeRestLocation>
-		<TargetMarkEnhancement>
-			<label>Target Mark Enhancement</label>
-			<description>Artillery and mortars will prioritize firing at targets marked by the spotters. Other turrets gain a small accuracy boost when firing at marked targets.</description>
-		</TargetMarkEnhancement>
-	</Rimsonable.Settings.Features>
+	<Rimsonable.Settings>
+		<Features>
+			<AllowGrenadesThroughShields>
+				<label>Allow Grenades Through Shields</label>
+				<description>Allows grenades to pass through shield bubbles.</description>
+			</AllowGrenadesThroughShields>
+			<SafeRestLocation>
+				<label>Safe Rest Location</label>
+				<description>Pawns (including animals) will only rest/sleep in safe locations without hazards like fire, pollution, or gas. They'll also avoid doors.</description>
+			</SafeRestLocation>
+			<TargetMarkEnhancement>
+				<label>Spotter Mark Enhancement</label>
+				<description>Artillery and mortars will prioritize firing at targets marked by the spotters. Other turrets gain a small accuracy boost when firing at marked targets.</description>
+			</TargetMarkEnhancement>
+		</Features>
+		<AutoTargetMarksOnNonHostile>
+			<label>Auto Target Marks on Non-Hostile Entities</label>
+			<description>Whether artillery and mortars should automatically target spotter marks on non-hostile entities (e.g., neutral animals or visitors).</description>
+		</AutoTargetMarksOnNonHostile>
+	</Rimsonable.Settings>
 </LanguageData>

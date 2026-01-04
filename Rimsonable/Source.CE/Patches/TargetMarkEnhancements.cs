@@ -29,18 +29,18 @@ public static class TargetMarkEnhancements {
 	[HarmonyPatch(typeof(Building_TurretGunCE), nameof(Building_TurretGunCE.TryFindNewTarget))]
 	[HarmonyPostfix]
 	public static void Building_TurretGunCE_TryFindNewTarget_Postfix(Building_TurretGunCE __instance, ref LocalTargetInfo __result) {
-		if (!__instance.Spawned || __instance.Map is null)
+		if (__instance is not { Spawned: true, Map: { } map })
 			return;
 		if (!__instance.IsMortarOrProjectileFliesOverhead)
 			return;
-		if (HasArtilleryMarker(__result, __instance.Map))
+		if (HasArtilleryMarker(__result, map))
 			return;
 		if (__instance.Faction is not { } faction)
 			return;
 		if (__instance.AttackVerb is not { } verb || verb.verbProps?.range is not { } maxRange || maxRange <= 0f)
 			return;
 
-		var markers = __instance.Map.listerThings.ThingsOfDef(MarkerDef);
+		var markers = map.listerThings.ThingsOfDef(MarkerDef);
 		if (markers is null || markers.Count == 0)
 			return;
 
@@ -50,25 +50,19 @@ public static class TargetMarkEnhancements {
 			var caster = GetMarkerCaster(marker);
 			if (caster?.Faction != faction)
 				continue;
-			var candidate = marker.parent ?? (LocalTargetInfo)marker.Position;
-			if (!candidate.IsValid)
+			var markedThing = marker.parent;
+			if (!Settings.Default.AutoTargetMarksOnNonHostile && (markedThing is null || !markedThing.HostileTo(faction)))
 				continue;
-
-			float dist = (candidate.Cell - __instance.Position).LengthHorizontal;
+			var target = markedThing ?? (LocalTargetInfo)marker.Position;
+			float dist = (target.Cell - __instance.Position).LengthHorizontal;
 			if (dist > maxRange)
 				continue;
-			if (!verb.CanHitTargetFrom(__instance.Position, candidate))
+			if (!verb.CanHitTargetFrom(__instance.Position, target))
 				continue;
-
 			float score = maxRange - dist;
-			if (marker.parent is { } parentThing) {
-				score += 1000f;
-				if (parentThing.HostileTo(faction))
-					score += 500f;
-			}
 			if (score > bestScore) {
 				bestScore = score;
-				bestTarget = candidate;
+				bestTarget = target;
 			}
 		}
 

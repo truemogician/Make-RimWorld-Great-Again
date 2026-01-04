@@ -1,14 +1,20 @@
 using System;
+using System.Linq;
+using CaseExtensions;
 using HarmonyLib;
 using TrueMogician.RimWorld.Rimsonable.Patches;
 using TrueMogician.RimWorld.Rimsonable.Static;
 using TrueMogician.RimWorld.Utility;
 using TrueMogician.RimWorld.Utility.Attributes;
+using TrueMogician.RimWorld.Utility.GUI;
+using UnityEngine;
+using Verse;
 
 namespace TrueMogician.RimWorld.Rimsonable;
 
 [Flags]
-[FeaturesEnum("Rimsonable.Settings.Features", true)]
+[FeaturesEnum(true)]
+[Translation("Rimsonable.Settings.Features", ImplicitMembers = true)]
 public enum Features : ulong {
 	None = 0,
 
@@ -20,7 +26,23 @@ public enum Features : ulong {
 	TargetMarkEnhancement = 1 << 2
 }
 
-public class Settings() : FeatureSettings<Features>(Helper.Logger) {
+[Translation("Rimsonable.Settings")]
+public class Settings : FeatureSettings<Features> {
+	private bool _autoTargetMarksOnNonHostile;
+
+	public Settings() : base(Helper.Logger) {
+		AfterDrawFeatureRow += (_, args) => {
+			if (args.Feature == Features.TargetMarkEnhancement) {
+				var rects = args.Listing.GetRect(Mathf.Max(Text.LineHeight, 24f))
+					.ToFlexbox([40, Flexbox.Length.Auto, args.Config.ResetButtonWidth], args.Config.RowGap)
+					.ToArray();
+				if (Translate(nameof(AutoTargetMarksOnNonHostile), "description") is { } tip && !tip.NullOrEmpty())
+					TooltipHandler.TipRegion(rects[1], tip);
+				Widgets.CheckboxLabeled(rects[1], Translate(nameof(AutoTargetMarksOnNonHostile), "label"), ref _autoTargetMarksOnNonHostile);
+			}
+		};
+	}
+
 	static Settings() {
 		AddFeaturePatches(Features.AllowGrenadesThroughShields, typeof(AllowGrenadesThroughShields));
 		AddFeaturePatches(Features.SafeRestLocation, typeof(SafeRestLocation));
@@ -29,4 +51,22 @@ public class Settings() : FeatureSettings<Features>(Helper.Logger) {
 	public static Settings Default { get; internal set; } = null!;
 
 	protected override Harmony Harmony { get; } = new(ThisAssembly.Project.PackageId);
+
+	[Translation]
+	public bool AutoTargetMarksOnNonHostile => _autoTargetMarksOnNonHostile;
+
+	public override void ExposeData() {
+		base.ExposeData();
+		Scribe_Values.Look(ref _autoTargetMarksOnNonHostile, nameof(AutoTargetMarksOnNonHostile).ToCamelCase());
+	}
+
+	private static string? Translate(string name, string? subField = null) {
+		var member = typeof(Settings).GetMember(name).FirstOrDefault();
+		if (member is null)
+			throw new ArgumentException($"No such property: {name}");
+		string? key = member.GetTranslationKey();
+		if (key is not null && subField is not null)
+			key = $"{key}.{subField}";
+		return key.TryTranslate(out var translation) ? translation : null;
+	}
 }
