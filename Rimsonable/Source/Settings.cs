@@ -6,6 +6,7 @@ using TrueMogician.RimWorld.Rimsonable.Patches;
 using TrueMogician.RimWorld.Rimsonable.Static;
 using TrueMogician.RimWorld.Utility;
 using TrueMogician.RimWorld.Utility.Attributes;
+using TrueMogician.RimWorld.Utility.Extensions;
 using TrueMogician.RimWorld.Utility.GUI;
 using UnityEngine;
 using Verse;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using RimWorld;
-using TrueMogician.RimWorld.Utility;
+using TrueMogician.RimWorld.Utility.Extensions;
 using Verse;
 using Verse.AI;
 

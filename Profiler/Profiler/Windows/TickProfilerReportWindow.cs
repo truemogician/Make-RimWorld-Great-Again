@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using TrueMogician.Extensions.List;
 using TrueMogician.RimWorld.Profiler.Patches;
+using TrueMogician.RimWorld.Utility.Extensions;
 using TrueMogician.RimWorld.Utility.GUI;
 using UnityEngine;
 using UnityEngine.UIElements;

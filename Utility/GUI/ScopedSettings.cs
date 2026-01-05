@@ -1,4 +1,3 @@
-
 using System;
 using UnityEngine;
 using Verse;
@@ -21,6 +20,11 @@ public static class Scoped {
 public class ScopedGUI : IDisposable {
 	private readonly bool? _enabled;
 
+	public void Dispose() {
+		if (_enabled.HasValue)
+			GUI.enabled = _enabled.Value;
+	}
+
 	public bool? Enabled {
 		init {
 			if (value is null)
@@ -28,11 +32,6 @@ public class ScopedGUI : IDisposable {
 			_enabled = GUI.enabled;
 			GUI.enabled = value.Value;
 		}
-	}
-
-	public void Dispose() {
-		if (_enabled.HasValue)
-			GUI.enabled = _enabled.Value;
 	}
 }
 
@@ -42,6 +41,15 @@ public class ScopedText : IDisposable {
 	private readonly GameFont? _font;
 
 	private readonly bool? _wordWrap;
+
+	public void Dispose() {
+		if (_anchor.HasValue)
+			Text.Anchor = _anchor.Value;
+		if (_font.HasValue)
+			Text.Font = _font.Value;
+		if (_wordWrap.HasValue)
+			Text.WordWrap = _wordWrap.Value;
+	}
 
 	public TextAnchor? Anchor {
 		init {
@@ -68,14 +76,5 @@ public class ScopedText : IDisposable {
 			_wordWrap = Text.WordWrap;
 			Text.WordWrap = value.Value;
 		}
-	}
-
-	public void Dispose() {
-		if (_anchor.HasValue)
-			Text.Anchor = _anchor.Value;
-		if (_font.HasValue)
-			Text.Font = _font.Value;
-		if (_wordWrap.HasValue)
-			Text.WordWrap = _wordWrap.Value;
 	}
 }

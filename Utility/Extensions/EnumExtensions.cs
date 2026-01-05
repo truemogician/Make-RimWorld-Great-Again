@@ -2,7 +2,7 @@ using System;
 using System.Reflection;
 using Verse;
 
-namespace TrueMogician.RimWorld.Utility;
+namespace TrueMogician.RimWorld.Utility.Extensions;
 
 public static class EnumExtensions {
 	extension<T>(T self) where T : struct, Enum {
@@ -14,13 +14,13 @@ public static class EnumExtensions {
 
 		public string? Description => self.FieldInfo is not { } @field
 			? null
-			: @field.GetCustomAttribute<DescriptionAttribute>()?.description ??
-			@field.GetCustomAttribute<System.ComponentModel.DescriptionAttribute>()?.Description;
+			: @field.GetCustomAttribute<DescriptionAttribute>()?.description
+			?? @field.GetCustomAttribute<System.ComponentModel.DescriptionAttribute>()?.Description;
 
 		public byte BitFlagCount {
 			get {
 				byte count = 0;
-				ulong value = Convert.ToUInt64(self);
+				var value = Convert.ToUInt64(self);
 				while (value != 0) {
 					count += (byte)(value & 1);
 					value >>= 1;
@@ -33,10 +33,10 @@ public static class EnumExtensions {
 
 		public int LsbIndex {
 			get {
-				ulong value = Convert.ToUInt64(self);
+				var value = Convert.ToUInt64(self);
 				if (value == 0)
 					throw new InvalidOperationException("Cannot get LSB index of zero value.");
-				int index = 0;
+				var index = 0;
 				while ((value & 1) == 0) {
 					value >>= 1;
 					index++;
@@ -47,10 +47,10 @@ public static class EnumExtensions {
 
 		public int MsbIndex {
 			get {
-				ulong value = Convert.ToUInt64(self);
+				var value = Convert.ToUInt64(self);
 				if (value == 0)
 					throw new InvalidOperationException("Cannot get MSB index of zero value.");
-				int index = 0;
+				var index = 0;
 				while (value != 0) {
 					value >>= 1;
 					index++;

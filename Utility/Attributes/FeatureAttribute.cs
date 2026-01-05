@@ -11,9 +11,7 @@ public abstract class FeatureAttributeBase : Attribute { }
 public class FeatureAttribute : FeatureAttributeBase {
 	public FeatureAttribute() { }
 
-	public FeatureAttribute(bool? defaultEnabled) {
-		DefaultEnabled = defaultEnabled;
-	}
+	public FeatureAttribute(bool? defaultEnabled) => DefaultEnabled = defaultEnabled;
 
 	/// <summary>
 	///     The fallback label for this feature if no translation is found.
@@ -32,12 +30,12 @@ public class FeatureAttribute : FeatureAttributeBase {
 	public bool? DefaultEnabled { get; init; }
 
 	/// <summary>
-	///		An array of mod identifiers that this feature depends on.
+	///     An array of mod identifiers that this feature depends on.
 	/// </summary>
 	public string[]? ModDependencies { get; init; }
 
 	/// <summary>
-	///		An array of mod identifiers that this feature is incompatible with.
+	///     An array of mod identifiers that this feature is incompatible with.
 	/// </summary>
 	public string[]? ModIncompatibilities { get; init; }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 
 namespace TrueMogician.RimWorld.Utility;
@@ -6,7 +6,7 @@ namespace TrueMogician.RimWorld.Utility;
 public class Logger(string prefix, bool raw = false) {
 	public Logger() : this(Assembly.GetCallingAssembly().GetName().Name) { }
 
-	public Logger(string prefix, string color): this($"<color={color}>{prefix}</color>") { }
+	public Logger(string prefix, string color) : this($"<color={color}>{prefix}</color>") { }
 
 	public string Prefix { get; } = raw ? prefix : $"[{prefix}] ";
 

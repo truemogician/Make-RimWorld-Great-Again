@@ -6,6 +6,7 @@ using CaseExtensions;
 using HarmonyLib;
 using JetBrains.Annotations;
 using TrueMogician.RimWorld.Utility.Attributes;
+using TrueMogician.RimWorld.Utility.Extensions;
 using TrueMogician.RimWorld.Utility.GUI;
 using UnityEngine;
 using Verse;
