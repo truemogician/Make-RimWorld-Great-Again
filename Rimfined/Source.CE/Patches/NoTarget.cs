@@ -1,6 +1,6 @@
 using CombatExtended;
 using HarmonyLib;
-using TrueMogician.RimWorld.Rimfined.Patches;
+using TrueMogician.RimWorld.Rimfined.Components;
 using TrueMogician.RimWorld.Utility;
 using Verse;
 
