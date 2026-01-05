@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 using RimWorld;
 using TrueMogician.RimWorld.Rimfined.Components;
@@ -14,11 +17,19 @@ internal static class NoTargetPatches {
 
 	internal static Texture2D NoTargetIcon => field ??= ContentFinder<Texture2D>.Get("UI/Commands/NoTarget");
 
-	[HarmonyPatch(typeof(AttackTargetFinder), nameof(AttackTargetFinder.IsAutoTargetable))]
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	internal static bool SkipTargetFor(Pawn target, IAttackTargetSearcher? searcher) {
+		if (searcher?.Thing?.Faction is not { } faction)
+			return false;
+		return NoTargetPawns[target] && faction == Faction.OfPlayer;
+	}
+
+	[HarmonyPatch(typeof(Pawn), nameof(Pawn.ThreatDisabled))]
+	[HarmonyPriority(Priority.High)]
 	[HarmonyPrefix]
-	internal static bool AttackTargetFinder_IsAutoTargetable_Prefix(IAttackTarget target, ref bool __result) {
-		if (target?.Thing is Pawn pawn && NoTargetPawns[pawn]) {
-			__result = false;
+	internal static bool Pawn_ThreatDisabled_Prefix(IAttackTargetSearcher? searcher, Pawn __instance, ref bool __result) {
+		if (NoTargetScopePatches.InScope && SkipTargetFor(__instance, searcher)) {
+			__result = true;
 			return false;
 		}
 		return true;
@@ -76,4 +87,34 @@ internal static class NoTargetPatches {
 
 		return false;
 	}
+}
+
+public static class NoTargetScopePatches {
+	private static readonly List<MethodBase?> _entries = [
+		AccessTools.DeclaredMethod(typeof(AttackTargetFinder), nameof(AttackTargetFinder.BestAttackTarget)),
+		AccessTools.DeclaredMethod(typeof(JobDriver_Wait), "CheckForAutoAttack")
+	];
+
+	[ThreadStatic]
+	private static uint _scopeCounter;
+
+	public static bool InScope => _scopeCounter > 0;
+
+	public static void AddTarget(MethodBase target) => _entries.Add(target);
+
+	[HarmonyTargetMethods]
+	internal static IEnumerable<MethodBase> GetTargetMethods() {
+		foreach (var target in _entries) {
+			if (target is not null)
+				yield return target;
+		}
+	}
+
+	[HarmonyPrefix]
+	[HarmonyPriority(Priority.Last)]
+	internal static void EnterScope() => ++_scopeCounter;
+
+	[HarmonyFinalizer]
+	[HarmonyPriority(Priority.First)]
+	internal static void LeaveScope() => --_scopeCounter;
 }

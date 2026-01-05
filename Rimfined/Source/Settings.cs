@@ -19,7 +19,7 @@ public enum Features : ulong {
 
 public class Settings() : FeatureSettings<Features>(Helper.Logger) {
 	static Settings() {
-		AddFeaturePatches(Features.NoTarget, typeof(NoTargetPatches));
+		AddFeaturePatches(Features.NoTarget, typeof(NoTargetPatches), typeof(NoTargetScopePatches));
 		AddFeaturePatches(Features.CaptureAsJob, typeof(CaptureAsJobPatches));
 	}
 
