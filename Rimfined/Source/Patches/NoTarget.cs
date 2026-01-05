@@ -2,19 +2,22 @@ using System;
 using System.Collections.Generic;
 using HarmonyLib;
 using RimWorld;
+using TrueMogician.RimWorld.Utility;
 using UnityEngine;
 using Verse;
 using Verse.AI;
 
 namespace TrueMogician.RimWorld.Rimfined.Patches;
 
-using static NoTargetHelper;
+internal static class NoTargetPatches {
+	internal static NoTargetPawnIds NoTargetPawns => CachedGameComponent<NoTargetPawnIds>.Component;
 
-internal class NoTargetPatches {
+	internal static Texture2D NoTargetIcon => field ??= ContentFinder<Texture2D>.Get("UI/Commands/NoTarget");
+
 	[HarmonyPatch(typeof(AttackTargetFinder), nameof(AttackTargetFinder.IsAutoTargetable))]
 	[HarmonyPrefix]
 	internal static bool AttackTargetFinder_IsAutoTargetable_Prefix(IAttackTarget target, ref bool __result) {
-		if (target?.Thing is Pawn pawn && Component[pawn]) {
+		if (target?.Thing is Pawn pawn && NoTargetPawns[pawn]) {
 			__result = false;
 			return false;
 		}
@@ -35,8 +38,8 @@ internal class NoTargetPatches {
 			defaultLabel = "No Target",
 			defaultDesc = "Prevent colonists and turrets from auto-targeting this pawn.",
 			icon = NoTargetIcon,
-			isActive = () => Component[pawn],
-			toggleAction = () => Component.Toggle(pawn)
+			isActive = () => NoTargetPawns[pawn],
+			toggleAction = () => NoTargetPawns.Toggle(pawn)
 		};
 	}
 
@@ -50,10 +53,10 @@ internal class NoTargetPatches {
 			return;
 		if (__instance.Faction is not { } f || !f.HostileTo(Faction.OfPlayer))
 			return;
-		if (Component[__instance])
+		if (NoTargetPawns[__instance])
 			return;
 		if (HasRelationshipWithAnyColonist(__instance))
-			Component[__instance] = true;
+			NoTargetPawns[__instance] = true;
 	}
 
 	private static bool HasRelationshipWithAnyColonist(Pawn pawn) {
@@ -75,15 +78,15 @@ internal class NoTargetPatches {
 	}
 }
 
-public sealed class NoTargetGameComponent : GameComponent {
+public sealed class NoTargetPawnIds : GameComponent {
 	private HashSet<string> _noTargetPawnIds = new(StringComparer.Ordinal);
 
-	public NoTargetGameComponent(Game game) { }
+	public NoTargetPawnIds(Game game) { }
 
 	public bool this[Pawn pawn] {
 		get => _noTargetPawnIds.Contains(pawn.GetUniqueLoadID());
 		set {
-			var id = pawn.GetUniqueLoadID();
+			string? id = pawn.GetUniqueLoadID();
 			if (value)
 				_noTargetPawnIds.Add(id);
 			else
@@ -92,7 +95,7 @@ public sealed class NoTargetGameComponent : GameComponent {
 	}
 
 	public void Toggle(Pawn pawn) {
-		var id = pawn.GetUniqueLoadID();
+		string? id = pawn.GetUniqueLoadID();
 		if (!_noTargetPawnIds.Add(id))
 			_noTargetPawnIds.Remove(id);
 	}
@@ -101,22 +104,5 @@ public sealed class NoTargetGameComponent : GameComponent {
 		Scribe_Collections.Look(ref _noTargetPawnIds, "noTargetPawnIds", LookMode.Value);
 		if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			_noTargetPawnIds ??= new HashSet<string>(StringComparer.Ordinal);
-	}
-}
-
-public static class NoTargetHelper {
-	private static System.WeakReference<Game>? _curGame;
-
-	public static Texture2D NoTargetIcon => field ??= ContentFinder<Texture2D>.Get("UI/Commands/NoTarget");
-
-	public static NoTargetGameComponent Component {
-		get {
-			_curGame ??= new System.WeakReference<Game>(Current.Game);
-			if (_curGame.TryGetTarget(out var game) && Current.Game == game)
-				return field ??= game.GetComponent<NoTargetGameComponent>();
-			var newGame = Current.Game;
-			_curGame.SetTarget(newGame);
-			return field = newGame.GetComponent<NoTargetGameComponent>();
-		}
 	}
 }
