@@ -34,7 +34,7 @@ public class Settings : FeatureSettings<Features> {
 
 	public Settings() : base(Helper.Logger) {
 		AfterDrawFeatureRow += (_, args) => {
-			if (args.Feature == Features.TargetMarkEnhancement) {
+			if (args.Feature == Features.TargetMarkEnhancement && args.Enabled) {
 				var rects = args.Listing.GetRect(Mathf.Max(Text.LineHeight, 24f))
 					.ToFlexbox([30, Flexbox.Length.Auto, args.Config.ResetButtonWidth], args.Config.RowGap)
 					.ToArray();

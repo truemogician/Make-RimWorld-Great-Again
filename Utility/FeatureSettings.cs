@@ -30,13 +30,19 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 
 	private ulong _specifiedMask;
 
-	protected delegate void DrawFeatureRowEventHandler(object sender, DrawFeatureRowEventArgs args);
+	protected event EventHandler<DrawFeatureRowEventArgs>? AfterDrawFeatureRow;
 
-	protected event DrawFeatureRowEventHandler? AfterDrawFeatureRow;
+	protected event EventHandler<DrawFeatureRowEventArgs>? BeforeDrawFeatureRow;
 
-	protected event DrawFeatureRowEventHandler? BeforeDrawFeatureRow;
+	protected class DrawFeatureRowEventArgs(T feature, bool enabled, Listing_Standard listing, SettingsMenuConfig config) : EventArgs {
+		public T Feature { get; init; } = feature;
 
-	protected record DrawFeatureRowEventArgs(T Feature, Listing_Standard Listing, SettingsMenuConfig Config);
+		public bool Enabled { get; init; } = enabled;
+
+		public Listing_Standard Listing { get; init; } = listing;
+
+		public SettingsMenuConfig Config { get; init; } = config;
+	}
 
 	public record SettingsMenuConfig(
 		string ResetButtonText = "Reset",
@@ -172,8 +178,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 			ulong effectiveFeatures = (ToUlong(DefaultFeatures) & ~newMask) | (newFeatures & newMask);
 			bool enabled = (effectiveFeatures & featureMask) == featureMask;
 
-			var eventArgs = new DrawFeatureRowEventArgs(feature, listing, config);
-			BeforeDrawFeatureRow?.Invoke(this, eventArgs);
+			BeforeDrawFeatureRow?.Invoke(this, new DrawFeatureRowEventArgs(feature, enabled, listing, config));
 			var rects = listing.GetRect(Mathf.Max(Text.LineHeight, 24f))
 				.ToFlexbox([Flexbox.Length.Auto, config.ResetButtonWidth], config.RowGap)
 				.ToArray();
@@ -195,7 +200,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 					newFeatures &= ~featureMask;
 				}
 			}
-			AfterDrawFeatureRow?.Invoke(this, eventArgs);
+			AfterDrawFeatureRow?.Invoke(this, new DrawFeatureRowEventArgs(feature, newEnabled, listing, config));
 		}
 
 		if (newMask != _specifiedMask || newFeatures != _specifiedFeatures) {
