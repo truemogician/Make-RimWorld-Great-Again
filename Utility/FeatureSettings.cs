@@ -147,12 +147,12 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 		var patchesToAdd = newPatches.Except(AppliedPatches).ToList();
 		if (patchesToRemove.Count > 0) {
 			foreach (var patch in patchesToRemove)
-				Harmony.CreateClassProcessor(patch).Unpatch();
+				Harmony.UnpatchFromType(patch);
 			Logger?.Message($"Removed {patchesToRemove.Count} patches");
 		}
 		if (patchesToAdd.Count > 0) {
 			foreach (var patch in patchesToAdd)
-				Harmony.CreateClassProcessor(patch).Patch();
+				Harmony.PatchFromType(patch);
 			Logger?.Message($"Applied {patchesToAdd.Count} patches");
 		}
 		AppliedPatches = newPatches;
