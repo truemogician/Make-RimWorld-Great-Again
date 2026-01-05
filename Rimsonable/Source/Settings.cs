@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using CaseExtensions;
 using HarmonyLib;
 using TrueMogician.RimWorld.Rimsonable.Patches;
@@ -35,7 +36,7 @@ public class Settings : FeatureSettings<Features> {
 		AfterDrawFeatureRow += (_, args) => {
 			if (args.Feature == Features.TargetMarkEnhancement) {
 				var rects = args.Listing.GetRect(Mathf.Max(Text.LineHeight, 24f))
-					.ToFlexbox([40, Flexbox.Length.Auto, args.Config.ResetButtonWidth], args.Config.RowGap)
+					.ToFlexbox([30, Flexbox.Length.Auto, args.Config.ResetButtonWidth], args.Config.RowGap)
 					.ToArray();
 				if (Translate(nameof(AutoTargetMarksOnNonHostile), "description") is { } tip && !tip.NullOrEmpty())
 					TooltipHandler.TipRegion(rects[1], tip);
@@ -61,13 +62,7 @@ public class Settings : FeatureSettings<Features> {
 		Scribe_Values.Look(ref _autoTargetMarksOnNonHostile, nameof(AutoTargetMarksOnNonHostile).ToCamelCase());
 	}
 
-	private static string? Translate(string name, string? subField = null) {
-		var member = typeof(Settings).GetMember(name).FirstOrDefault();
-		if (member is null)
-			throw new ArgumentException($"No such property: {name}");
-		string? key = member.GetTranslationKey();
-		if (key is not null && subField is not null)
-			key = $"{key}.{subField}";
-		return key.TryTranslate(out var translation) ? translation : null;
-	}
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static string? Translate(string memberName, string? subField = null)
+		=> typeof(Settings).TranslateMember(memberName, subField);
 }

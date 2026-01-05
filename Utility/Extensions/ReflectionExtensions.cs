@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using TrueMogician.RimWorld.Utility.Attributes;
+using Verse;
 
 namespace TrueMogician.RimWorld.Utility.Extensions;
 
@@ -26,6 +28,16 @@ public static class ReflectionExtensions {
 		if (!_translationKeyCache.TryGetValue(member, out var key))
 			_translationKeyCache[member] = key = GetTranslationKeyPrivate(member);
 		return key;
+	}
+
+	public static string? TranslateMember(this Type type, string memberName, string? subField = null) {
+		var member = type.GetMember(memberName).FirstOrDefault();
+		if (member is null)
+			throw new ArgumentException($"No such property: {memberName}");
+		string? key = member.GetTranslationKey();
+		if (key is not null && subField is not null)
+			key = $"{key}.{subField}";
+		return key.TryTranslate(out var translation) ? translation : null;
 	}
 
 	private static string? GetTranslationKeyPrivate(MemberInfo member) {
