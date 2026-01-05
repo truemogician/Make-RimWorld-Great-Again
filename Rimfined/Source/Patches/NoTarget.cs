@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
@@ -100,11 +101,13 @@ public static class NoTargetScopePatches {
 
 	public static bool InScope => _scopeCounter > 0;
 
+	private static MethodBase?[] ConditionalEntries => field ??= GetConditionalEntries().ToArray();
+
 	public static void AddTarget(MethodBase target) => _entries.Add(target);
 
 	[HarmonyTargetMethods]
 	internal static IEnumerable<MethodBase> GetTargetMethods() {
-		foreach (var target in _entries) {
+		foreach (var target in _entries.Concat(ConditionalEntries)) {
 			if (target is not null)
 				yield return target;
 		}
@@ -117,4 +120,9 @@ public static class NoTargetScopePatches {
 	[HarmonyFinalizer]
 	[HarmonyPriority(Priority.First)]
 	internal static void LeaveScope() => --_scopeCounter;
+
+	private static IEnumerable<MethodBase?> GetConditionalEntries() {
+		if (AccessTools.TypeByName("SearchAndDestroy.JobGiver_GoWithinRangeOfHostile") is { } type)
+			yield return AccessTools.DeclaredMethod(type, "TryGiveJob", [typeof(Pawn)]);
+	}
 }
