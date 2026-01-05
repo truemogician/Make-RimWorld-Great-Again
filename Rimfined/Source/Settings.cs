@@ -12,12 +12,15 @@ namespace TrueMogician.RimWorld.Rimfined;
 public enum Features : ulong {
 	None = 0,
 
-	NoTarget = 1 << 0
+	NoTarget = 1 << 0,
+
+	CaptureAsJob = 1 << 1
 }
 
 public class Settings() : FeatureSettings<Features>(Helper.Logger) {
 	static Settings() {
 		AddFeaturePatches(Features.NoTarget, typeof(NoTargetPatches));
+		AddFeaturePatches(Features.CaptureAsJob, typeof(CaptureAsJobPatches));
 	}
 
 	public static Settings Default { get; internal set; } = null!;

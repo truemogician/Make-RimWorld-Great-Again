@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+	<WorkGiverDef>
+		<defName>Rimfined_CaptureMarkedPawn</defName>
+		<label>capture marked pawn</label>
+		<giverClass>TrueMogician.RimWorld.Rimfined.Contents.WorkGiver.CaptureMarkedPawn</giverClass>
+		<workType>Warden</workType>
+		<verb>capture</verb>
+		<gerund>capturing</gerund>
+		<canBeDoneWhileDrafted>true</canBeDoneWhileDrafted>
+		<priorityInType>120</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+		<scanThings>true</scanThings>
+		<scanCells>false</scanCells>
+		<emergency>true</emergency>
+	</WorkGiverDef>
+</Defs>

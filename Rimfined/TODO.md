@@ -35,8 +35,9 @@
 - **Mod Compatibilty:**
   - [x] Combat Extended
 
-### Capture As A Job
-- **Description:** Add a gizmo to downed pawns to mark them for capture so that players don't have to draft a colonist and manually capture them. Should fall under the "Warden
+### ~~Capture As A Job~~
+- **Description:** Add a gizmo to downed pawns to mark them for capture so that players don't have to draft a colonist and manually capture them. Should fall under the "Warden" work type.
+- **Completion Date:** 2026-01-04
 
 ### Vehicle Tweaks
 - **Pending Passenger:** Show pawns entering a vehicle on the passenger list with a "pending" status, and a "cancel" button next to it.
