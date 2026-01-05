@@ -7,6 +7,7 @@
 	<Project Path="Rimsonable/Source.VEF/Rimsonable.VEF.csproj" />
 	<Project Path="Rimfined/Source/Rimfined.csproj" />
 	<Project Path="Rimfined/Source.CE/Rimfined.CE.csproj" />
+	<Project Path="Rimfined/Source.VF/Rimfined.VF.csproj" />
 	<Project Path="AnimalHaulExtended/Source/AnimalHaulExtended.csproj" />
 	<Project Path="AnimalHaulExtended/Source.CE/AnimalHaulExtended.CE.csproj" />
 	<Project Path="Utility/Utility.csproj" Id="9535d14c-5dda-4c64-8651-ac260e5e792a" />

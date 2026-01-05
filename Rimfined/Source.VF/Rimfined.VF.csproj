@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net48</TargetFramework>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<Authors>true_mogician</Authors>
+		<PackageId>TrueMogician.Rimfined.VF</PackageId>
+		<Version>0.0.1</Version>
+		<Title>Rimfined for Vehicle Framework</Title>
+		<RootNamespace>TrueMogician.RimWorld.Rimfined.VF</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ProjectRoot>$(ProjectDir)..\</ProjectRoot>
+		<DistDir>$(ProjectRoot)Dist\</DistDir>
+		<AssemblyDistDir>$(DistDir)VF\1.6\Assemblies\</AssemblyDistDir>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="5.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ThisAssembly.AssemblyInfo" Version="2.1.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ThisAssembly.Project" Version="2.1.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<ProjectReference Include="..\Source\Rimfined.csproj" />
+		<ProjectReference Include="$(SolutionDir)Utility\Utility.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="References\*.dll" />
+		<Reference Include="Vehicles" HintPath="References\Vehicles.dll" />
+	</ItemGroup>
+
+	<Target Name="Distribute" AfterTargets="Build">
+		<Copy SourceFiles="$(TargetPath)" DestinationFiles="$(AssemblyDistDir)$(AssemblyName).dll" />
+		<Message Importance="High" Text="Distributed $(TargetPath) -&gt; $(AssemblyDistDir)" />
+	</Target>
+</Project>

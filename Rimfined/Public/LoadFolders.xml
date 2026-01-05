@@ -4,5 +4,6 @@
 		<li>Shared</li>
 		<li>1.6</li>
 		<li IfModActive="CETeam.CombatExtended">CE/1.6</li>
+		<li IfModActive="SmashPhil.VehicleFramework">VF/1.6</li>
 	</v1.6>
 </loadFolders>

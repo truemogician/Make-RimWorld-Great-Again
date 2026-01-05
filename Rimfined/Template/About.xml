@@ -19,5 +19,6 @@
 	<loadAfter>
 		<li>brrainz.harmony</li>
 		<li>CETeam.CombatExtended</li>
+		<li>SmashPhil.VehicleFramework</li>
 	</loadAfter>
 </ModMetaData>

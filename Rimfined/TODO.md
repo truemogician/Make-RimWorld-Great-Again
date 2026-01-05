@@ -34,6 +34,7 @@
 - **Completion Date:** 2026-01-04
 - **Mod Compatibilty:**
   - [x] Combat Extended
+  - [x] Vehicle Framework
 
 ### ~~Capture As A Job~~
 - **Description:** Add a gizmo to downed pawns to mark them for capture so that players don't have to draft a colonist and manually capture them. Should fall under the "Warden" work type.
