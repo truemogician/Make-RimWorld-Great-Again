@@ -28,8 +28,8 @@ internal static class NoTargetPatches {
 	[HarmonyPatch(typeof(Pawn), nameof(Pawn.ThreatDisabled))]
 	[HarmonyPriority(Priority.High)]
 	[HarmonyPrefix]
-	internal static bool Pawn_ThreatDisabled_Prefix(IAttackTargetSearcher? searcher, Pawn __instance, ref bool __result) {
-		if (NoTargetScopePatches.InScope && SkipTargetFor(__instance, searcher)) {
+	internal static bool Pawn_ThreatDisabled_Prefix(IAttackTargetSearcher? disabledFor, Pawn __instance, ref bool __result) {
+		if (NoTargetScopePatches.InScope && SkipTargetFor(__instance, disabledFor)) {
 			__result = true;
 			return false;
 		}
@@ -67,25 +67,20 @@ internal static class NoTargetPatches {
 			return;
 		if (NoTargetPawns[__instance])
 			return;
-		if (HasRelationshipWithAnyColonist(__instance))
+		if (HasPositiveRelationshipWithColony(__instance, Settings.Default.AutoNoTargetForPrisonerRelatives))
 			NoTargetPawns[__instance] = true;
 	}
 
-	private static bool HasRelationshipWithAnyColonist(Pawn pawn) {
-		if (pawn.relations is not { } rel)
+	private static bool HasPositiveRelationshipWithColony(Pawn pawn, bool includePrisoners) {
+		if (pawn.relations is null)
 			return false;
-
-		// Cheap & safe: only check currently spawned free colonists (usually small list)
-		foreach (var colonist in PawnsFinder.AllMaps_FreeColonistsSpawned) {
-			if (colonist is null)
+		var candidates = includePrisoners ? PawnsFinder.AllMaps_FreeColonistsAndPrisonersSpawned : PawnsFinder.AllMaps_FreeColonistsSpawned;
+		foreach (var colonist in candidates) {
+			if (colonist?.relations?.DirectRelations is not { Count: > 0 } relations)
 				continue;
-			// Check both directions; direct relations aren't guaranteed to be symmetric in-memory
-			if (rel.DirectRelations.Any(r => r.otherPawn == colonist))
-				return true;
-			if (colonist.relations is { } cRel && cRel.DirectRelations.Any(r => r.otherPawn == pawn))
+			if (relations.Any(r => r.otherPawn == pawn && r.def.opinionOffset > 0))
 				return true;
 		}
-
 		return false;
 	}
 }

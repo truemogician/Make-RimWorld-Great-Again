@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
-	<Rimfined.Settings.Features>
-		<NoTarget>
-			<label>Add a new gizmo "No Target" to hostile pawns</label>
-			<description>When enabled, this prevents colonists and turrets from auto-targeting the pawn. Enemy pawns that have relationships with colonists will be automatically marked as "No Target".</description>
-		</NoTarget>
-		<CaptureAsJob>
-			<label>Add a new gizmo "Capture" to capturable pawns</label>
-			<description>When enabled, the pawn will be marked as available for capture. Colonists assigned with warden jobs will capture them automatically.</description>
-		</CaptureAsJob>
-	</Rimfined.Settings.Features>
+	<Rimfined.Settings>
+		<Features>
+			<NoTarget>
+				<label>Add gizmo "No Target" to hostile pawns</label>
+				<description>When toggled on, this prevents colonists and turrets from auto-targeting the pawn. Enemy pawns that have positive relationships with colonists will be automatically marked as "No Target".</description>
+			</NoTarget>
+			<CaptureAsJob>
+				<label>Add gizmo "Capture" to capturable pawns</label>
+				<description>When toggled on, the pawn will be marked as available for capture. Colonists assigned with warden jobs will capture them automatically.</description>
+			</CaptureAsJob>
+		</Features>
+		<AutoNoTargetForPrisonerRelatives>
+			<label>Mark relatives of prisoners from raids as "No Target" automatically</label>
+			<description>By default, only colonists' relatives are marked as "No Target". When enabled, this setting extends the marking to relatives of prisoners from raids.</description>
+		</AutoNoTargetForPrisonerRelatives>
+	</Rimfined.Settings>
 </LanguageData>
