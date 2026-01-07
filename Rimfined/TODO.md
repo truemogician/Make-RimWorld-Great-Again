@@ -31,7 +31,7 @@
 
 ### ~~No Target~~
 - **Description:** Add a gizmo to enemy pawns to mark them as "No Target", preventing turrets and vehicles from firing at them. Enemies with relationships to colony pawns are automatically marked as "No Target".
-- **Completion Date:** 2026-01-04
+- **Completion Date:** 2026-01-06
 - **Mod Compatibilty:**
   - [x] Combat Extended
   - [x] Vehicle Framework

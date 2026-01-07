@@ -31,6 +31,10 @@
 				Specifies the default time-to-live (TTL) in hours for the "No Target" mark when applied via the gizmo.
 				Set to 0 for permanent mark.
 			</description>
+			<slider>
+				<label>{0} hours</label>
+				<permanent>Permanent</permanent>
+			</slider>
 		</DefaultNoTargetMarkTtl>
 	</Rimfined.Settings>
 </LanguageData>

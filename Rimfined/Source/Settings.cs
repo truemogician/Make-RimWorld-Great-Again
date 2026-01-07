@@ -9,6 +9,7 @@ using TrueMogician.RimWorld.Utility;
 using TrueMogician.RimWorld.Utility.Attributes;
 using TrueMogician.RimWorld.Utility.Extensions;
 using TrueMogician.RimWorld.Utility.GUI;
+using UnityEngine;
 using Verse;
 
 namespace TrueMogician.RimWorld.Rimfined;
@@ -28,7 +29,9 @@ public enum Features : ulong {
 public class Settings : FeatureSettings<Features> {
 	private const float _ADDITIONAL_SETTINGS_INDENT = 30f;
 
-	private const float _SLIDER_WIDTH = 240f;
+	private const float _SLIDER_LABEL_WIDTH = 100f;
+
+	private const float _SLIDER_WIDTH = 300f;
 
 	private bool _autoNoTargetForPrisonerRelatives;
 
@@ -38,24 +41,36 @@ public class Settings : FeatureSettings<Features> {
 		AfterDrawFeatureRow += (_, args) => {
 			var conf = args.Config;
 			if (args is { Feature: Features.NoTarget, Enabled: true }) {
-				var rects = args.NewLine()
-					.ToFlexbox([_ADDITIONAL_SETTINGS_INDENT, Flexbox.Length.Auto, conf.ResetButtonWidth], conf.Gap)
-					.ToArray();
+				var rect = args.NewLine().Padding(0, conf.ResetButtonWidth + conf.Gap, 0, _ADDITIONAL_SETTINGS_INDENT);
 				if (Translate(nameof(AutoNoTargetForPrisonerRelatives), "description") is { } tip && !tip.NullOrEmpty())
-					TooltipHandler.TipRegion(rects[1], tip);
+					TooltipHandler.TipRegion(rect, tip);
 				Widgets.CheckboxLabeled(
-					rects[1],
+					rect,
 					Translate(nameof(AutoNoTargetForPrisonerRelatives), "label"),
 					ref _autoNoTargetForPrisonerRelatives
 				);
 
-				rects = args.NewLine()
-					.ToFlexbox([_ADDITIONAL_SETTINGS_INDENT, Flexbox.Length.Auto, _SLIDER_WIDTH, conf.ResetButtonWidth], conf.Gap)
+				var rects = args.NewLine()
+					.Padding(0, conf.ResetButtonWidth + conf.Gap, 0, _ADDITIONAL_SETTINGS_INDENT)
+					.ToFlexbox([Flexbox.Length.Auto, _SLIDER_LABEL_WIDTH, _SLIDER_WIDTH], conf.Gap)
 					.ToArray();
 				if (Translate(nameof(DefaultNoTargetMarkTtl), "description") is { } tip2 && !tip2.NullOrEmpty())
-					TooltipHandler.TipRegion(rects[1], tip2);
-				Widgets.Label(rects[1], Translate(nameof(DefaultNoTargetMarkTtl), "label"));
-				_defaultNoTargetMarkTtlHours = (byte)Widgets.HorizontalSlider(rects[2], _defaultNoTargetMarkTtlHours, 0, 48, roundTo: 1);
+					TooltipHandler.TipRegion(rects[0], tip2);
+				Widgets.Label(rects[0], Translate(nameof(DefaultNoTargetMarkTtl), "label"));
+				string? sliderLabel = _defaultNoTargetMarkTtlHours == 0
+					? Translate(nameof(DefaultNoTargetMarkTtl), "slider.permanent")
+					: Translate(nameof(DefaultNoTargetMarkTtl), "slider.label") is not { } fmt ? null
+						: string.Format(fmt, _defaultNoTargetMarkTtlHours);
+				using (Scoped.Text(TextAnchor.MiddleRight))
+					Widgets.Label(rects[1], sliderLabel);
+				_defaultNoTargetMarkTtlHours = (byte)Widgets.HorizontalSlider(
+					rects[2],
+					_defaultNoTargetMarkTtlHours,
+					0,
+					48,
+					true,
+					roundTo: 1
+				);
 			}
 		};
 	}
