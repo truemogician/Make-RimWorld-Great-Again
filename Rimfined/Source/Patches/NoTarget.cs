@@ -14,7 +14,7 @@ using Verse.AI;
 namespace TrueMogician.RimWorld.Rimfined.Patches;
 
 internal static class NoTargetPatches {
-	internal static NoTargetPawnIds NoTargetPawns => CachedGameComponent<NoTargetPawnIds>.Component;
+	internal static NoTargetMarks NoTargetPawns => CachedGameComponent<NoTargetMarks>.Component;
 
 	internal static Texture2D NoTargetIcon => field ??= ContentFinder<Texture2D>.Get("UI/Commands/NoTarget");
 
@@ -67,21 +67,35 @@ internal static class NoTargetPatches {
 			return;
 		if (NoTargetPawns[__instance])
 			return;
-		if (HasPositiveRelationshipWithColony(__instance, Settings.Default.AutoNoTargetForPrisonerRelatives))
-			NoTargetPawns[__instance] = true;
+		if (HasFamilyMemberInColony(__instance, Settings.Default.AutoNoTargetForPrisonerRelatives))
+			NoTargetPawns.Add(__instance, -1); // Family members get indefinite No Target
+		else if (HasPositiveDirectRelationWithColonists(__instance, Settings.Default.AutoNoTargetForPrisonerRelatives))
+			NoTargetPawns.Add(__instance); // Other positive relations get temporary No Target
 	}
 
-	private static bool HasPositiveRelationshipWithColony(Pawn pawn, bool includePrisoners) {
-		if (pawn.relations is null)
+	private static bool HasFamilyMemberInColony(Pawn pawn, bool? includePrisoners = null) {
+		if (pawn.relations is not { } rels)
 			return false;
-		var candidates = includePrisoners ? PawnsFinder.AllMaps_FreeColonistsAndPrisonersSpawned : PawnsFinder.AllMaps_FreeColonistsSpawned;
-		foreach (var colonist in candidates) {
-			if (colonist?.relations?.DirectRelations is not { Count: > 0 } relations)
-				continue;
-			if (relations.Any(r => r.otherPawn == pawn && r.def.opinionOffset > 0))
-				return true;
-		}
-		return false;
+		var candidates = GetCandidateSet(includePrisoners);
+		candidates.Remove(pawn.thingIDNumber);
+		return rels.FamilyByBlood.Any(p => candidates.Contains(p.thingIDNumber));
+	}
+
+	private static bool HasPositiveDirectRelationWithColonists(Pawn pawn, bool? includePrisoners = null) {
+		if (pawn.relations?.DirectRelations is not { Count: > 0 } rels)
+			return false;
+		var candidates = GetCandidateSet(includePrisoners);
+		candidates.Remove(pawn.thingIDNumber);
+		return rels.Where(r => candidates.Contains(r.otherPawn.thingIDNumber))
+			.Any(r => r.def.opinionOffset > 0);
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static HashSet<int> GetCandidateSet(bool? includePrisoners = null) {
+		includePrisoners ??= Settings.Default.AutoNoTargetForPrisonerRelatives;
+		return (includePrisoners.Value ? PawnsFinder.AllMaps_FreeColonistsAndPrisonersSpawned : PawnsFinder.AllMaps_FreeColonistsSpawned)
+			.Select(p => p.thingIDNumber)
+			.ToHashSet();
 	}
 }
 

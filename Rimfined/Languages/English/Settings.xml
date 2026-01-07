@@ -4,16 +4,26 @@
 		<Features>
 			<NoTarget>
 				<label>Add gizmo "No Target" to hostile pawns</label>
-				<description>When toggled on, this prevents colonists and turrets from auto-targeting the pawn. Enemy pawns that have positive relationships with colonists will be automatically marked as "No Target".</description>
+				<description>
+					When toggled on, the pawn will be temporarily (1 day) marked as "No Target", preventing colonists and turrets from auto-targeting them. Forced attacks ignore this mark.
+					Hostile pawns with positive relations with colonists will be automatically marked as "No Target".
+					Additionally, if the positive relation is a family relation, the mark will be permanent until manually removed.
+				</description>
 			</NoTarget>
 			<CaptureAsJob>
 				<label>Add gizmo "Capture" to capturable pawns</label>
-				<description>When toggled on, the pawn will be marked as available for capture. Colonists assigned with warden jobs will capture them automatically.</description>
+				<description>
+					When toggled on, the pawn will be marked as available for capture.
+					Colonists assigned with warden jobs will capture them automatically.
+				</description>
 			</CaptureAsJob>
 		</Features>
 		<AutoNoTargetForPrisonerRelatives>
 			<label>Mark relatives of prisoners from raids as "No Target" automatically</label>
-			<description>By default, only colonists' relatives are marked as "No Target". When enabled, this setting extends the marking to relatives of prisoners from raids.</description>
+			<description>
+				By default, only pawns with positive relations with colonists are marked as "No Target".
+				When enabled, this setting extends the marking to those with positive relations with prisoners from raids.
+			</description>
 		</AutoNoTargetForPrisonerRelatives>
 	</Rimfined.Settings>
 </LanguageData>
