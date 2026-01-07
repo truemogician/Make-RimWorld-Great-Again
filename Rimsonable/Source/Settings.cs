@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using CaseExtensions;
 using HarmonyLib;
@@ -8,8 +7,6 @@ using TrueMogician.RimWorld.Rimsonable.Static;
 using TrueMogician.RimWorld.Utility;
 using TrueMogician.RimWorld.Utility.Attributes;
 using TrueMogician.RimWorld.Utility.Extensions;
-using TrueMogician.RimWorld.Utility.GUI;
-using UnityEngine;
 using Verse;
 
 namespace TrueMogician.RimWorld.Rimsonable;
@@ -30,18 +27,18 @@ public enum Features : ulong {
 
 [Translation("Rimsonable.Settings")]
 public class Settings : FeatureSettings<Features> {
+	private const float _ADDITIONAL_SETTINGS_INDENT = 30f;
+
 	private bool _autoTargetMarksOnNonHostile;
 
 	public Settings() : base(Helper.Logger) {
 		AfterDrawFeatureRow += (_, args) => {
 			var conf = args.Config;
 			if (args is { Feature: Features.TargetMarkEnhancement, Enabled: true }) {
-				var rects = args.NewLine()
-					.ToFlexbox([30, Flexbox.Length.Auto, conf.ResetButtonWidth], conf.Gap)
-					.ToArray();
+				var rect = args.NewLine().Padding(0, conf.ResetButtonWidth + conf.Gap, 0, _ADDITIONAL_SETTINGS_INDENT);
 				if (Translate(nameof(AutoTargetMarksOnNonHostile), "description") is { } tip && !tip.NullOrEmpty())
-					TooltipHandler.TipRegion(rects[1], tip);
-				Widgets.CheckboxLabeled(rects[1], Translate(nameof(AutoTargetMarksOnNonHostile), "label"), ref _autoTargetMarksOnNonHostile);
+					TooltipHandler.TipRegion(rect, tip);
+				Widgets.CheckboxLabeled(rect, Translate(nameof(AutoTargetMarksOnNonHostile), "label"), ref _autoTargetMarksOnNonHostile);
 			}
 		};
 	}
