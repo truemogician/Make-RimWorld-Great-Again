@@ -64,10 +64,6 @@ public class ProcessTranslations : Task {
 				foreach (var xmlFile in langDir.EnumerateFiles("*.xml", SearchOption.AllDirectories)) {
 					filesProcessed++;
 
-					string relativePath = xmlFile.FullName.Substring(langDir.FullName.Length + 1);
-					string relativeDir = Path.GetDirectoryName(relativePath) ?? string.Empty;
-					string outputPath = Path.Combine(dstDir.FullName, langName, "Keyed", relativeDir, xmlFile.Name);
-
 					XDocument inputDoc;
 					try {
 						inputDoc = XDocument.Load(xmlFile.FullName, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
@@ -85,6 +81,12 @@ public class ProcessTranslations : Task {
 						LogError($"Expected root <LanguageData> in '{xmlFile.FullName}', found <{root.Name}>.");
 						goto Error;
 					}
+
+					string transType = root.Attribute("Type")?.Value ?? "Keyed";
+					string relativePath = xmlFile.FullName.Substring(langDir.FullName.Length + 1);
+					string relativeDir = Path.GetDirectoryName(relativePath) ?? string.Empty;
+					string outputPath = Path.Combine(dstDir.FullName, langName, transType, relativeDir, xmlFile.Name);
+
 					if (!TryFlattenLanguageData(root, out var outputRoot, out string flattenError)) {
 						LogError($"{flattenError} (file: {xmlFile.FullName})");
 						goto Error;
@@ -96,7 +98,7 @@ public class ProcessTranslations : Task {
 					);
 					if (WriteDocumentIfChanged(outputPath, outDoc)) {
 						filesWritten++;
-						LogMessage($"Wrote {langName}/Keyed/{relativePath.Replace('\\', '/')}", MessageImportance.High);
+						LogMessage($"Wrote {langName}/{transType}/{relativePath.Replace('\\', '/')}", MessageImportance.High);
 					}
 					continue;
 				Error:
