@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.Build.Framework;
@@ -15,6 +16,8 @@ namespace TrueMogician.RimWorld.Utility.Tasks;
 public class ProcessTranslations : Task {
 	private const string _LOG_PREFIX = "[ProcessTranslations] ";
 
+	private static readonly Regex _lineBreakPattern = new(@"(?:\r?\n)+", RegexOptions.Compiled);
+
 	private sealed class Utf8StringWriter : StringWriter {
 		public override Encoding Encoding => new UTF8Encoding(false);
 	}
@@ -26,6 +29,8 @@ public class ProcessTranslations : Task {
 	public string DestinationFolder { get; set; }
 
 	public string Separator { get; set; } = ".";
+
+	public string Indent { get; set; } = "\t";
 
 	public override bool Execute() {
 		if (string.IsNullOrWhiteSpace(SourceFolder)) {
@@ -80,7 +85,7 @@ public class ProcessTranslations : Task {
 						LogError($"Expected root <LanguageData> in '{xmlFile.FullName}', found <{root.Name}>.");
 						goto Error;
 					}
-					if (!TryFlattenLanguageData(root, out var outputRoot, out var flattenError)) {
+					if (!TryFlattenLanguageData(root, out var outputRoot, out string flattenError)) {
 						LogError($"{flattenError} (file: {xmlFile.FullName})");
 						goto Error;
 					}
@@ -168,10 +173,37 @@ public class ProcessTranslations : Task {
 			outputRoot.SetAttributeValue("__error", $"Duplicate translation key '{currentKey}'.");
 			return;
 		}
-		var outElement = new XElement(currentKey, node.Value);
+		var outElement = new XElement(currentKey, NormalizeLeafValue(node.Value));
 		foreach (var attr in node.Attributes())
 			outElement.SetAttributeValue(attr.Name, attr.Value);
 		outputRoot.Add(outElement);
+	}
+
+	private string NormalizeLeafValue(string value) {
+		if (string.IsNullOrEmpty(value))
+			return value;
+		// RimWorld translation strings support "\\n" for line breaks. If the source uses
+		// multiline XML content, strip common indentation and encode line breaks.
+		if (!value.Contains('\n') && !value.Contains('\r'))
+			return value;
+		var lines = _lineBreakPattern.Split(value)
+			.Where(l => !string.IsNullOrWhiteSpace(l))
+			.ToList();
+		if (lines.Count == 0)
+			return string.Empty;
+		if (lines.Count == 1)
+			return lines[0];
+		int minIndent = lines.Select(l => {
+			var indent = 0;
+			while (l.Substring(indent * Indent.Length, Indent.Length) == Indent)
+				++indent;
+			return indent;
+		}).Min();
+		if (minIndent > 0) {
+			for (var i = 0; i < lines.Count; i++)
+				lines[i] = lines[i].Substring(minIndent * Indent.Length);
+		}
+		return string.Join("\\n", lines);
 	}
 
 	private string CombineKey(string? parentKey, string childName) {
