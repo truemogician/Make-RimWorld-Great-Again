@@ -3,34 +3,24 @@
 	<Rimfined.Settings>
 		<Features>
 			<NoTarget>
-				<label>Add gizmo "No Target" to hostile pawns</label>
+				<label>"No Target" gizmo</label>
 				<description>
-					When toggled on, the pawn will be temporarily (duration adjustable, defaults to 1 day) marked as "No Target", preventing colonists and turrets from auto-targeting them. Forced attacks ignore this mark.
-					Hostile pawns with positive relations with colonists will be automatically marked as "No Target".
-					Additionally, if the positive relation is a family relation, the mark will be permanent until manually removed.
+					Adds a toggle gizmo to hostile pawns to exempt them from auto-targeting by colonists and turrets. Forced attacks will still work as normal.
+					Hostile pawns with positive relations to colonists are automatically marked. Blood relatives receive a permanent mark, while others receive a temporary one (duration configurable below).
 				</description>
 			</NoTarget>
 			<CaptureAsJob>
-				<label>Add gizmo "Capture" to capturable pawns</label>
-				<description>
-					When toggled on, the pawn will be marked as available for capture.
-					Colonists assigned with warden jobs will capture them automatically.
-				</description>
+				<label>"Capture" gizmo</label>
+				<description>Adds a "Capture" toggle to pawns available for capture. When enabled, wardens will automatically attempt to capture the pawn if a prisoner bed is available.</description>
 			</CaptureAsJob>
 		</Features>
 		<AutoNoTargetForPrisonerRelatives>
-			<label>Mark relatives of prisoners from raids as "No Target" automatically</label>
-			<description>
-				By default, only pawns with positive relations with colonists are marked as "No Target".
-				When enabled, this setting extends the marking to those with positive relations with prisoners from raids.
-			</description>
+			<label>Include prisoner relations</label>
+			<description>When enabled, hostile pawns with positive relations to your prisoners will also be automatically marked as "No Target".</description>
 		</AutoNoTargetForPrisonerRelatives>
 		<DefaultNoTargetMarkTtl>
-			<label>Default TTL for "No Target" mark</label>
-			<description>
-				Specifies the default time-to-live (TTL) in hours for the "No Target" mark when applied via the gizmo.
-				Set to 0 for permanent mark.
-			</description>
+			<label>Manual mark duration</label>
+			<description>The duration (in hours) for the "No Target" mark when applied manually via the gizmo. Set to 0 for a permanent mark.</description>
 			<slider>
 				<label>{0} hours</label>
 				<permanent>Permanent</permanent>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<Rimfined.Settings>
+		<Features>
+			<NoTarget>
+				<label>「暫不攻擊」指令</label>
+				<description>
+					為敵對人物新增一個切換按鈕，使其免於受到殖民者與防禦砲塔的自動攻擊。手動強制攻擊仍會正常生效。
+					與殖民者有友好關係的敵對人物將會被自動標記。血親將獲得永久標記，而其他具備友好關係的人物則會獲得暫時標記（持續時間可在下方設定）。
+				</description>
+			</NoTarget>
+			<CaptureAsJob>
+				<label>「抓捕」指令</label>
+				<description>為可抓捕的人物新增「抓捕」切換按鈕。啟用後，若有可用的囚犯床位，獄卒將會自動嘗試抓捕該目標。</description>
+			</CaptureAsJob>
+		</Features>
+		<AutoNoTargetForPrisonerRelatives>
+			<label>包含囚犯關係</label>
+			<description>啟用後，與你的囚犯有友好關係的敵對人物也將被自動標記為「暫不攻擊」。</description>
+		</AutoNoTargetForPrisonerRelatives>
+		<DefaultNoTargetMarkTtl>
+			<label>手動標記持續時間</label>
+			<description>透過指令手動套用「暫不攻擊」標記時的持續時間（小時）。設定為 0 代表永久標記。</description>
+			<slider>
+				<label>{0} 小時</label>
+				<permanent>永久</permanent>
+			</slider>
+		</DefaultNoTargetMarkTtl>
+	</Rimfined.Settings>
+</LanguageData>

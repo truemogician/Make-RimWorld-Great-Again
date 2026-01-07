@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<Rimfined.Settings>
+		<Features>
+			<NoTarget>
+				<label>“暂不攻击”指令</label>
+				<description>
+					为敌对角色添加一个切换指令，使其免受殖民者和防御炮塔的自动攻击。手动强制攻击仍可正常生效。
+					与殖民者有正向关系的敌对角色会被自动标记。血亲将获得永久标记，而其他正向关系角色将获得临时标记（持续时间可在下方配置）。
+				</description>
+			</NoTarget>
+			<CaptureAsJob>
+				<label>“抓捕”指令</label>
+				<description>为可抓捕的倒地角色添加“抓捕”切换指令。启用后，如果有可用的囚犯床位，狱卒将自动尝试抓捕该角色。</description>
+			</CaptureAsJob>
+		</Features>
+		<AutoNoTargetForPrisonerRelatives>
+			<label>包含囚犯关系</label>
+			<description>启用后，与你的囚犯有正向关系的敌对角色也将被自动标记为“暂不攻击”。</description>
+		</AutoNoTargetForPrisonerRelatives>
+		<DefaultNoTargetMarkTtl>
+			<label>手动标记持续时间</label>
+			<description>通过指令手动应用“暂不攻击”标记时的持续时间（小时）。设置为 0 表示永久标记。</description>
+			<slider>
+				<label>{0} 小时</label>
+				<permanent>永久</permanent>
+			</slider>
+		</DefaultNoTargetMarkTtl>
+	</Rimfined.Settings>
+</LanguageData>
