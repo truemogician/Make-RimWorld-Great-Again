@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using RimWorld;
 using Verse;
 
 namespace TrueMogician.RimWorld.Rimfined.Components;
@@ -30,12 +29,13 @@ public sealed class NoTargetMarks : GameComponent {
 		}
 	}
 
-	public void Add(Pawn pawn, int ttl = GenDate.TicksPerDay) {
+	public void Add(Pawn pawn, int? ttl = null) {
+		ttl ??= Settings.Default.DefaultNoTargetMarkTtl;
 		switch (ttl) {
 			case 0:    Remove(pawn); break;
 			case -1:   _noTargetMarkExpTick[pawn.thingIDNumber] = -1; break;
 			case < -1: throw new ArgumentOutOfRangeException(nameof(ttl), ttl, "TTL can't be less than -1");
-			default:   _noTargetMarkExpTick[pawn.thingIDNumber] = Find.TickManager.TicksGame + ttl; break;
+			default:   _noTargetMarkExpTick[pawn.thingIDNumber] = Find.TickManager.TicksGame + ttl.Value; break;
 		}
 	}
 

@@ -5,7 +5,7 @@
 			<NoTarget>
 				<label>Add gizmo "No Target" to hostile pawns</label>
 				<description>
-					When toggled on, the pawn will be temporarily (1 day) marked as "No Target", preventing colonists and turrets from auto-targeting them. Forced attacks ignore this mark.
+					When toggled on, the pawn will be temporarily (duration adjustable, defaults to 1 day) marked as "No Target", preventing colonists and turrets from auto-targeting them. Forced attacks ignore this mark.
 					Hostile pawns with positive relations with colonists will be automatically marked as "No Target".
 					Additionally, if the positive relation is a family relation, the mark will be permanent until manually removed.
 				</description>
@@ -25,5 +25,12 @@
 				When enabled, this setting extends the marking to those with positive relations with prisoners from raids.
 			</description>
 		</AutoNoTargetForPrisonerRelatives>
+		<DefaultNoTargetMarkTtl>
+			<label>Default TTL for "No Target" mark</label>
+			<description>
+				Specifies the default time-to-live (TTL) in hours for the "No Target" mark when applied via the gizmo.
+				Set to 0 for permanent mark.
+			</description>
+		</DefaultNoTargetMarkTtl>
 	</Rimfined.Settings>
 </LanguageData>
