@@ -6,7 +6,7 @@
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
 		<Authors>true_mogician</Authors>
-		<Description>Rimfined brings a splash of logic to the Rim by finally making life a little more reasonable. This collection overhauls various head-scratching mechanics to ensure your colonists behave according to the laws of reality rather than game-y quirks. These changes prioritize grounded rationale over ease of play, meaning some things will feel more intuitive while others become much more punishing. Every feature can be toggled individually in the mod options if you ever decide you prefer the original chaos.</Description>
+		<Description>Rimfined is the industrial-strength sandpaper your colony needs to survive the storyteller's mood swings without you losing your mind. We've all been there: a pawn ignoring a life-saving medical task to go cloud-watching, or a turret deciding to "accidentally" target your favorite shooter's sister. This collection polishes those click-heavy UI frustrations and smooths out the head-scratching pawn logic that usually makes you want to turn your colony into human-leather hats. It's all about giving you the control you actually need to stop the micromanagement madness, leaving you more time to worry about the real problems—like that looming mechanoid cluster or the fact that someone just ate the last nutrient paste meal without a table. Every feature is individually toggleable in the settings, so you can keep exactly as much of the original chaos as your mental break threshold allows.</Description>
 		<PackageId>TrueMogician.Rimfined</PackageId>
 		<Version>0.0.1</Version>
 		<Title>Rimfined</Title>
