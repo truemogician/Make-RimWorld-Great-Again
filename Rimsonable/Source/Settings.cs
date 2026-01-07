@@ -34,9 +34,10 @@ public class Settings : FeatureSettings<Features> {
 
 	public Settings() : base(Helper.Logger) {
 		AfterDrawFeatureRow += (_, args) => {
-			if (args.Feature == Features.TargetMarkEnhancement && args.Enabled) {
-				var rects = args.Listing.GetRect(Mathf.Max(Text.LineHeight, 24f))
-					.ToFlexbox([30, Flexbox.Length.Auto, args.Config.ResetButtonWidth], args.Config.RowGap)
+			var conf = args.Config;
+			if (args is { Feature: Features.TargetMarkEnhancement, Enabled: true }) {
+				var rects = args.NewLine()
+					.ToFlexbox([30, Flexbox.Length.Auto, conf.ResetButtonWidth], conf.Gap)
 					.ToArray();
 				if (Translate(nameof(AutoTargetMarksOnNonHostile), "description") is { } tip && !tip.NullOrEmpty())
 					TooltipHandler.TipRegion(rects[1], tip);

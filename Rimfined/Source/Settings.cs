@@ -9,7 +9,6 @@ using TrueMogician.RimWorld.Utility;
 using TrueMogician.RimWorld.Utility.Attributes;
 using TrueMogician.RimWorld.Utility.Extensions;
 using TrueMogician.RimWorld.Utility.GUI;
-using UnityEngine;
 using Verse;
 
 namespace TrueMogician.RimWorld.Rimfined;
@@ -37,9 +36,10 @@ public class Settings : FeatureSettings<Features> {
 
 	public Settings() : base(Helper.Logger) {
 		AfterDrawFeatureRow += (_, args) => {
-			if (args.Feature == Features.NoTarget && args.Enabled) {
-				var rects = args.Listing.GetRect(Mathf.Max(Text.LineHeight, 24f))
-					.ToFlexbox([_ADDITIONAL_SETTINGS_INDENT, Flexbox.Length.Auto, args.Config.ResetButtonWidth], args.Config.RowGap)
+			var conf = args.Config;
+			if (args is { Feature: Features.NoTarget, Enabled: true }) {
+				var rects = args.NewLine()
+					.ToFlexbox([_ADDITIONAL_SETTINGS_INDENT, Flexbox.Length.Auto, conf.ResetButtonWidth], conf.Gap)
 					.ToArray();
 				if (Translate(nameof(AutoNoTargetForPrisonerRelatives), "description") is { } tip && !tip.NullOrEmpty())
 					TooltipHandler.TipRegion(rects[1], tip);
@@ -49,8 +49,8 @@ public class Settings : FeatureSettings<Features> {
 					ref _autoNoTargetForPrisonerRelatives
 				);
 
-				rects = args.Listing.GetRect(Mathf.Max(Text.LineHeight, 24f))
-					.ToFlexbox([_ADDITIONAL_SETTINGS_INDENT, Flexbox.Length.Auto, _SLIDER_WIDTH, args.Config.ResetButtonWidth], args.Config.RowGap)
+				rects = args.NewLine()
+					.ToFlexbox([_ADDITIONAL_SETTINGS_INDENT, Flexbox.Length.Auto, _SLIDER_WIDTH, conf.ResetButtonWidth], conf.Gap)
 					.ToArray();
 				if (Translate(nameof(DefaultNoTargetMarkTtl), "description") is { } tip2 && !tip2.NullOrEmpty())
 					TooltipHandler.TipRegion(rects[1], tip2);

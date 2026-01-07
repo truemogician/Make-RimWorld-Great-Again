@@ -42,12 +42,18 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 		public Listing_Standard Listing { get; init; } = listing;
 
 		public SettingsMenuConfig Config { get; init; } = config;
+
+		public Rect NewLine(float? height = null) {
+			float lineHeight = MathF.Max(Text.LineHeight, height ?? Config.LineHeight);
+			return Listing.GetRect(lineHeight);
+		}
 	}
 
 	public record SettingsMenuConfig(
 		string ResetButtonText = "Reset",
 		float ResetButtonWidth = 80f,
-		float RowGap = 10f
+		float LineHeight = 24f,
+		float Gap = 10f
 	);
 
 	public virtual T DefaultFeatures { get; } = GetDefaultFeatures();
@@ -179,8 +185,8 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 			bool enabled = (effectiveFeatures & featureMask) == featureMask;
 
 			BeforeDrawFeatureRow?.Invoke(this, new DrawFeatureRowEventArgs(feature, enabled, listing, config));
-			var rects = listing.GetRect(Mathf.Max(Text.LineHeight, 24f))
-				.ToFlexbox([Flexbox.Length.Auto, config.ResetButtonWidth], config.RowGap)
+			var rects = listing.GetRect(Mathf.Max(Text.LineHeight, config.LineHeight))
+				.ToFlexbox([Flexbox.Length.Auto, config.ResetButtonWidth], config.Gap)
 				.ToArray();
 			if (description is { } tip && !tip.NullOrEmpty())
 				TooltipHandler.TipRegion(rects[0], tip);
