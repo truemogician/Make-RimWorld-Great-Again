@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using HarmonyLib;
 using Verse;
 
@@ -9,8 +8,8 @@ using Verse;
 
 namespace TrueMogician.RimWorld.Profiler.Patches;
 
-using KeyedRecords = Dictionary<string, ProfilerRecord>;
-using TypedRecords = Dictionary<Type, ProfilerRecord>;
+using ThingIdProfilerRecord = ProfilerRecord<int>;
+using ThingProfilerRecord = ProfilerRecord<Thing>;
 
 public static class TickPatches {
 	internal static readonly object RecordsLock = new();
@@ -19,9 +18,7 @@ public static class TickPatches {
 
 	internal static readonly TickProfilerSummary Summary = new();
 
-	internal static KeyedRecords CurrentKeyedRecords = [];
-
-	internal static TypedRecords CurrentTypedRecords = [];
+	internal static Dictionary<int, ThingProfilerRecord> ThingRecords = new();
 
 	internal static bool Enabled;
 
@@ -30,8 +27,7 @@ public static class TickPatches {
 	public static void Reset() {
 		lock (RecordsLock) {
 			AllRecords.Clear();
-			CurrentKeyedRecords = [];
-			CurrentTypedRecords = [];
+			ThingRecords = new Dictionary<int, ThingProfilerRecord>();
 			Summary.Reset();
 			TickStarted = 0;
 		}
@@ -55,16 +51,11 @@ public static class TickPatches {
 		if (TickStarted == 0)
 			return;
 		var time = Stopwatch.GetTimestamp() - TickStarted;
-		var record = new SingleTickRecord {
-			Time = time,
-			KeyedRecords = CurrentKeyedRecords,
-			TypedRecords = CurrentTypedRecords
-		};
+		var record = new SingleTickRecord(time, ThingRecords.Values);
 		lock (RecordsLock) {
 			AllRecords.Add(record);
 			Summary.Increment(time);
-			CurrentKeyedRecords = [];
-			CurrentTypedRecords = [];
+			ThingRecords = new Dictionary<int, ThingProfilerRecord>();
 			TickStarted = 0;
 		}
 	}
@@ -85,36 +76,81 @@ public static class TickPatches {
 		if (!Enabled || TickStarted == 0)
 			return;
 		long time = Stopwatch.GetTimestamp() - __state;
-		Summary.TotalTypedTime += time;
-		var type = __instance.GetType();
-		if (!CurrentTypedRecords.TryGetValue(type, out var tr))
-			CurrentTypedRecords[type] = tr = new ProfilerRecord(type.FullName!);
-		tr.Increment(time);
-		string? key = GetKey(__instance);
-		if (key is not null) {
-			Summary.TotalKeyedTime += time;
-			if (!CurrentKeyedRecords.TryGetValue(key, out var kr))
-				CurrentKeyedRecords[key] = kr = new ProfilerRecord(key);
-			kr.Increment(time);
-		}
+		var id = __instance.thingIDNumber;
+		if (!ThingRecords.TryGetValue(id, out var record))
+			record = new ThingProfilerRecord(__instance);
+		record.Increment(time);
+		ThingRecords[id] = record;
+	}
+}
+
+public class PawnPropsProfilerComparer : IEqualityComparer<PawnProps> {
+	public static PawnPropsProfilerComparer Instance { get; } = new();
+
+	public bool Equals(PawnProps x, PawnProps y) {
+		if (!x.OnActiveMap && !y.OnActiveMap)
+			return true;
+		if (x.State != y.State)
+			return false;
+		if (x.State != PawnState.Active)
+			return true;
+		return x.Type == y.Type;
 	}
 
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static string? GetKey(Thing thing) {
-		return thing switch {
-			Pawn human when human.RaceProps.Humanlike => $"Human: {human.Name?.ToStringFull ?? human.ThingID}",
-			Pawn animal when animal.RaceProps.Animal  => $"Animal: {animal.KindLabel} ({animal.Name?.ToStringFull ?? animal.ThingID})",
-			_                                         => null
-		};
+	public int GetHashCode(PawnProps obj) {
+		if (!obj.OnActiveMap)
+			return 1 << 16;
+		if (obj.State != PawnState.Active)
+			return (byte)obj.State << 8;
+		return (byte)obj.Type;
 	}
 }
 
 public record SingleTickRecord {
-	public long Time { get; init; }
+	public enum Category : byte {
+		Type,
+		Pawn,
+		Keyed
+	}
 
-	public TypedRecords TypedRecords { get; init; } = [];
+	public class CategoryRecord<TKey>(Category key, IEqualityComparer<TKey>? comparer = null)
+		: AggProfilerRecord<Category, AggProfilerRecord<TKey, ThingIdProfilerRecord, int>, TKey>(key, comparer);
 
-	public KeyedRecords KeyedRecords { get; init; } = [];
+	public SingleTickRecord(long totalQpcTicks, IEnumerable<ThingProfilerRecord> records) {
+		QpcTicks = totalQpcTicks;
+		foreach ((var key, int hitCount, long qpcTicks) in records) {
+			var idRecord = new ThingIdProfilerRecord(key.thingIDNumber, hitCount, qpcTicks);
+			var type = key.GetType();
+			if (!TypeRecord.TryGetValue(type, out var rt))
+				TypeRecord.Add(rt = new(type));
+			rt.Add(idRecord);
+			if (key is Pawn pawn) {
+				var props = new PawnProps(pawn);
+				if (!PawnRecord.TryGetValue(props, out var rp))
+					PawnRecord.Add(rp = new(props));
+				rp.Add(idRecord);
+			}
+			if (GetThingKey(key) is { } keyString) {
+				if (!KeyedRecord.TryGetValue(keyString, out var rk))
+					KeyedRecord.Add(rk = new(keyString));
+				rk.Add(idRecord);
+			}
+		}
+	}
+
+	public long QpcTicks { get; init; }
+
+	public CategoryRecord<Type> TypeRecord { get; } = new(Category.Type);
+
+	public CategoryRecord<PawnProps> PawnRecord { get; } = new(Category.Pawn, PawnPropsProfilerComparer.Instance);
+
+	public CategoryRecord<string> KeyedRecord { get; } = new(Category.Keyed);
+
+	public static string? GetThingKey(Thing thing) {
+		if (thing is not Pawn { IsFreeNonSlaveColonist: true, Name: { } name })
+			return null;
+		return name.ToStringFull;
+	}
 }
 
 public class TickProfilerSummary(
