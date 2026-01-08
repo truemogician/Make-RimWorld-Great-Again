@@ -59,7 +59,10 @@ public class Profiler(string id) : IEnumerable<ProfilerRecord> {
 	}
 
 	public void Unpatch() {
-		_harmony.UnpatchAll(_harmony.Id);
+		foreach (var (method, prefix, postfix) in _patches.Values) {
+			_harmony.Unpatch(method, prefix.method);
+			_harmony.Unpatch(method, postfix.method);
+		}
 	}
 
 	public void Reset() {
