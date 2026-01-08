@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using HarmonyLib;
 using TrueMogician.RimWorld.Utility;
@@ -103,35 +102,5 @@ public class Profiler(string id) : IEnumerable<ProfilerRecord> {
 		var index = _methodIndices[__originalMethod];
 		// ReSharper disable once InconsistentlySynchronizedField
 		_records[index].Increment(ticks);
-	}
-}
-
-public class ProfilerRecord(string label, int count = 0, long ticks = 0) {
-	public string Label { get; } = label;
-
-	public int Count { get; private set; } = count;
-
-	public long Ticks { get; private set; } = ticks;
-
-	public double AverageTicks => Count == 0 ? 0 : (double)Ticks / Count;
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void Increment(long ticks) {
-		++Count;
-		Ticks += ticks;
-	}
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void Reset() {
-		Count = 0;
-		Ticks = 0;
-	}
-
-	public ProfilerRecord Clone() => new(Label, Count, Ticks);
-
-	public void Deconstruct(out string label, out int count, out long ticks) {
-		label = Label;
-		count = Count;
-		ticks = Ticks;
 	}
 }
