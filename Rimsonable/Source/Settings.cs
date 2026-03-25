@@ -22,7 +22,9 @@ public enum Features : ulong {
 	SafeRestLocation = 1 << 1,
 
 	[Feature(ModDependencies = [ModIds.CombatExtended])]
-	TargetMarkEnhancement = 1 << 2
+	TargetMarkEnhancement = 1 << 2,
+
+	AutoAvoidMechDetectors = 1 << 3
 }
 
 [Translation("Rimsonable.Settings")]
@@ -46,6 +48,7 @@ public class Settings : FeatureSettings<Features> {
 	static Settings() {
 		AddFeaturePatches(Features.AllowGrenadesThroughShields, typeof(AllowGrenadesThroughShields));
 		AddFeaturePatches(Features.SafeRestLocation, typeof(SafeRestLocation));
+		AddFeaturePatches(Features.AutoAvoidMechDetectors, typeof(AutoAvoidMechDetectors));
 	}
 
 	public static Settings Default { get; internal set; } = null!;

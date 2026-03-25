@@ -66,3 +66,7 @@
 - **Priority:** Medium
 - **Implementation Difficulty:** Low
 - **Performance Impact:** Low
+
+### ~~Auto Avoid Mech Detectors~~
+- **Description:** Pawns not drafted should automatically avoid mechanoid detectors when moving around the map, similar to how they avoid fire. Applicable to pawns from all factions.
+- **Completion Date:** 2026-03-21

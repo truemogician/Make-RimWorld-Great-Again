@@ -14,6 +14,10 @@
 				<label>Spotter Mark Enhancement</label>
 				<description>Artillery and mortars will prioritize firing at targets marked by the spotters. Other turrets gain a small accuracy boost when firing at marked targets.</description>
 			</TargetMarkEnhancement>
+			<AutoAvoidMechDetectors>
+				<label>Auto Avoid Proximity Activators</label>
+				<description>Pawns automatically avoid mechanoid proximity activators during pathfinding, similar to how they avoid fire. Prevents accidental triggering of dormant mechanoid clusters.</description>
+			</AutoAvoidMechDetectors>
 		</Features>
 		<AutoTargetMarksOnNonHostile>
 			<label>Auto Target Marks on Non-Hostile Entities</label>
