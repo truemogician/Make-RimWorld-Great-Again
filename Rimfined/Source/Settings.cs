@@ -22,7 +22,9 @@ public enum Features : ulong {
 
 	NoTarget = 1 << 0,
 
-	CaptureAsJob = 1 << 1
+	CaptureAsJob = 1 << 1,
+
+	AmbrosiaAutoHarvest = 1 << 2
 }
 
 [Translation("Rimfined.Settings")]
@@ -78,6 +80,7 @@ public class Settings : FeatureSettings<Features> {
 	static Settings() {
 		AddFeaturePatches(Features.NoTarget, typeof(NoTargetPatches), typeof(NoTargetScopePatches));
 		AddFeaturePatches(Features.CaptureAsJob, typeof(CaptureAsJobPatches));
+		AddFeaturePatches(Features.AmbrosiaAutoHarvest, typeof(AmbrosiaAutoHarvestPatches));
 	}
 
 	public static Settings Default { get; internal set; } = null!;
