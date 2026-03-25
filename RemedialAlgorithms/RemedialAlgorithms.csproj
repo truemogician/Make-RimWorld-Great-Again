@@ -16,9 +16,6 @@
 	<PropertyGroup>
 		<DistDir>$(MSBuildProjectDirectory)\Dist\</DistDir>
 		<AssemblyDistDir>$(DistDir)1.6\Assemblies\</AssemblyDistDir>
-		<CustomTaskDir>$(SolutionDir)Utility\Tasks\</CustomTaskDir>
-		<GameDir>$(SolutionDir)RimWorld</GameDir>
-		<SteamGameDir>G:\Game Files\Steam\steamapps\common\RimWorld</SteamGameDir>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -57,7 +54,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<ProjectReference Include="$(SolutionDir)Utility\Utility.csproj" />
+		<ProjectReference Include="$(UtilityProjectPath)" />
 	</ItemGroup>
 
 	<UsingTask TaskName="ProcessTranslations" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
@@ -66,7 +63,7 @@
 			<Reference Include="Microsoft.Build" />
 			<Reference Include="Microsoft.Build.Framework" />
 			<Reference Include="Microsoft.Build.Utilities.Core" />
-			<Code Type="Class" Language="cs" Source="$(CustomTaskDir)ProcessTranslations.cs" />
+			<Code Type="Class" Language="cs" Source="$(UtilityTasksDir)ProcessTranslations.cs" />
 		</Task>
 	</UsingTask>
 
@@ -76,7 +73,7 @@
 			<Reference Include="Microsoft.Build" />
 			<Reference Include="Microsoft.Build.Framework" />
 			<Reference Include="Microsoft.Build.Utilities.Core" />
-			<Code Type="Class" Language="cs" Source="$(CustomTaskDir)BuildXml.cs" />
+			<Code Type="Class" Language="cs" Source="$(UtilityTasksDir)BuildXml.cs" />
 		</Task>
 	</UsingTask>
 
@@ -86,7 +83,7 @@
 			<Reference Include="Microsoft.Build" />
 			<Reference Include="Microsoft.Build.Framework" />
 			<Reference Include="Microsoft.Build.Utilities.Core" />
-			<Code Type="Class" Language="cs" Source="$(CustomTaskDir)CreateLink.cs" />
+			<Code Type="Class" Language="cs" Source="$(UtilityTasksDir)CreateLink.cs" />
 		</Task>
 	</UsingTask>
 
@@ -125,8 +122,8 @@
 		<!-- 2. Generate Launch Script -->
 		<ItemGroup>
 			<LaunchCmd Include="@echo off" />
-			<LaunchCmd Include="copy /Y &quot;$(TargetDir)ModsConfig.xml&quot; &quot;$(SolutionDir)SaveData\Config\ModsConfig.xml&quot;" />
-			<LaunchCmd Include="start &quot;RimWorld Mod Test&quot; &quot;$(GameDir)\RimWorldWin64.exe&quot; -popupwindow &quot;-savedatafolder=$(SolutionDir)SaveData&quot;" />
+			<LaunchCmd Include="copy /Y &quot;$(TargetDir)ModsConfig.xml&quot; &quot;$(SaveDataDir)Config\ModsConfig.xml&quot;" />
+			<LaunchCmd Include="start &quot;RimWorld Mod Test&quot; &quot;$(GameDir)\RimWorldWin64.exe&quot; -popupwindow &quot;-savedatafolder=$(SaveDataDirArg)&quot;" />
 		</ItemGroup>
 		<WriteLinesToFile File="$(TargetDir)LaunchRimWorld.bat" Lines="@(LaunchCmd)" Overwrite="true" />
 	</Target>
@@ -139,7 +136,7 @@
 		<ItemGroup>
 			<DirsToDelete Include="$(DistDir)" />
 			<DirsToDelete Include="$(GameDir)\Mods\$(AssemblyName)" />
-			<FilesToDelete Include="$(SolutionDir)SaveData\Config\ModsConfig.xml" />
+			<FilesToDelete Include="$(SaveDataDir)Config\ModsConfig.xml" />
 			<FilesToDelete Include="$(TargetDir)LaunchRimWorld.bat" />
 			<FilesToDelete Include="$(TargetDir)ModsConfig.xml" />
 			<FilesToDelete Include="$(TargetDir)$(TargetName).Bundle.dll" />
@@ -149,11 +146,11 @@
 		<Message Text="Custom files and directories cleaned" Importance="High" />
 	</Target>
 
-	<Target Name="DeployToSteam">
+	<Target Name="DeployToSteam" Condition="'$(SteamGameDir)' != ''">
 		<CreateLink Source="$(DistDir)" Destination="$(SteamGameDir)\Mods\$(AssemblyName)" Condition="Exists('$(SteamGameDir)\Mods')" />
 		<Message Text="Linked mod $(AssemblyName) to Steam game directory" Importance="High" />
 	</Target>
-	<Target Name="RemoveFromSteam">
+	<Target Name="RemoveFromSteam" Condition="'$(SteamGameDir)' != ''">
 		<ItemGroup>
 			<LinkedDir Include="$(SteamGameDir)\Mods\$(AssemblyName)" />
 		</ItemGroup>

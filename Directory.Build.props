@@ -1,0 +1,14 @@
+<Project>
+	<PropertyGroup>
+		<RepositoryRoot>$([MSBuild]::EnsureTrailingSlash('$(MSBuildThisFileDirectory)'))</RepositoryRoot>
+		<SolutionDir Condition="'$(SolutionDir)' == ''">$(RepositoryRoot)</SolutionDir>
+		<UtilityProjectPath>$(RepositoryRoot)Utility\Utility.csproj</UtilityProjectPath>
+		<UtilityTasksDir>$(RepositoryRoot)Utility\Tasks\</UtilityTasksDir>
+		<GameDir Condition="'$(GameDir)' == ''">$(RepositoryRoot)RimWorld</GameDir>
+		<SaveDataDir>$(RepositoryRoot)SaveData\</SaveDataDir>
+		<SaveDataDirArg>$([System.String]::Copy('$(SaveDataDir)').TrimEnd('\'))</SaveDataDirArg>
+		<SteamGameDir Condition="'$(SteamGameDir)' == ''"></SteamGameDir>
+	</PropertyGroup>
+
+	<Import Project="$(MSBuildThisFileDirectory)Directory.Build.user.props" Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.user.props')" />
+</Project>

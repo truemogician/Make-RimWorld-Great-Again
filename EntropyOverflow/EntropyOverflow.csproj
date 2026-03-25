@@ -12,7 +12,6 @@
 		<Title>Entropy Overflow</Title>
 		<RootNamespace>TrueMogician.RimWorld</RootNamespace>
 		<DistDir>$(MSBuildProjectDirectory)\Dist\</DistDir>
-		<GameDir>$(SolutionDir)RimWorld</GameDir>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -46,7 +45,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<ProjectReference Include="..\Utility\Utility.csproj" />
+		<ProjectReference Include="$(UtilityProjectPath)" />
 	</ItemGroup>
 
 	<UsingTask TaskName="BuildXml" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
@@ -55,7 +54,7 @@
 			<Reference Include="Microsoft.Build" />
 			<Reference Include="Microsoft.Build.Framework" />
 			<Reference Include="Microsoft.Build.Utilities.Core" />
-			<Code Type="Class" Language="cs" Source="$(ProjectDir)..\Utility\Tasks\BuildXml.cs" />
+			<Code Type="Class" Language="cs" Source="$(UtilityTasksDir)BuildXml.cs" />
 		</Task>
 	</UsingTask>
 
@@ -65,7 +64,7 @@
 			<Reference Include="Microsoft.Build" />
 			<Reference Include="Microsoft.Build.Framework" />
 			<Reference Include="Microsoft.Build.Utilities.Core" />
-			<Code Type="Class" Language="cs" Source="$(ProjectDir)..\Utility\Tasks\CreateLink.cs" />
+			<Code Type="Class" Language="cs" Source="$(UtilityTasksDir)CreateLink.cs" />
 		</Task>
 	</UsingTask>
 
@@ -94,10 +93,10 @@
 		<ItemGroup>
 			<ModsConfigToken Include="PackageId" Value="$(PackageId)" />
 		</ItemGroup>
-		<BuildXml Template="$(ProjectDir)Template\ModsConfig.xml" Destination="$(SolutionDir)SaveData\Config\ModsConfig.xml" Tokens="@(ModsConfigToken)" />
+		<BuildXml Template="$(ProjectDir)Template\ModsConfig.xml" Destination="$(SaveDataDir)Config\ModsConfig.xml" Tokens="@(ModsConfigToken)" />
 		<!-- 2. Generate Launch Script -->
 		<ItemGroup>
-			<LaunchCmd Include="start &quot;RimWorld Mod Test&quot; &quot;$(GameDir)\RimWorldWin64.exe&quot; -windowed &quot;-savedatafolder=$(SolutionDir)SaveData&quot;" />
+			<LaunchCmd Include="start &quot;RimWorld Mod Test&quot; &quot;$(GameDir)\RimWorldWin64.exe&quot; -windowed &quot;-savedatafolder=$(SaveDataDirArg)&quot;" />
 		</ItemGroup>
 		<WriteLinesToFile File="$(TargetDir)LaunchRimWorld.bat" Lines="@(LaunchCmd)" Overwrite="true" />
 	</Target>
@@ -110,7 +109,7 @@
 		<ItemGroup>
 			<DirsToDelete Include="$(DistDir)" />
 			<DirsToDelete Include="$(GameDir)\Mods\$(AssemblyName)" />
-			<FilesToDelete Include="$(SolutionDir)SaveData\Config\ModsConfig.xml" />
+			<FilesToDelete Include="$(SaveDataDir)Config\ModsConfig.xml" />
 			<FilesToDelete Include="$(TargetDir)LaunchRimWorld.bat" />
 			<FilesToDelete Include="$(TargetDir)Bundle.dll" />
 		</ItemGroup>

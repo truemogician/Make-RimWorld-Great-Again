@@ -36,7 +36,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<ProjectReference Include="..\Source\Rimsonable.csproj" />
-		<ProjectReference Include="$(SolutionDir)Utility\Utility.csproj" />
+		<ProjectReference Include="$(UtilityProjectPath)" />
 	</ItemGroup>
 
 	<ItemGroup>

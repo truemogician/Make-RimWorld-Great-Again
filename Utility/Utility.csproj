@@ -13,10 +13,6 @@
 		<AssemblyName>$(PackageId)</AssemblyName>
 	</PropertyGroup>
 
-	<PropertyGroup>
-		<GameDir>$(SolutionDir)RimWorld</GameDir>
-	</PropertyGroup>
-
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 		<DebugType>embedded</DebugType>
 	</PropertyGroup>
