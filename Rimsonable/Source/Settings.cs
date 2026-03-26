@@ -24,7 +24,7 @@ public enum Features : ulong {
 	[Feature(ModDependencies = [ModIds.CombatExtended])]
 	TargetMarkEnhancement = 1 << 2,
 
-	AutoAvoidMechDetectors = 1 << 3,
+	AutoAvoidProximityActivators = 1 << 3,
 
 	WorkMemory = 1 << 4
 }
@@ -50,7 +50,7 @@ public class Settings : FeatureSettings<Features> {
 	static Settings() {
 		AddFeaturePatches(Features.AllowGrenadesThroughShields, typeof(AllowGrenadesThroughShields));
 		AddFeaturePatches(Features.SafeRestLocation, typeof(SafeRestLocation));
-		AddFeaturePatches(Features.AutoAvoidMechDetectors, typeof(AutoAvoidMechDetectors));
+		AddFeaturePatches(Features.AutoAvoidProximityActivators, typeof(AutoAvoidProximityActivators));
 		AddFeaturePatches(Features.WorkMemory, typeof(WorkMemory));
 	}
 

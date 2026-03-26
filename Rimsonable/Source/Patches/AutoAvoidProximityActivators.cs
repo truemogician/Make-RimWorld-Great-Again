@@ -10,19 +10,19 @@ using Verse.AI;
 
 namespace TrueMogician.RimWorld.Rimsonable.Patches;
 
-public static class AutoAvoidMechDetectors {
+public static class AutoAvoidProximityActivators {
 	public const int AVOID_COST = 800;
 
 	public const float RADIUS_MARGIN = 1f;
 
-	private static readonly List<ThingDef> _detectorDefs = [];
+	private static readonly List<ThingDef> _activatorDefs = [];
 
-	private static bool _detectorDefsInitialized;
+	private static bool _activatorDefsInitialized;
 
-	private static ConditionalWeakTable<Map, DetectorCoverage> _coverageGrids = new();
+	private static ConditionalWeakTable<Map, ProximityActivatorCoverage> _coverageGrids = new();
 
-	static AutoAvoidMechDetectors() {
-		LongEventHandler.ExecuteWhenFinished(EnsureDetectorDefsInitialized);
+	static AutoAvoidProximityActivators() {
+		LongEventHandler.ExecuteWhenFinished(EnsureActivatorDefsInitialized);
 	}
 
 	[HarmonyPatch(typeof(PathGrid), nameof(PathGrid.CalculatedCostAt))]
@@ -50,7 +50,7 @@ public static class AutoAvoidMechDetectors {
 		var comp = __instance.GetComp<CompSendSignalOnMotion>();
 		if (comp is not { Sent: false } || !__instance.Spawned)
 			return;
-		ActivateDetector(__instance.Map, __instance, comp.Props.radius);
+		ActivateActivator(__instance.Map, __instance, comp.Props.radius);
 	}
 
 	[HarmonyPatch(typeof(ThingWithComps), nameof(ThingWithComps.DeSpawn))]
@@ -59,7 +59,7 @@ public static class AutoAvoidMechDetectors {
 		var comp = __instance.GetComp<CompSendSignalOnMotion>();
 		if (comp is not { Sent: false } || !__instance.Spawned)
 			return;
-		DeactivateDetector(__instance.Map, __instance, comp.Props.radius);
+		DeactivateActivator(__instance.Map, __instance, comp.Props.radius);
 	}
 
 	// #region Trigger / Expire
@@ -71,7 +71,7 @@ public static class AutoAvoidMechDetectors {
 	[HarmonyPatch(typeof(CompSendSignalOnMotion), "Trigger")]
 	[HarmonyPostfix]
 	private static void CompSendSignalOnMotion_Trigger_Postfix(CompSendSignalOnMotion __instance, bool __state)
-		=> SyncDetectorCoverage(__instance, __state);
+		=> SyncActivatorCoverage(__instance, __state);
 
 	[HarmonyPatch(typeof(CompSendSignalOnMotion), nameof(CompSendSignalOnMotion.Notify_SignalReceived))]
 	[HarmonyPrefix]
@@ -81,7 +81,7 @@ public static class AutoAvoidMechDetectors {
 	[HarmonyPatch(typeof(CompSendSignalOnMotion), nameof(CompSendSignalOnMotion.Notify_SignalReceived))]
 	[HarmonyPostfix]
 	private static void CompSendSignalOnMotion_Notify_SignalReceived_Postfix(CompSendSignalOnMotion __instance, bool __state)
-		=> SyncDetectorCoverage(__instance, __state);
+		=> SyncActivatorCoverage(__instance, __state);
 
 	[HarmonyPatch(typeof(CompSendSignalOnMotion), nameof(CompSendSignalOnMotion.Expire))]
 	[HarmonyPrefix]
@@ -91,12 +91,12 @@ public static class AutoAvoidMechDetectors {
 	[HarmonyPatch(typeof(CompSendSignalOnMotion), nameof(CompSendSignalOnMotion.Expire))]
 	[HarmonyPostfix]
 	private static void CompSendSignalOnMotion_Expire_Postfix(CompSendSignalOnMotion __instance, bool __state)
-		=> SyncDetectorCoverage(__instance, __state);
+		=> SyncActivatorCoverage(__instance, __state);
 	// #endregion
 
 	[PatchHook(PatchHookTiming.AfterPatch)]
 	private static void AfterPatch() {
-		EnsureDetectorDefsInitialized();
+		EnsureActivatorDefsInitialized();
 		if (Find.Maps == null)
 			return;
 		foreach (var map in Find.Maps)
@@ -116,109 +116,109 @@ public static class AutoAvoidMechDetectors {
 
 	private static bool IsActive(CompSendSignalOnMotion comp) => comp is { parent.Spawned: true, Sent: false };
 
-	private static void SyncDetectorCoverage(CompSendSignalOnMotion comp, bool wasActive) {
+	private static void SyncActivatorCoverage(CompSendSignalOnMotion comp, bool wasActive) {
 		bool isActive = IsActive(comp);
 		if (wasActive == isActive || comp.parent is not { Spawned: true } parent)
 			return;
 		if (isActive)
-			ActivateDetector(parent.Map, parent, comp.Props.radius);
+			ActivateActivator(parent.Map, parent, comp.Props.radius);
 		else
-			DeactivateDetector(parent.Map, parent, comp.Props.radius);
+			DeactivateActivator(parent.Map, parent, comp.Props.radius);
 	}
 
-	private static void ActivateDetector(Map map, ThingWithComps detector, float detectionRadius) {
-		GetOrCreateEmptyCoverageGrid(map).SetDetectorCoverage(detector, detectionRadius, true, true);
+	private static void ActivateActivator(Map map, ThingWithComps activator, float detectionRadius) {
+		GetOrCreateEmptyCoverageGrid(map).SetActivatorCoverage(activator, detectionRadius, true, true);
 	}
 
-	private static void DeactivateDetector(Map map, ThingWithComps detector, float detectionRadius) {
+	private static void DeactivateActivator(Map map, ThingWithComps activator, float detectionRadius) {
 		if (!_coverageGrids.TryGetValue(map, out var grid))
 			return;
-		grid.SetDetectorCoverage(detector, detectionRadius, false, true);
+		grid.SetActivatorCoverage(activator, detectionRadius, false, true);
 	}
 
-	private static void EnsureDetectorDefsInitialized() {
-		if (_detectorDefsInitialized)
+	private static void EnsureActivatorDefsInitialized() {
+		if (_activatorDefsInitialized)
 			return;
-		_detectorDefsInitialized = true;
+		_activatorDefsInitialized = true;
 		foreach (var def in DefDatabase<ThingDef>.AllDefsListForReading) {
 			if (def.HasComp<CompSendSignalOnMotion>())
-				_detectorDefs.Add(def);
+				_activatorDefs.Add(def);
 		}
 	}
 
-	private static DetectorCoverage GetOrCreateEmptyCoverageGrid(Map map) {
+	private static ProximityActivatorCoverage GetOrCreateEmptyCoverageGrid(Map map) {
 		if (_coverageGrids.TryGetValue(map, out var grid))
 			return grid;
-		grid = new DetectorCoverage(map);
+		grid = new ProximityActivatorCoverage(map);
 		_coverageGrids.Add(map, grid);
 		return grid;
 	}
 
-	private static DetectorCoverage GetOrBuildCoverageGrid(Map map) {
+	private static ProximityActivatorCoverage GetOrBuildCoverageGrid(Map map) {
 		if (_coverageGrids.TryGetValue(map, out var grid))
 			return grid;
 		grid = GetOrCreateEmptyCoverageGrid(map);
-		grid.Populate(EnumerateActiveDetectors(map), false);
+		grid.Populate(EnumerateActiveActivators(map), false);
 		return grid;
 	}
 
 	private static void RebuildCoverageGrid(Map map) {
-		EnsureDetectorDefsInitialized();
-		GetOrCreateEmptyCoverageGrid(map).Rebuild(EnumerateActiveDetectors(map), true);
+		EnsureActivatorDefsInitialized();
+		GetOrCreateEmptyCoverageGrid(map).Rebuild(EnumerateActiveActivators(map), true);
 	}
 
-	private static IEnumerable<(ThingWithComps Detector, float Radius)> EnumerateActiveDetectors(Map map) {
-		EnsureDetectorDefsInitialized();
-		foreach (var def in _detectorDefs) {
+	private static IEnumerable<(ThingWithComps Activator, float Radius)> EnumerateActiveActivators(Map map) {
+		EnsureActivatorDefsInitialized();
+		foreach (var def in _activatorDefs) {
 			foreach (var thing in map.listerThings.ThingsOfDef(def)) {
-				if (thing is not ThingWithComps detector)
+				if (thing is not ThingWithComps activator)
 					continue;
-				var comp = detector.GetComp<CompSendSignalOnMotion>();
-				if (comp is not { Sent: false } || !detector.Spawned)
+				var comp = activator.GetComp<CompSendSignalOnMotion>();
+				if (comp is not { Sent: false } || !activator.Spawned)
 					continue;
-				yield return (detector, comp.Props.radius);
+				yield return (activator, comp.Props.radius);
 			}
 		}
 	}
 
-	internal sealed class DetectorCoverage(Map map) {
+	internal sealed class ProximityActivatorCoverage(Map map) {
 		public Map Map { get; } = map;
 
 		public ByteGrid Grid { get; } = new(map);
 
-		public HashSet<int> ActiveDetectorIds { get; } = [];
+		public HashSet<int> ActiveActivatorIds { get; } = [];
 
-		public void Rebuild(IEnumerable<(ThingWithComps Detector, float Radius)> detectors, bool recalculatePaths) {
+		public void Rebuild(IEnumerable<(ThingWithComps Activator, float Radius)> activators, bool recalculatePaths) {
 			Clear();
-			Populate(detectors, recalculatePaths);
+			Populate(activators, recalculatePaths);
 		}
 
-		public void Populate(IEnumerable<(ThingWithComps Detector, float Radius)> detectors, bool recalculatePaths) {
+		public void Populate(IEnumerable<(ThingWithComps Activator, float Radius)> activators, bool recalculatePaths) {
 			if (!recalculatePaths) {
-				foreach ((var detector, float radius) in detectors)
-					SetDetectorCoverage(detector, radius, true, false);
+				foreach ((var activator, float radius) in activators)
+					SetActivatorCoverage(activator, radius, true, false);
 				return;
 			}
 			using var _ = Map.pathing.DisableIncrementalScope();
-			foreach ((var detector, float radius) in detectors)
-				SetDetectorCoverage(detector, radius, true, true);
+			foreach ((var activator, float radius) in activators)
+				SetActivatorCoverage(activator, radius, true, true);
 		}
 
-		public void SetDetectorCoverage(ThingWithComps detector, float detectionRadius, bool active, bool recalculatePaths) {
-			int detectorId = detector.thingIDNumber;
+		public void SetActivatorCoverage(ThingWithComps activator, float detectionRadius, bool active, bool recalculatePaths) {
+			int activatorId = activator.thingIDNumber;
 			if (active) {
-				if (!ActiveDetectorIds.Add(detectorId))
+				if (!ActiveActivatorIds.Add(activatorId))
 					return;
-				ApplyCoverageDelta(detector.Position, detectionRadius, 1, recalculatePaths);
+				ApplyCoverageDelta(activator.Position, detectionRadius, 1, recalculatePaths);
 				return;
 			}
-			if (!ActiveDetectorIds.Remove(detectorId))
+			if (!ActiveActivatorIds.Remove(activatorId))
 				return;
-			ApplyCoverageDelta(detector.Position, detectionRadius, -1, recalculatePaths);
+			ApplyCoverageDelta(activator.Position, detectionRadius, -1, recalculatePaths);
 		}
 
 		public void RefreshCoveredCells() {
-			if (ActiveDetectorIds.Count == 0)
+			if (ActiveActivatorIds.Count == 0)
 				return;
 			using var _ = Map.pathing.DisableIncrementalScope();
 			for (var i = 0; i < Grid.CellsCount; i++) {
@@ -230,7 +230,7 @@ public static class AutoAvoidMechDetectors {
 
 		public void Clear() {
 			Grid.Clear();
-			ActiveDetectorIds.Clear();
+			ActiveActivatorIds.Clear();
 		}
 
 		private void ApplyCoverageDelta(IntVec3 center, float radius, int delta, bool recalculatePaths) {
@@ -249,7 +249,7 @@ public static class AutoAvoidMechDetectors {
 					if (delta > 0) {
 						if (prevCount == byte.MaxValue) {
 							Helper.Logger.Warning(
-								"Auto Avoid Mech Detectors coverage overflowed ByteGrid capacity; coverage may be approximate.",
+								"Auto Avoid Proximity Activators coverage overflowed ByteGrid capacity; coverage may be approximate.",
 								true
 							);
 							continue;

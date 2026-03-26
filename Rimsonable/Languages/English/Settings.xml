@@ -14,10 +14,10 @@
 				<label>Spotter Mark Enhancement</label>
 				<description>Artillery and mortars will prioritize firing at targets marked by the spotters. Other turrets gain a small accuracy boost when firing at marked targets.</description>
 			</TargetMarkEnhancement>
-			<AutoAvoidMechDetectors>
+			<AutoAvoidProximityActivators>
 				<label>Auto Avoid Proximity Activators</label>
 				<description>Pawns automatically avoid mechanoid proximity activators during pathfinding, similar to how they avoid fire. Prevents accidental triggering of dormant mechanoid clusters.</description>
-			</AutoAvoidMechDetectors>
+			</AutoAvoidProximityActivators>
 			<WorkMemory>
 				<label>Work Memory</label>
 				<description>Quality crafting speed ramps up when a pawn stays focused on making the same thing and falls off after time away, encouraging repeated work on the same bill.</description>
