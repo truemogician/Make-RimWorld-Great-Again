@@ -40,8 +40,9 @@
 - **Difficulty:** Medium
 - **Performance Impact:** Low
 
-### Work Memory
+### ~~Work Memory~~
 - **Description:** When manufacturing items with quality levels, work speed follows a sigmoid curve based on when the pawn last worked on it, encouraging focused work.
+- **Completion Date:** 2026-03-26
 - **Priority:** High
 - **Difficulty:** High
 - **Performance Impact:** Medium (Requires optimization for WorkTicks)
