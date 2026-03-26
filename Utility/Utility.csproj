@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<TargetFramework>net472</TargetFramework>
 		<RootNamespace>TrueMogician.RimWorld.Utility</RootNamespace>
@@ -39,6 +38,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
+		<PackageReference Include="TrueMogician.Extensions.Collections" Version="0.7.1" />
 		<PackageReference Include="TrueMogician.Extensions.Enumerable" Version="2.1.1" />
 		<PackageReference Include="TrueMogician.Extensions.List" Version="1.3.1" />
 	</ItemGroup>

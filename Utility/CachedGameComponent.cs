@@ -3,7 +3,7 @@ using Verse;
 
 namespace TrueMogician.RimWorld.Utility;
 
-public class CachedGameComponent<T> where T : GameComponent {
+public static class CachedGameComponent<T> where T : GameComponent {
 	private static T? _component;
 
 	static CachedGameComponent() {

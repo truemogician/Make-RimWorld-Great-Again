@@ -7,7 +7,7 @@ using HarmonyLib;
 
 namespace TrueMogician.RimWorld.Utility.Attributes;
 
-[AttributeUsage(AttributeTargets.Method)]
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 public class PatchHookAttribute(PatchHookTiming timing) : Attribute {
 	public PatchHookTiming Timing { get; } = timing;
 }
@@ -23,7 +23,7 @@ public static class PatchHookHelper {
 	extension(Harmony harmony) {
 		public void PatchFromType(Type patchType) {
 			List<MethodInfo> beforeHooks = [], afterHooks = [];
-			foreach (var method in patchType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic)) {
+			foreach (var method in patchType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly)) {
 				var attrs = method.GetCustomAttributes<PatchHookAttribute>().ToArray();
 				if (attrs.Length == 0)
 					continue;
@@ -42,7 +42,7 @@ public static class PatchHookHelper {
 
 		public void UnpatchFromType(Type patchType) {
 			List<MethodInfo> beforeHooks = [], afterHooks = [];
-			foreach (var method in patchType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic)) {
+			foreach (var method in patchType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly)) {
 				var attrs = method.GetCustomAttributes<PatchHookAttribute>().ToArray();
 				if (attrs.Length == 0)
 					continue;

@@ -85,6 +85,8 @@ public class ProcessTranslations : Task {
 					string transType = root.Attribute("Type")?.Value ?? "Keyed";
 					string relativePath = xmlFile.FullName.Substring(langDir.FullName.Length + 1);
 					string relativeDir = Path.GetDirectoryName(relativePath) ?? string.Empty;
+					if (root.Attribute("DefType")?.Value is { } defType)
+						relativeDir = Path.Combine(defType.Trim(), relativeDir);
 					string outputPath = Path.Combine(dstDir.FullName, langName, transType, relativeDir, xmlFile.Name);
 
 					if (!TryFlattenLanguageData(root, out var outputRoot, out string flattenError)) {
