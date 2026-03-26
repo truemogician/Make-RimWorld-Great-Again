@@ -13,9 +13,9 @@ public sealed class WorkMemoryComponent : GameComponent {
 	public WorkMemoryComponent(Game game) { }
 
 	public float GetMultiplier(Pawn pawn, RecipeDef recipe, int delta) {
-		return !_records.TryGetValue(pawn.thingIDNumber, recipe.defName, out var record) 
-			? WorkMemoryCurve.MIN_MULTIPLIER 
-			: WorkMemoryCurve.GetMultiplier(record.GetMomentum(Find.TickManager.TicksGame, delta));
+		return !_records.TryGetValue(pawn.thingIDNumber, recipe.defName, out var record)
+			? WorkMemoryCurve.MIN_MULTIPLIER
+			: WorkMemoryCurve.GetMultiplier(record.GetMomentum(Find.TickManager.TicksGame, delta), recipe);
 	}
 
 	public void RecordWork(Pawn pawn, RecipeDef recipe, int delta) {
@@ -26,7 +26,7 @@ public sealed class WorkMemoryComponent : GameComponent {
 			record = new WorkMemoryRecord();
 			_records[pawnId, recipeDefName] = record;
 		}
-		record.RecordWork(Find.TickManager.TicksGame, delta);
+		record.RecordWork(Find.TickManager.TicksGame, delta, WorkMemoryCurve.GetMomentumCap(recipe));
 	}
 
 	public override void ExposeData() {
@@ -41,7 +41,7 @@ public sealed class WorkMemoryComponent : GameComponent {
 			foreach (var entry in entries) {
 				if (entry is not { PawnId: > 0, RecipeDefName: not null, Record: not null })
 					continue;
-				_records.Add(entry); 
+				_records.Add(entry);
 			}
 		}
 		else if (Scribe.mode == LoadSaveMode.PostLoadInit)
@@ -74,11 +74,11 @@ public sealed class WorkMemoryEntry : IExposable {
 		Scribe_Deep.Look(ref Record, "record");
 	}
 
-	public static implicit operator WorkMemoryTuple(WorkMemoryEntry entry) => (entry.PawnId, entry.RecipeDefName ?? string.Empty, entry.Record ?? new()); 
+	public static implicit operator WorkMemoryTuple(WorkMemoryEntry entry) => (entry.PawnId, entry.RecipeDefName ?? string.Empty, entry.Record ?? new());
 
 	public static implicit operator WorkMemoryEntry(WorkMemoryTuple tuple) => new() {
-		PawnId = tuple.PawnId, 
-		RecipeDefName = tuple.RecipeDefName, 
+		PawnId = tuple.PawnId,
+		RecipeDefName = tuple.RecipeDefName,
 		Record = tuple.Record
 	};
 
@@ -95,7 +95,9 @@ public sealed class WorkMemoryRecord : IExposable {
 	}
 
 	public float GetMomentum(int now, int delta) {
-		int gap = _lastWorkedTick < 0 ? int.MaxValue : Mathf.Max(0, now - _lastWorkedTick - delta);
+		int gap = _lastWorkedTick < 0
+			? int.MaxValue
+			: Mathf.Max(0, now - _lastWorkedTick - delta - WorkMemoryCurve.DECAY_DELAY_TICKS);
 		return Mathf.Max(0f, _momentum - gap * WorkMemoryCurve.DECAY_PER_TICK);
 	}
 
@@ -105,8 +107,8 @@ public sealed class WorkMemoryRecord : IExposable {
 		return GetMomentum(now, 0) <= 0f;
 	}
 
-	public void RecordWork(int now, int delta) {
-		_momentum = Mathf.Min(WorkMemoryCurve.MOMENTUM_CAP, GetMomentum(now, delta) + delta);
+	public void RecordWork(int now, int delta, float momentumCap) {
+		_momentum = Mathf.Min(momentumCap, GetMomentum(now, delta) + delta);
 		_lastWorkedTick = now;
 	}
 }
@@ -116,22 +118,32 @@ internal static class WorkMemoryCurve {
 
 	public const float MAX_MULTIPLIER = 1.25f;
 
-	public const float MIDPOINT = 600f;
+	public const float MIN_REFERENCE_WORK_AMOUNT = 400f;
 
-	public const float SLOPE = 150f;
+	public const float MIDPOINT_FACTOR = 1f;
 
-	public const float MOMENTUM_CAP = 1200f;
+	public const float SLOPE_FACTOR = 0.2f;
 
-	public const float DECAY_PER_TICK = 1f;
+	public const float MOMENTUM_CAP_FACTOR = 2.0f;
 
-	private static readonly float _lowerBound = RawSigmoid(0f);
+	public const int DECAY_DELAY_TICKS = 800;
 
-	private static readonly float _upperBound = RawSigmoid(MOMENTUM_CAP);
+	public const float DECAY_PER_TICK = 0.4f;
 
-	public static float GetMultiplier(float momentum) {
-		float normalized = Mathf.InverseLerp(_lowerBound, _upperBound, RawSigmoid(Mathf.Clamp(momentum, 0f, MOMENTUM_CAP)));
+	public static float GetMomentumCap(RecipeDef recipe) => GetReferenceWorkAmount(recipe) * MOMENTUM_CAP_FACTOR;
+
+	public static float GetMultiplier(float momentum, RecipeDef recipe) {
+		var workAmount = GetReferenceWorkAmount(recipe);
+		float midpoint = workAmount * MIDPOINT_FACTOR;
+		float slope = workAmount * SLOPE_FACTOR;
+		float momentumCap = workAmount * MOMENTUM_CAP_FACTOR;
+		float lowerBound = RawSigmoid(0f, midpoint, slope);
+		float upperBound = RawSigmoid(momentumCap, midpoint, slope);
+		float normalized = Mathf.InverseLerp(lowerBound, upperBound, RawSigmoid(Mathf.Clamp(momentum, 0f, momentumCap), midpoint, slope));
 		return Mathf.Lerp(MIN_MULTIPLIER, MAX_MULTIPLIER, normalized);
 	}
 
-	private static float RawSigmoid(float momentum) => 1f / (1f + Mathf.Exp(-(momentum - MIDPOINT) / SLOPE));
+	private static float GetReferenceWorkAmount(RecipeDef recipe) => Mathf.Max(recipe.WorkAmountTotal(null), MIN_REFERENCE_WORK_AMOUNT);
+
+	private static float RawSigmoid(float momentum, float midpoint, float slope) => 1f / (1f + Mathf.Exp(-(momentum - midpoint) / slope));
 }
