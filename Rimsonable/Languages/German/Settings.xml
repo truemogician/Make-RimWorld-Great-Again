@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<Rimsonable.Settings>
+		<Features>
+			<AllowGrenadesThroughShields>
+				<label>Handgranaten durch Schilde erlauben</label>
+				<description>Erlaubt Handgranaten, Schilde zu durchdringen.</description>
+			</AllowGrenadesThroughShields>
+			<SafeRestLocation>
+				<label>Sicherer Ruheplatz</label>
+				<description>Personen und Tiere ruhen oder schlafen nur an sicheren Orten ohne Gefahren wie Feuer, Verseuchung oder Gas und meiden dabei auch Türen.</description>
+			</SafeRestLocation>
+			<TargetMarkEnhancement>
+				<label>Spotter-Markierungen verbessern</label>
+				<description>Artillerie und Mörser feuern bevorzugt auf Ziele mit Spotter-Markierung. Andere Geschütztürme erhalten beim Beschuss markierter Ziele einen kleinen Genauigkeitsbonus.</description>
+			</TargetMarkEnhancement>
+			<AutoAvoidProximityActivators>
+				<label>Näherungsaktivatoren automatisch meiden</label>
+				<description>Personen und Tiere meiden bei der Wegfindung automatisch Näherungsaktivatoren von Mech-Clustern, ähnlich wie Feuer. So werden schlafende Mech-Cluster nicht versehentlich ausgelöst.</description>
+			</AutoAvoidProximityActivators>
+			<WorkMemory>
+				<label>Arbeitsgedächtnis</label>
+				<description>Die Arbeitsgeschwindigkeit beim Herstellen von Gegenständen mit Qualität steigt, wenn sich jemand auf denselben Auftrag konzentriert, und fällt nach längerer Unterbrechung wieder ab. Das belohnt wiederholte Arbeit am selben Auftrag.</description>
+			</WorkMemory>
+		</Features>
+		<AutoTargetMarksOnNonHostile>
+			<label>Markierungen auf nicht feindlichen Zielen automatisch anvisieren</label>
+			<description>Ob Artillerie und Mörser Spotter-Markierungen auf nicht feindlichen Zielen wie neutralen Tieren oder Besuchern automatisch als Ziel wählen sollen.</description>
+		</AutoTargetMarksOnNonHostile>
+	</Rimsonable.Settings>
+</LanguageData>

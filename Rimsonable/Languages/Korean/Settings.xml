@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<Rimsonable.Settings>
+		<Features>
+			<AllowGrenadesThroughShields>
+				<label>수류탄이 보호막을 통과하도록 허용</label>
+				<description>수류탄이 보호막을 통과할 수 있게 합니다.</description>
+			</AllowGrenadesThroughShields>
+			<SafeRestLocation>
+				<label>안전한 휴식 장소</label>
+				<description>사람과 동물은 불, 오염, 가스 같은 위험이 없는 안전한 곳에서만 쉬거나 잠을 자며, 문 앞도 피합니다.</description>
+			</SafeRestLocation>
+			<TargetMarkEnhancement>
+				<label>관측수 표식 강화</label>
+				<description>포병과 박격포는 관측수가 찍은 표적을 우선 공격합니다. 다른 포탑도 표식이 찍힌 표적을 공격할 때 명중률이 조금 올라갑니다.</description>
+			</TargetMarkEnhancement>
+			<AutoAvoidProximityActivators>
+				<label>근접 센서 자동 회피</label>
+				<description>사람과 동물은 경로를 찾을 때 불을 피하듯 메카노이드 전초기지의 근접 센서를 자동으로 피해, 휴면 상태의 메카노이드 전초기지를 실수로 활성화하는 일을 막습니다.</description>
+			</AutoAvoidProximityActivators>
+			<WorkMemory>
+				<label>작업 기억</label>
+				<description>품질이 붙는 제작은 같은 계획서에 계속 집중할수록 작업 속도가 오르고, 한동안 손을 떼면 다시 떨어집니다. 같은 계획서를 반복해서 처리하도록 유도합니다.</description>
+			</WorkMemory>
+		</Features>
+		<AutoTargetMarksOnNonHostile>
+			<label>비적대 대상 표식 자동 조준</label>
+			<description>포병과 박격포가 중립 동물이나 방문객처럼 비적대 대상에 찍힌 관측 표식을 자동으로 조준할지 설정합니다.</description>
+		</AutoTargetMarksOnNonHostile>
+	</Rimsonable.Settings>
+</LanguageData>

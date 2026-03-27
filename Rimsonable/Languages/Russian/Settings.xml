@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<Rimsonable.Settings>
+		<Features>
+			<AllowGrenadesThroughShields>
+				<label>Разрешить гранатам проходить сквозь щиты</label>
+				<description>Позволяет гранатам проходить сквозь щиты.</description>
+			</AllowGrenadesThroughShields>
+			<SafeRestLocation>
+				<label>Безопасное место для отдыха</label>
+				<description>Люди и животные будут отдыхать и спать только в безопасных местах без огня, загрязнения и газа, а также станут избегать дверей.</description>
+			</SafeRestLocation>
+			<TargetMarkEnhancement>
+				<label>Усиление меток корректировщика</label>
+				<description>Артиллерия и миномёты будут в первую очередь стрелять по целям с меткой корректировщика. Остальные турели тоже получат небольшой бонус к точности при стрельбе по таким целям.</description>
+			</TargetMarkEnhancement>
+			<AutoAvoidProximityActivators>
+				<label>Автообход датчиков движения</label>
+				<description>Люди и животные при поиске пути будут автоматически обходить датчики движения кластеров механоидов, как обходят огонь. Это помогает не активировать спящие кластеры механоидов по ошибке.</description>
+			</AutoAvoidProximityActivators>
+			<WorkMemory>
+				<label>Рабочая память</label>
+				<description>Скорость изготовления предметов с качеством растёт, если работать по одному и тому же заданию без переключения, и падает после долгого перерыва. Это поощряет повторную работу по тому же заданию.</description>
+			</WorkMemory>
+		</Features>
+		<AutoTargetMarksOnNonHostile>
+			<label>Автоматически целиться по меткам на невраждебных целях</label>
+			<description>Должны ли артиллерия и миномёты автоматически наводиться на метки корректировщика на невраждебных целях, например на нейтральных животных или гостях.</description>
+		</AutoTargetMarksOnNonHostile>
+	</Rimsonable.Settings>
+</LanguageData>

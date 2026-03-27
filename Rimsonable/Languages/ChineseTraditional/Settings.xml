@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<Rimsonable.Settings>
+		<Features>
+			<AllowGrenadesThroughShields>
+				<label>手榴彈可穿透護盾</label>
+				<description>護盾不再阻擋從內往外投擲的手榴彈。</description>
+			</AllowGrenadesThroughShields>
+			<SafeRestLocation>
+				<label>安全休息地點</label>
+				<description>人員與動物只會在安全的位置休息或睡覺，會避開火焰、污染、毒氣等危險，也不會睡在門口。</description>
+			</SafeRestLocation>
+			<TargetMarkEnhancement>
+				<label>觀測員標記強化</label>
+				<description>火砲與迫擊砲會優先射擊觀測員標記的目標；其他砲塔在射擊這類目標時，也會獲得些微命中加成。</description>
+			</TargetMarkEnhancement>
+			<AutoAvoidProximityActivators>
+				<label>自動避開探測啟動器</label>
+				<description>人員與動物在尋路時，會像避開火焰那樣自動繞開機械要塞的探測啟動器，避免不小心驚動休眠中的機械要塞。</description>
+			</AutoAvoidProximityActivators>
+			<WorkMemory>
+				<label>工作手感</label>
+				<description>製作品質物品時，若持續專注於同一份工作，工作速度會逐步提升；中斷太久後又會慢慢退回，鼓勵持續處理同一份工作。</description>
+			</WorkMemory>
+		</Features>
+		<AutoTargetMarksOnNonHostile>
+			<label>非敵對目標也納入自動瞄準</label>
+			<description>是否讓火砲與迫擊砲也會自動鎖定帶有觀測員標記的非敵對目標，例如中立動物或訪客。</description>
+		</AutoTargetMarksOnNonHostile>
+	</Rimsonable.Settings>
+</LanguageData>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<Rimsonable.Settings>
+		<Features>
+			<AllowGrenadesThroughShields>
+				<label>允许手榴弹穿过护盾</label>
+				<description>让手榴弹可以穿过护盾。</description>
+			</AllowGrenadesThroughShields>
+			<SafeRestLocation>
+				<label>安全休息地点</label>
+				<description>人和动物只会在安全地点休息或睡觉，不会躺在有火焰、污染或毒气等危险的地方，也会避开门口。</description>
+			</SafeRestLocation>
+			<TargetMarkEnhancement>
+				<label>观测员标记强化</label>
+				<description>火炮和迫击炮会优先攻击由观测员标记的目标。其他炮塔在攻击标记目标时也会获得少量命中加成。</description>
+			</TargetMarkEnhancement>
+			<AutoAvoidProximityActivators>
+				<label>自动避开探测激活器</label>
+				<description>人和动物在寻路时会像躲避火焰一样，自动绕开机械集群的探测激活器，避免误触休眠中的机械集群。</description>
+			</AutoAvoidProximityActivators>
+			<WorkMemory>
+				<label>工作记忆</label>
+				<description>制作带品质的物品时，如果持续专注于同一项清单，速度会逐步提升；离开太久后则会回落，鼓励持续而专注的工作方式。</description>
+			</WorkMemory>
+		</Features>
+		<AutoTargetMarksOnNonHostile>
+			<label>自动瞄准非敌对目标上的标记</label>
+			<description>是否允许火炮和迫击炮自动攻击带有观测员标记的非敌对目标，例如中立动物或访客。</description>
+		</AutoTargetMarksOnNonHostile>
+	</Rimsonable.Settings>
+</LanguageData>
