@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -8,34 +7,29 @@ using RimWorld;
 using TrueMogician.RimWorld.Rimsonable.Components;
 using TrueMogician.RimWorld.Rimsonable.Static;
 using TrueMogician.RimWorld.Utility;
+using TrueMogician.RimWorld.Utility.Attributes;
 using Verse;
 using Verse.AI;
 
 namespace TrueMogician.RimWorld.Rimsonable.Patches;
 
-[HarmonyPatch]
 public static class WorkMemory {
-	private static readonly FieldInfo _JOB_DRIVER_DO_BILL_WORK_LEFT = AccessTools.Field(typeof(JobDriver_DoBill), nameof(JobDriver_DoBill.workLeft));
+	private static readonly AssignmentClosureFinder _finder = new(typeof(Toil), nameof(Toil.tickIntervalAction));
 
-	private static readonly MethodInfo _APPLY_WORK_MEMORY_TO_WORK_DONE = AccessTools.Method(typeof(WorkMemory), nameof(ApplyWorkMemoryMultiplier));
+	private static readonly FieldInfo _workLeftField = AccessTools.Field(typeof(JobDriver_DoBill), nameof(JobDriver_DoBill.workLeft));
+
+	private static readonly MethodInfo _applyWorkMemoryMultiplierMethod = AccessTools.Method(typeof(WorkMemory), nameof(ApplyWorkMemoryMultiplier));
+
+	private static readonly MethodInfo _transpileMethod = AccessTools.Method(typeof(WorkMemory), nameof(Transpile));
+
+	private static MethodBase? _tickIntervalAction;
 
 	internal static WorkMemoryComponent Component => CachedGameComponent<WorkMemoryComponent>.Component;
 
-	[HarmonyTargetMethod]
-	private static MethodBase TargetMethod() {
-		var toil = Toils_Recipe.DoRecipeWork();
-		return toil.tickIntervalAction?.Method
-			?? throw new InvalidOperationException("Could not resolve Toils_Recipe.DoRecipeWork tickIntervalAction.");
-	}
-
+	[HarmonyPatch(typeof(Toils_Recipe), nameof(Toils_Recipe.DoRecipeWork))]
 	[HarmonyTranspiler]
-	private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) {
-		var codeList = instructions.ToList();
-		if (TryInjectWorkMemory(codeList))
-			return codeList;
-		Helper.Logger.Error("Work Memory could not find the recipe workLeft subtraction site. Falling back to vanilla behavior.", true);
-		return codeList;
-	}
+	private static IEnumerable<CodeInstruction> Inspect(IEnumerable<CodeInstruction> insts)
+		=> _finder.Transpile(insts);
 
 	private static bool IsTrackedRecipe(RecipeDef recipe) => recipe.products?.Any(product => product.thingDef.HasComp(typeof(CompQuality))) == true;
 
@@ -44,24 +38,66 @@ public static class WorkMemory {
 			return workDone;
 		var pawn = driver?.pawn;
 		var recipe = driver?.job?.RecipeDef;
-		if (pawn == null || recipe == null || !IsTrackedRecipe(recipe))
+		if (pawn is null || recipe is null || !IsTrackedRecipe(recipe))
 			return workDone;
-		var adjusted = workDone * Component.GetMultiplier(pawn, recipe, delta);
+		float adjusted = workDone * Component.GetMultiplier(pawn, recipe, delta);
 		Component.RecordWork(pawn, recipe, delta);
 		return adjusted;
+	}
+
+	private static IEnumerable<CodeInstruction> Transpile(IEnumerable<CodeInstruction> instructions) {
+		var codeList = instructions.ToList();
+		if (TryInjectWorkMemory(codeList))
+			return codeList;
+		Helper.Logger.Error(
+			$"Work Memory could not find the recipe {nameof(JobDriver_DoBill.workLeft)} subtraction site. Falling back to vanilla behavior.",
+			true
+		);
+		return codeList;
+	}
+
+	[PatchHook(PatchHookTiming.AfterPatch)]
+	private static void Patch(Harmony harmony) {
+		switch (_finder.Closures.Count) {
+			case 0:
+				Helper.Logger.Error(
+					$"Work Memory could not resolve {nameof(Toils_Recipe.DoRecipeWork)} {nameof(Toil.tickIntervalAction)}.",
+					true
+				);
+				break;
+			case 1 when _tickIntervalAction != _finder.Closures[0]:
+				Unpatch(harmony);
+				_tickIntervalAction = _finder.Closures[0];
+				harmony.Patch(_tickIntervalAction, transpiler: new HarmonyMethod(_transpileMethod));
+				break;
+			case > 1:
+				Helper.Logger.Error(
+					$"Work Memory found multiple {nameof(Toils_Recipe.DoRecipeWork)} {nameof(Toil.tickIntervalAction)} closures.",
+					true
+				);
+				break;
+		}
+	}
+
+	[PatchHook(PatchHookTiming.BeforeUnpatch)]
+	private static void Unpatch(Harmony harmony) {
+		if (_tickIntervalAction is null)
+			return;
+		harmony.Unpatch(_tickIntervalAction, _transpileMethod);
+		_tickIntervalAction = null;
 	}
 
 	private static bool TryInjectWorkMemory(List<CodeInstruction> insts) {
 		for (var i = 2; i < insts.Count; i++) {
 			var inst = insts[i];
-			if (!inst.StoresField(_JOB_DRIVER_DO_BILL_WORK_LEFT))
+			if (!inst.StoresField(_workLeftField))
 				continue;
 			if (insts[i - 1].opcode != OpCodes.Sub || insts[i - 2].opcode != OpCodes.Mul)
 				continue;
 			int startIdx = i - 3;
 			if (startIdx < 0)
 				continue;
-			int fieldLoadIdx = insts.FindLastIndex(startIdx, startIdx + 1, instruction => instruction.LoadsField(_JOB_DRIVER_DO_BILL_WORK_LEFT));
+			int fieldLoadIdx = insts.FindLastIndex(startIdx, startIdx + 1, instruction => instruction.LoadsField(_workLeftField));
 			if (fieldLoadIdx < 1)
 				continue;
 			if (FindReusableObjectLoad(insts, fieldLoadIdx) is not { } objectLoad)
@@ -71,7 +107,7 @@ public static class WorkMemory {
 				[
 					new CodeInstruction(objectLoad.opcode, objectLoad.operand),
 					new CodeInstruction(OpCodes.Ldarg_1),
-					new CodeInstruction(OpCodes.Call, _APPLY_WORK_MEMORY_TO_WORK_DONE)
+					new CodeInstruction(OpCodes.Call, _applyWorkMemoryMultiplierMethod)
 				]
 			);
 			return true;
@@ -80,7 +116,7 @@ public static class WorkMemory {
 	}
 
 	private static CodeInstruction? FindReusableObjectLoad(IReadOnlyList<CodeInstruction> insts, int fieldLoadIdx) {
-		for (var i = fieldLoadIdx - 1; i >= 0; i--) {
+		for (int i = fieldLoadIdx - 1; i >= 0; i--) {
 			var inst = insts[i];
 			if (inst.opcode == OpCodes.Dup || inst.opcode == OpCodes.Nop)
 				continue;
