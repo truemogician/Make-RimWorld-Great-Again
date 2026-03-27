@@ -1,1 +1,0 @@
-Put texture files in this folder
