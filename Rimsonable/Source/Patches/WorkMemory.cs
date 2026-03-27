@@ -31,6 +31,14 @@ public static class WorkMemory {
 	private static IEnumerable<CodeInstruction> Inspect(IEnumerable<CodeInstruction> insts)
 		=> _finder.Transpile(insts);
 
+	[HarmonyPatch(typeof(Pawn), nameof(Pawn.GetInspectString))]
+	[HarmonyPostfix]
+	private static void Inspect(Pawn __instance, ref string __result) {
+		if (!TryGetInspectLine(__instance, out string line))
+			return;
+		__result = __result.NullOrEmpty() ? line : $"{__result}\n{line}";
+	}
+
 	private static bool IsTrackedRecipe(RecipeDef recipe) => recipe.products?.Any(product => product.thingDef.HasComp(typeof(CompQuality))) == true;
 
 	private static float ApplyWorkMemoryMultiplier(float workDone, JobDriver_DoBill driver, int delta) {
@@ -54,6 +62,16 @@ public static class WorkMemory {
 			true
 		);
 		return codeList;
+	}
+
+	private static bool TryGetInspectLine(Pawn pawn, out string line) {
+		line = string.Empty;
+		var recipe = pawn.CurJob?.RecipeDef;
+		if (recipe is null || !IsTrackedRecipe(recipe))
+			return false;
+		float multiplier = Component.GetMultiplier(pawn, recipe, 0);
+		line = "Rimsonable.WorkMemory.InspectLine".Translate(multiplier.ToStringPercent());
+		return true;
 	}
 
 	[PatchHook(PatchHookTiming.AfterPatch)]

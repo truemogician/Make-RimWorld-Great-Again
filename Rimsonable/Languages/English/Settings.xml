@@ -28,4 +28,7 @@
 			<description>Whether artillery and mortars should automatically target spotter marks on non-hostile entities (e.g., neutral animals or visitors).</description>
 		</AutoTargetMarksOnNonHostile>
 	</Rimsonable.Settings>
+	<Rimsonable.WorkMemory>
+		<InspectLine>Work memory: {0} speed</InspectLine>
+	</Rimsonable.WorkMemory>
 </LanguageData>
