@@ -1,1 +1,0 @@
-Added translation files for Simplified Chinese, Traditional Chinese, Russian, Korean, and German.
