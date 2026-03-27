@@ -28,4 +28,7 @@
 			<description>Должны ли артиллерия и миномёты автоматически наводиться на метки корректировщика на невраждебных целях, например на нейтральных животных или гостях.</description>
 		</AutoTargetMarksOnNonHostile>
 	</Rimsonable.Settings>
+	<Rimsonable.WorkMemory>
+		<InspectLine>Рабочая память: скорость {0}</InspectLine>
+	</Rimsonable.WorkMemory>
 </LanguageData>

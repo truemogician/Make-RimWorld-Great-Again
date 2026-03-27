@@ -28,4 +28,7 @@
 			<description>Ob Artillerie und Mörser Spotter-Markierungen auf nicht feindlichen Zielen wie neutralen Tieren oder Besuchern automatisch als Ziel wählen sollen.</description>
 		</AutoTargetMarksOnNonHostile>
 	</Rimsonable.Settings>
+	<Rimsonable.WorkMemory>
+		<InspectLine>Arbeitsgedaechtnis: {0} Geschwindigkeit</InspectLine>
+	</Rimsonable.WorkMemory>
 </LanguageData>

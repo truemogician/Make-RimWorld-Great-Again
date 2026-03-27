@@ -28,4 +28,7 @@
 			<description>포병과 박격포가 중립 동물이나 방문객처럼 비적대 대상에 찍힌 관측 표식을 자동으로 조준할지 설정합니다.</description>
 		</AutoTargetMarksOnNonHostile>
 	</Rimsonable.Settings>
+	<Rimsonable.WorkMemory>
+		<InspectLine>작업 기억: 속도 {0}</InspectLine>
+	</Rimsonable.WorkMemory>
 </LanguageData>

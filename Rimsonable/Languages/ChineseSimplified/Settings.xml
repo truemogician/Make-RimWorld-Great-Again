@@ -28,4 +28,7 @@
 			<description>是否允许火炮和迫击炮自动攻击带有观测员标记的非敌对目标，例如中立动物或访客。</description>
 		</AutoTargetMarksOnNonHostile>
 	</Rimsonable.Settings>
+	<Rimsonable.WorkMemory>
+		<InspectLine>工作记忆：速度 {0}</InspectLine>
+	</Rimsonable.WorkMemory>
 </LanguageData>

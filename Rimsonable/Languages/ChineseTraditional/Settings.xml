@@ -28,4 +28,7 @@
 			<description>是否讓火砲與迫擊砲也會自動鎖定帶有觀測員標記的非敵對目標，例如中立動物或訪客。</description>
 		</AutoTargetMarksOnNonHostile>
 	</Rimsonable.Settings>
+	<Rimsonable.WorkMemory>
+		<InspectLine>工作手感：速度 {0}</InspectLine>
+	</Rimsonable.WorkMemory>
 </LanguageData>
