@@ -30,15 +30,15 @@ Rimsonable is for players who want their colony to act like stressed survivors, 
 
 A large mech cluster arrived dormant. You instructed your colonists to forge weapons, build defenses, and fully commit to a prepared battle. And then, all of a sudden, some lovely visitor, despite carrying nothing more threatening than a wine bottle, decided to take a closer look at those sleeping machines. Boom. The battle was on, with your favorite colonist still building a wall next to a mech turret without a weapon in hand.
 
-Looks familiar? Scenes like this are happening all over the Rim, right now! YOU COULD BE NEXT! That is, unless you make the most important decision of your life: install Rimsonable!
+Looks familiar? Scenes like this are happening all over the Rim, right now! YOU COULD BE NEXT! That is, unless you make the most important decision of your life: prove to yourself that you have the strength and the courage to be **Rimsonable**!
 
 Pawns now stop wandering through dormant mech triggers. Accidentally waking ancient murder machines is now less of a pathfinding hobby.
 
 #### Safe Rest Location
 
-Unless you enjoy your colonists and pets becoming some sort of necrophiles, or cosplaying thermoelectric generators by sleeping in the doorway of your freezer, you probably want this.
+Unless you enjoy your pets becoming some sort of necrophiles, or cosplaying thermoelectric generators by sleeping in the doorway of your freezer, you probably want this.
 
-Pawns stop treating doors, fire, pollution, toxic gas, and corpse-adjacent tiles like premium sleeping accommodations. Basic self-preservation has finally been installed.
+Animals are not geniuses, but they should at least have the survival instinct of not sleeping in hazardous locations. Rimsonable fixes that. And if your colony is too poor to provide beds for your colonists, they will develop the same common sense.
 
 #### Work Memory
 
@@ -48,11 +48,15 @@ In practical terms, a 400-work recipe hits the midpoint after about 400 uninterr
 
 #### Allow Grenades Through Shields
 
-I mean, why the hell would a grenade be treated the same as a bullet? I do not believe a thrown explosive is moving faster than a knife during melee. If a pawn is standing inside a shield and lobs a grenade outward, the shield will no longer heroically protect the enemy from common sense.
+Shields not caring which side a bullet came from is defensible. But wait, what do you mean a hand-thrown grenade is also a bullet?
 
-#### Combat Extended: Spotter Mark Enhancement
+If you have ever wanted a melee pawn to sneak to a mech cluster and plant explosives like they mean it, this lets you do that. A pawn standing inside a shield can now throw grenades outward without the shield nobly protecting the enemy from your genius plan.
 
-CE spotter marks matter more: artillery prefers marked targets, and other turrets shoot a little straighter. The pawn with binoculars is no longer just doing military cosplay. Pointing at something and yelling "shoot there" now provides actual tactical value.
+#### Combat Extended: Artillery Marker Enhancement
+
+In CE, the pawn with binoculars finally graduates from battlefield decoration. Artillery now prefers targets with artillery markers, and other turrets become a bit more accurate against them. Point at something, yell "shoot there," and it finally has actual tactical value.
+
+There is also a separate settings toggle for this, disabled by default. Turn it on and artillery will prefer artillery markers even on non-hostile targets, which means it will start firing automatically when a spotter marks a neutral animal or a visitor.
 
 ### Compatibility
 
