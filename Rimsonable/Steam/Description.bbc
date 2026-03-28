@@ -1,0 +1,80 @@
+[h1]Rimsonable[/h1]
+
+[b]A growing collection of "this should be more reasonable" fixes for RimWorld 1.6.[/b]
+
+RimWorld is brilliant at generating stories and alarmingly relaxed about whether anyone in those stories is behaving like a functional adult. Colonists, visitors, and assorted AI-controlled life forms are all perfectly capable of making decisions that would embarrass a medieval peasant. [b]Rimsonable[/b] is my long-term collection of focused tweaks for those moments.
+
+This is not a total overhaul. It is not a broad balance pass. It is a toolbox of individually toggleable corrections for mechanics that feel too gamey, too goofy, or too willing to produce nonsense just because the simulation knows you will put up with it.
+
+As the mod grows, the rule stays simple: if vanilla behavior makes me lean back in my chair and ask, [i]"Why are we like this?"[/i], it is probably a candidate for Rimsonable.
+
+If you have an idea for another piece of vanilla nonsense that deserves correction, throw it into the Workshop or GitHub discussion. Bad decisions are a renewable resource on the Rim, and I am always accepting new samples.
+
+[b]GitHub repository:[/b] [url]https://github.com/truemogician/Make-RimWorld-Great-Again/tree/main/Rimsonable[/url]
+
+[h2]Design Philosophy[/h2]
+
+[list]
+[*]Small, targeted changes instead of sweeping rewrites. I am here to remove stupidity, not rebuild the planet.
+[*]More internal logic, less "video game because video game."
+[*]Sometimes harsher, usually saner. Common sense is not always comfortable.
+[*]Every feature can be toggled individually in mod settings, and they are true hot toggles: flip them mid-save and the change takes effect immediately, with no need to reload the save or restart the game.
+[*]I'm an experienced engineer obsessed with code quality and performance. Trust my expertise, and my mod will respect your CPU.
+[/list]
+
+Rimsonable is for players who want their colony to act like stressed survivors, not a synchronized troupe of sleep-deprived interns with a death wish.
+
+[h2]Current Features[/h2]
+
+[b]Auto Avoid Proximity Activators[/b]
+
+[url=https://postimages.org/][img]https://i.postimg.cc/zfGgZhZZ/Rimsonable__Auto_Avoid_Proximity_Activators.gif[/img][/url]
+
+A large mech cluster arrived dormant. You instructed your colonists to forge weapons, build defenses, and fully commit to a prepared battle. And then, all of a sudden, some lovely visitor, despite carrying nothing more threatening than a wine bottle, decided to take a closer look at those sleeping machines. Boom. The battle was on, with your favorite colonist still building a wall next to a mech turret without a weapon in hand.
+
+Looks familiar? Scenes like this are happening all over the Rim, right now! YOU COULD BE NEXT! That is, unless you make the most important decision of your life: prove to yourself that you have the strength and the courage to be [b]Rimsonable[/b]!
+
+Pawns now stop wandering through dormant mech triggers. Accidentally waking ancient murder machines is now less of a pathfinding hobby.
+
+[b]Safe Rest Location[/b]
+
+Unless you enjoy your pets becoming some sort of necrophiles, or cosplaying thermoelectric generators by sleeping in the doorway of your freezer, you probably want this.
+
+Animals are not geniuses, but they should at least have the survival instinct of not sleeping in hazardous locations. Rimsonable fixes that. And if your colony is too poor to provide beds for your colonists, they will develop the same common sense.
+
+[b]Work Memory[/b]
+
+[url=https://postimages.org/][img]https://i.postimg.cc/k5Ytn5qr/Rimsonable__Work_Memory.gif[/img][/url]
+
+Quality crafting ramps up when a pawn stays focused on the same recipe. Cold starts are real: a fresh attempt begins at 50% speed, and steady repetition can climb to 125%. Turns out practice helps, repetition builds rhythm, and abandoning the bench for a week is not actually a productivity strategy. Who knew?
+
+In practical terms, a 400-work recipe hits the midpoint after about 400 uninterrupted work ticks and tops out after about 800. A 1000-work recipe takes about 1000 and 2000. Work memory also gets an 800-tick grace period before it starts fading, so a short interruption will not immediately turn your crafter back into an amnesiac.
+
+[b]Allow Grenades Through Shields[/b]
+
+[url=https://postimages.org/][img]https://i.postimg.cc/SKxMF9Fp/Rimsonable__Allow_Grenades_Through_Shields.gif[/img][/url]
+
+If you have ever wanted a melee pawn to sneak to a mech cluster and plant explosives like they mean it, this lets you do that. A pawn standing inside a shield can now throw grenades outward without the shield nobly protecting the enemy from your genius plan.
+
+[b]Combat Extended: Artillery Marker Enhancement[/b]
+
+[url=https://postimages.org/][img]https://i.postimg.cc/kGpXQGMw/Rimsonable__Enhance_Artillery_Markers.gif[/img][/url]
+
+In CE, the pawn with binoculars finally graduates from battlefield decoration. Artillery now prefers targets with artillery markers, and other turrets become a bit more accurate against them. Point at something, yell "shoot there," and it finally has actual tactical value.
+
+There is also a separate settings toggle for this, disabled by default. Turn it on and artillery will prefer artillery markers even on non-hostile targets, which means it will start firing automatically when a spotter marks a neutral animal or a visitor.
+
+The GIF above shows that optional behavior, not the default one.
+
+[h2]Compatibility[/h2]
+
+[list]
+[*][b]Required:[/b] Harmony
+[*][b]Supported RimWorld version:[/b] 1.6
+[*][b]Optional integration:[/b] Combat Extended
+[*][b]Optional integration:[/b] Vanilla Expanded Framework
+[/list]
+
+Compatibility modules load automatically when the relevant mods are active.
+
+RimWorld will probably always be a masterpiece powered in part by extremely questionable decisions. Rimsonable is here to make sure fewer of those decisions are being made by your colonists, your visitors, and whichever idiot thought a mech proximity activator looked interesting.
