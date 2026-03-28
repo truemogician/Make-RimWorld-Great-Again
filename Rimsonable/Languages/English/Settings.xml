@@ -10,10 +10,10 @@
 				<label>Safe Rest Location</label>
 				<description>Pawns (including animals) will only rest/sleep in safe locations without hazards like fire, pollution, or gas. They'll also avoid doors.</description>
 			</SafeRestLocation>
-			<TargetMarkEnhancement>
-				<label>Spotter Mark Enhancement</label>
-				<description>Artillery and mortars will prioritize firing at targets marked by the spotters. Other turrets gain a small accuracy boost when firing at marked targets.</description>
-			</TargetMarkEnhancement>
+			<EnhanceArtilleryMarkers>
+				<label>Artillery Marker Enhancement</label>
+				<description>Artillery and mortars will prioritize firing at targets with artillery markers. Other turrets gain a small accuracy boost when firing at marked targets.</description>
+			</EnhanceArtilleryMarkers>
 			<AutoAvoidProximityActivators>
 				<label>Auto Avoid Proximity Activators</label>
 				<description>Pawns automatically avoid mechanoid proximity activators during pathfinding, similar to how they avoid fire. Prevents accidental triggering of dormant mechanoid clusters.</description>
@@ -24,8 +24,8 @@
 			</WorkMemory>
 		</Features>
 		<AutoTargetMarksOnNonHostile>
-			<label>Auto Target Marks on Non-Hostile Entities</label>
-			<description>Whether artillery and mortars should automatically target spotter marks on non-hostile entities (e.g., neutral animals or visitors).</description>
+			<label>Auto Target Artillery Markers on Non-Hostile Entities</label>
+			<description>Whether artillery and mortars should automatically target artillery markers on non-hostile entities (e.g., neutral animals or visitors).</description>
 		</AutoTargetMarksOnNonHostile>
 	</Rimsonable.Settings>
 	<Rimsonable.WorkMemory>

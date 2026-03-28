@@ -10,10 +10,10 @@
 				<label>安全休息地点</label>
 				<description>人和动物只会在安全地点休息或睡觉，不会躺在有火焰、污染或毒气等危险的地方，也会避开门口。</description>
 			</SafeRestLocation>
-			<TargetMarkEnhancement>
-				<label>观测员标记强化</label>
-				<description>火炮和迫击炮会优先攻击由观测员标记的目标。其他炮塔在攻击标记目标时也会获得少量命中加成。</description>
-			</TargetMarkEnhancement>
+			<EnhanceArtilleryMarkers>
+				<label>火炮标记强化</label>
+				<description>火炮和迫击炮会优先攻击带有火炮标记的目标。其他炮塔在攻击已标记目标时也会获得少量命中加成。</description>
+			</EnhanceArtilleryMarkers>
 			<AutoAvoidProximityActivators>
 				<label>自动避开探测激活器</label>
 				<description>人和动物在寻路时会像躲避火焰一样，自动绕开机械集群的探测激活器，避免误触休眠中的机械集群。</description>
@@ -24,8 +24,8 @@
 			</WorkMemory>
 		</Features>
 		<AutoTargetMarksOnNonHostile>
-			<label>自动瞄准非敌对目标上的标记</label>
-			<description>是否允许火炮和迫击炮自动攻击带有观测员标记的非敌对目标，例如中立动物或访客。</description>
+			<label>自动瞄准非敌对目标上的火炮标记</label>
+			<description>是否允许火炮和迫击炮自动攻击带有火炮标记的非敌对目标，例如中立动物或访客。</description>
 		</AutoTargetMarksOnNonHostile>
 	</Rimsonable.Settings>
 	<Rimsonable.WorkMemory>

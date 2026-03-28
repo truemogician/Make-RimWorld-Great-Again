@@ -11,7 +11,7 @@ using BasePatches = Rimsonable.Patches;
 public static class Initializer {
 	static Initializer() {
 		BasePatches.AllowGrenadesThroughShields.AddLaunchVerb(typeof(Verb_LaunchProjectileCE));
-		Settings.AddFeaturePatches(Features.TargetMarkEnhancement, typeof(TargetMarkEnhancements));
+		Settings.AddFeaturePatches(Features.EnhanceArtilleryMarkers, typeof(EnhanceArtilleryMarkers));
 		Helper.Logger.Message("Combat Extended support initialized");
 	}
 }

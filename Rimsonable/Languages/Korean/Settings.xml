@@ -10,10 +10,10 @@
 				<label>안전한 휴식 장소</label>
 				<description>사람과 동물은 불, 오염, 가스 같은 위험이 없는 안전한 곳에서만 쉬거나 잠을 자며, 문 앞도 피합니다.</description>
 			</SafeRestLocation>
-			<TargetMarkEnhancement>
-				<label>관측수 표식 강화</label>
-				<description>포병과 박격포는 관측수가 찍은 표적을 우선 공격합니다. 다른 포탑도 표식이 찍힌 표적을 공격할 때 명중률이 조금 올라갑니다.</description>
-			</TargetMarkEnhancement>
+			<EnhanceArtilleryMarkers>
+				<label>포격 표식 강화</label>
+				<description>포병과 박격포는 포격 표식이 찍힌 표적을 우선 공격합니다. 다른 포탑도 표식이 찍힌 표적을 공격할 때 명중률이 조금 올라갑니다.</description>
+			</EnhanceArtilleryMarkers>
 			<AutoAvoidProximityActivators>
 				<label>근접 센서 자동 회피</label>
 				<description>사람과 동물은 경로를 찾을 때 불을 피하듯 메카노이드 전초기지의 근접 센서를 자동으로 피해, 휴면 상태의 메카노이드 전초기지를 실수로 활성화하는 일을 막습니다.</description>
@@ -24,8 +24,8 @@
 			</WorkMemory>
 		</Features>
 		<AutoTargetMarksOnNonHostile>
-			<label>비적대 대상 표식 자동 조준</label>
-			<description>포병과 박격포가 중립 동물이나 방문객처럼 비적대 대상에 찍힌 관측 표식을 자동으로 조준할지 설정합니다.</description>
+			<label>비적대 대상 포격 표식 자동 조준</label>
+			<description>포병과 박격포가 중립 동물이나 방문객처럼 비적대 대상에 찍힌 포격 표식을 자동으로 조준할지 설정합니다.</description>
 		</AutoTargetMarksOnNonHostile>
 	</Rimsonable.Settings>
 	<Rimsonable.WorkMemory>

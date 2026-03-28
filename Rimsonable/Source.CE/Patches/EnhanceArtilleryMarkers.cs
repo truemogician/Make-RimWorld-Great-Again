@@ -9,7 +9,7 @@ using Verse;
 
 namespace TrueMogician.RimWorld.Rimsonable.CE.Patches;
 
-public static class TargetMarkEnhancements {
+public static class EnhanceArtilleryMarkers {
 	private const string _MARKER_TYPE_NAME = "CombatExtended.ArtilleryMarker";
 	public static readonly Func<int, float> AccuracyBonusFormula = level => MathF.Log(level / 10f + 1) / MathF.Log(3) * 0.2f;
 

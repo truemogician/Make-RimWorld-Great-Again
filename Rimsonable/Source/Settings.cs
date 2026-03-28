@@ -22,7 +22,7 @@ public enum Features : ulong {
 	SafeRestLocation = 1 << 1,
 
 	[Feature(ModDependencies = [ModIds.CombatExtended])]
-	TargetMarkEnhancement = 1 << 2,
+	EnhanceArtilleryMarkers = 1 << 2,
 
 	AutoAvoidProximityActivators = 1 << 3,
 
@@ -38,7 +38,7 @@ public class Settings : FeatureSettings<Features> {
 	public Settings() : base(Helper.Logger) {
 		AfterDrawFeatureRow += (_, args) => {
 			var conf = args.Config;
-			if (args is { Feature: Features.TargetMarkEnhancement, Enabled: true }) {
+			if (args is { Feature: Features.EnhanceArtilleryMarkers, Enabled: true }) {
 				var rect = args.NewLine().Padding(0, conf.ResetButtonWidth + conf.Gap, 0, _ADDITIONAL_SETTINGS_INDENT);
 				if (Translate(nameof(AutoTargetMarksOnNonHostile), "description") is { } tip && !tip.NullOrEmpty())
 					TooltipHandler.TipRegion(rect, tip);
