@@ -13,6 +13,10 @@
 				<label>「抓捕」指令</label>
 				<description>為可抓捕的人物新增「抓捕」切換按鈕。啟用後，若有可用的囚犯床位，獄卒將會自動嘗試抓捕該目標。</description>
 			</CaptureAsJob>
+			<AmbrosiaAutoHarvest>
+				<label>仙饈樹自動收穫</label>
+				<description>仙饈樹可收穫時，會自動將其標記為收穫。</description>
+			</AmbrosiaAutoHarvest>
 		</Features>
 		<AutoNoTargetForPrisonerRelatives>
 			<label>包含囚犯關係</label>
@@ -27,4 +31,14 @@
 			</slider>
 		</DefaultNoTargetMarkTtl>
 	</Rimfined.Settings>
+	<Rimfined.Commands>
+		<NoTarget>
+			<label>暫不攻擊</label>
+			<description>阻止殖民者與防禦砲塔自動將此敵人作為目標。</description>
+		</NoTarget>
+		<Capture>
+			<label>抓捕</label>
+			<description>有可用囚犯床位時，獄卒會抓捕這名倒地人物。</description>
+		</Capture>
+	</Rimfined.Commands>
 </LanguageData>

@@ -2,5 +2,7 @@
 <LanguageData Type="DefInjected">
 	<Rimfined_CaptureMarkedPawn>
 		<label>抓捕标记的角色</label>
+		<verb>抓捕</verb>
+		<gerund>正在抓捕</gerund>
 	</Rimfined_CaptureMarkedPawn>
 </LanguageData>

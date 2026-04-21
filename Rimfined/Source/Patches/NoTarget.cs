@@ -18,6 +18,8 @@ internal static class NoTargetPatches {
 
 	internal static Texture2D NoTargetIcon => field ??= ContentFinder<Texture2D>.Get("UI/Commands/NoTarget");
 
+	internal const string TRANSLATION_KEY_PREFIX = "Rimfined.Commands.NoTarget";
+
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	internal static bool SkipTargetFor(Pawn target, IAttackTargetSearcher? searcher) {
 		if (searcher?.Thing?.Faction is not { } faction)
@@ -47,8 +49,8 @@ internal static class NoTargetPatches {
 		if (pawn.Faction is not { } f || !f.HostileTo(Faction.OfPlayer))
 			yield break;
 		yield return new Command_Toggle {
-			defaultLabel = "No Target",
-			defaultDesc = "Prevent colonists and turrets from auto-targeting this pawn.",
+			defaultLabel = $"{TRANSLATION_KEY_PREFIX}.label".Translate(),
+			defaultDesc = $"{TRANSLATION_KEY_PREFIX}.description".Translate(),
 			icon = NoTargetIcon,
 			isActive = () => NoTargetPawns[pawn],
 			toggleAction = () => NoTargetPawns.Toggle(pawn)

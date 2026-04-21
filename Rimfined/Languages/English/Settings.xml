@@ -31,4 +31,14 @@
 			</slider>
 		</DefaultNoTargetMarkTtl>
 	</Rimfined.Settings>
+	<Rimfined.Commands>
+		<NoTarget>
+			<label>No Target</label>
+			<description>Prevent colonists and turrets from auto-targeting this pawn.</description>
+		</NoTarget>
+		<Capture>
+			<label>Capture</label>
+			<description>Wardens will capture this downed pawn when a prisoner bed is available.</description>
+		</Capture>
+	</Rimfined.Commands>
 </LanguageData>

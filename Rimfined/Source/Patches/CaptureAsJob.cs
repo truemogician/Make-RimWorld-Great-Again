@@ -4,12 +4,13 @@ using TrueMogician.RimWorld.Rimfined.Components;
 using TrueMogician.RimWorld.Utility;
 using UnityEngine;
 using Verse;
-using Verse.AI;
 
 namespace TrueMogician.RimWorld.Rimfined.Patches;
 
 internal static class CaptureAsJobPatches {
-	private static readonly Texture2D CaptureIcon = ContentFinder<Texture2D>.Get("UI/Commands/Capture");
+	internal static readonly Texture2D CaptureIcon = ContentFinder<Texture2D>.Get("UI/Commands/Capture");
+
+	internal const string TRANSLATION_KEY_PREFIX = "Rimfined.Commands.Capture";
 
 	[HarmonyPatch(typeof(Pawn), nameof(Pawn.GetGizmos))]
 	[HarmonyPostfix]
@@ -21,8 +22,8 @@ internal static class CaptureAsJobPatches {
 		if (__instance.Map is not { } map || CachedMapComponent<PawnsToCapture>.Get(map) is not { } comp)
 			yield break;
 		yield return new Command_Toggle {
-			defaultLabel = "Capture",
-			defaultDesc = "Wardens will capture this downed pawn when a prisoner bed is available.",
+			defaultLabel = $"{TRANSLATION_KEY_PREFIX}.label".Translate(),
+			defaultDesc = $"{TRANSLATION_KEY_PREFIX}.description".Translate(),
 			icon = CaptureIcon,
 			isActive = () => comp[__instance],
 			toggleAction = () => comp.Toggle(__instance)
