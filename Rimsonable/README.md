@@ -46,6 +46,10 @@ Quality crafting ramps up when a pawn stays focused on the same recipe. Cold sta
 
 In practical terms, a 400-work recipe hits the midpoint after about 400 uninterrupted work ticks and tops out after about 800. A 1000-work recipe takes about 1000 and 2000. Work memory also gets an 800-tick grace period before it starts fading, so a short interruption will not immediately turn your crafter back into an amnesiac.
 
+There is also an optional sub-setting for players who want the same mechanic on bills that do not produce quality items, such as cooking or refining.
+
+And if you use RimHUD, the current work memory bonus now shows up on RimHUD's Activity row instead of vanishing just because the vanilla pawn card got replaced. Common sense extends to UI compatibility as well.
+
 #### Allow Grenades Through Shields
 
 Shields not caring which side a bullet came from is defensible. But wait, what do you mean a hand-thrown grenade is also a bullet?
@@ -63,6 +67,7 @@ There is also a separate settings toggle for this, disabled by default. Turn it 
 - **Required:** Harmony
 - **Supported RimWorld version:** 1.6
 - **Optional integration:** Combat Extended
+- **Optional integration:** RimHUD
 - **Optional integration:** Vanilla Expanded Framework
 
 Compatibility modules load automatically when the relevant mods are active.
@@ -76,7 +81,7 @@ For this mod specifically:
 - Feature flags and settings wiring live in [`Source/Settings.cs`](Source/Settings.cs)
 - Core behavior patches live in [`Source/Patches/`](Source/Patches)
 - Stateful systems live in [`Source/Components/`](Source/Components)
-- Optional compatibility code lives in [`Source.CE/`](Source.CE) and [`Source.VEF/`](Source.VEF)
+- Optional compatibility code lives in [`Source.CE/`](Source.CE), [`Source.RimHUD/`](Source.RimHUD), and [`Source.VEF/`](Source.VEF)
 - Settings translations live in [`Languages/English/Settings.xml`](Languages/English/Settings.xml)
 
 Build commands:
@@ -84,6 +89,7 @@ Build commands:
 ```bash
 dotnet build Source/Rimsonable.csproj
 dotnet build Source.CE/Rimsonable.CE.csproj
+dotnet build Source.RimHUD/Rimsonable.RimHUD.csproj
 dotnet build Source.VEF/Rimsonable.VEF.csproj
 ```
 

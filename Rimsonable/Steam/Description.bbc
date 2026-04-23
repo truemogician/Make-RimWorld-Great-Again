@@ -50,6 +50,10 @@ Quality crafting ramps up when a pawn stays focused on the same recipe. Cold sta
 
 In practical terms, a 400-work recipe hits the midpoint after about 400 uninterrupted work ticks and tops out after about 800. A 1000-work recipe takes about 1000 and 2000. Work memory also gets an 800-tick grace period before it starts fading, so a short interruption will not immediately turn your crafter back into an amnesiac.
 
+There is also an optional sub-setting for players who want the same mechanic on bills that do not produce quality items, such as cooking or refining.
+
+And if you use RimHUD, the current work memory bonus now shows up on RimHUD's Activity row instead of vanishing just because the vanilla pawn card got replaced. Common sense extends to UI compatibility as well.
+
 [b]Allow Grenades Through Shields[/b]
 
 [url=https://postimg.cc/TKBwnp3k][img]https://i.postimg.cc/SKxMF9Fp/Rimsonable__Allow_Grenades_Through_Shields.gif[/img][/url]
@@ -72,6 +76,7 @@ The GIF above shows that optional behavior, not the default one.
 [*][b]Required:[/b] Harmony
 [*][b]Supported RimWorld version:[/b] 1.6
 [*][b]Optional integration:[/b] Combat Extended
+[*][b]Optional integration:[/b] RimHUD
 [*][b]Optional integration:[/b] Vanilla Expanded Framework
 [/list]
 

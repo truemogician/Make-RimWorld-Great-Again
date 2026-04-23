@@ -54,6 +54,10 @@ Oi！这里不让睡觉！
 
 具体数值上，400工作量的配方大约连续做400 tick到中段，800 tick满速；1000工作量的配方则分别大约是1000和2000 tick。另外还有800 tick宽限，短暂打断不会立刻把工匠打回“手感清零”的状态。
 
+另外还加了一个子选项：如果你希望这套机制也作用于烹饪、精炼这类不会产出品质物品的工作单，也可以自己打开。
+
+如果你装了RimHUD，现在的工作记忆加成也会显示在 RimHUD 的“当前活动”一栏里，不会因为原版人物卡被替换掉就直接消失。显然，界面兼容也是合理的一部分。
+
 [b]允许手雷穿越护盾[/b]
 
 [url=https://postimg.cc/TKBwnp3k][img]https://i.postimg.cc/SKxMF9Fp/Rimsonable__Allow_Grenades_Through_Shields.gif[/img][/url]
@@ -79,6 +83,7 @@ CE里拿望远镜的观察手终于不是摆设了：火炮会优先攻击带有
 [b]联动MOD：[/b]
 [list]
 [*] Combat Extended
+[*] RimHUD
 [*] Vanilla Expanded Framework
 [/list]
 

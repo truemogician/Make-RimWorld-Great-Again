@@ -54,6 +54,10 @@ Oi！這裡不是給你睡的！
 
 具體數值上，工作量 400 的配方大約連續做 400 tick 會進入中段，800 tick 滿速；工作量 1000 的配方則分別大約是 1000 和 2000 tick。另外還有 800 tick 的緩衝期，短暫打斷不會立刻把工匠打回「手感歸零」。
 
+另外也加了一個子選項：如果你希望這套機制也會作用在烹飪、精煉這類不會產生品質的工作單上，自己打開就行。
+
+如果你有裝 RimHUD，現在的工作手感加成也會顯示在 RimHUD 的「目前活動」欄位裡，不會因為原版人物卡被換掉就直接消失。介面相容性這件事，也該講點道理。
+
 [b]手榴彈可穿透護盾[/b]
 
 [url=https://postimg.cc/TKBwnp3k][img]https://i.postimg.cc/SKxMF9Fp/Rimsonable__Allow_Grenades_Through_Shields.gif[/img][/url]
@@ -79,6 +83,7 @@ CE 裡拿望遠鏡的觀測手終於不再只是純擺設了：火砲會優先�
 [b]支援聯動 MOD：[/b]
 [list]
 [*] Combat Extended
+[*] RimHUD
 [*] Vanilla Expanded Framework
 [/list]
 
