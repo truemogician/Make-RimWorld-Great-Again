@@ -71,5 +71,6 @@
 ### ~~Auto Avoid Proximity Activators~~
 - **Description:** Pawns not drafted should automatically avoid mechanoid detectors when moving around the map, similar to how they avoid fire. Applicable to pawns from all factions.
 - **Completion Date:** 2026-03-21
-### Build at Corners
+### ~~Build at Corners~~
 - **Description:** In vanilla game, the build blueprint at wall corners (the central tile of a + shape) can be hauled to, but not built on. This feature intends to fix that by allowing construction at corners.
+- **Completion Date:** 2026-04-23

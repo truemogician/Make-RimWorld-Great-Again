@@ -60,6 +60,12 @@ And if you use RimHUD, the current work memory bonus now shows up on RimHUD's Ac
 
 If you have ever wanted a melee pawn to sneak to a mech cluster and plant explosives like they mean it, this lets you do that. A pawn standing inside a shield can now throw grenades outward without the shield nobly protecting the enemy from your genius plan.
 
+[b]Build at Corners[/b]
+
+Place a blueprint in the middle of a [b]+[/b] of walls and watch vanilla do its favorite trick: colonists cheerfully haul every last resource to the tile, then stand around forever because apparently reaching diagonally through a gap is beyond the physical capabilities of every human and mech on the Rim. The materials sit there, the blueprint sits there, and your careful little wall design stays one tile short of finished.
+
+Rimsonable lets pawns finish those corner blueprints from a diagonal cell. You no longer have to tear down a wall just finish the blueprint, and your colonists can finally get over their fear of diagonal movement.
+
 [b]Combat Extended: Artillery Marker Enhancement[/b]
 
 [url=https://postimg.cc/zHTr5JgR][img]https://i.postimg.cc/kGpXQGMw/Rimsonable__Enhance_Artillery_Markers.gif[/img][/url]
@@ -72,12 +78,13 @@ The GIF above shows that optional behavior, not the default one.
 
 [h2]Compatibility[/h2]
 
+[b]Required:[/b] Harmony
+[b]Supported RimWorld version:[/b] 1.6
+[b]Optional integration:[/b]
 [list]
-[*][b]Required:[/b] Harmony
-[*][b]Supported RimWorld version:[/b] 1.6
-[*][b]Optional integration:[/b] Combat Extended
-[*][b]Optional integration:[/b] RimHUD
-[*][b]Optional integration:[/b] Vanilla Expanded Framework
+[*] Combat Extended
+[*] RimHUD
+[*] Vanilla Expanded Framework
 [/list]
 
 Compatibility modules load automatically when the relevant mods are active.

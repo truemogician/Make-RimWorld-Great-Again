@@ -56,6 +56,12 @@ Shields not caring which side a bullet came from is defensible. But wait, what d
 
 If you have ever wanted a melee pawn to sneak to a mech cluster and plant explosives like they mean it, this lets you do that. A pawn standing inside a shield can now throw grenades outward without the shield nobly protecting the enemy from your genius plan.
 
+#### Build at Corners
+
+Place a blueprint in the middle of a `+` of walls and watch vanilla do its favorite trick: colonists cheerfully haul every last resource to the tile, then stand around forever because apparently reaching diagonally through a gap is beyond the physical capabilities of every human and mech on the Rim. The materials sit there, the blueprint sits there, and your careful little wall design stays one tile short of finished.
+
+Rimsonable lets pawns finish those corner blueprints from a diagonal cell. You no longer have to tear down a wall just finish the blueprint, and your colonists can finally get over their fear of diagonal movement.
+
 #### Combat Extended: Artillery Marker Enhancement
 
 In CE, the pawn with binoculars finally graduates from battlefield decoration. Artillery now prefers targets with artillery markers, and other turrets become a bit more accurate against them. Point at something, yell "shoot there," and it finally has actual tactical value.
@@ -64,11 +70,14 @@ There is also a separate settings toggle for this, disabled by default. Turn it 
 
 ### Compatibility
 
-- **Required:** Harmony
-- **Supported RimWorld version:** 1.6
-- **Optional integration:** Combat Extended
-- **Optional integration:** RimHUD
-- **Optional integration:** Vanilla Expanded Framework
+**Required:** Harmony
+
+**Supported RimWorld version:** 1.6
+
+**Optional integration:**
+- Combat Extended
+- RimHUD
+- Vanilla Expanded Framework
 
 Compatibility modules load automatically when the relevant mods are active.
 
