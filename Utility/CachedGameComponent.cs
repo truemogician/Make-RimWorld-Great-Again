@@ -4,51 +4,36 @@ using Verse;
 namespace TrueMogician.RimWorld.Utility;
 
 public static class CachedGameComponent<T> where T : GameComponent {
+	private static Game? _game;
 	private static T? _component;
 
-	static CachedGameComponent() {
-		CurrentGameHelper.GameChanged += (_, args) => { _component = args.NewGame.GetComponent<T>(); };
-	}
+	public static T Component => Get(Current.Game);
 
-	public static T Component {
-		get {
-			CurrentGameHelper.Touch();
-			return _component!;
+	public static T Get(Game? game) {
+		if (game is null)
+			throw new InvalidOperationException("No active game.");
+		if (!ReferenceEquals(_game, game) || _component is null) {
+			_game = game;
+			_component = game.GetComponent<T>();
 		}
+		return _component ?? throw new InvalidOperationException(
+			$"Game component {typeof(T).FullName} is unavailable."
+		);
 	}
-}
 
-public static class CurrentGameHelper {
-	private static System.WeakReference<Game>? _ref;
-
-	public static event EventHandler<GameChangedEventArgs>? GameChanged;
-
-	public static Game Game {
-		get {
-			if (_ref is null)
-				return Update();
-			return _ref.TryGetTarget(out var game) && ReferenceEquals(game, Current.Game) ? game : Update();
+	public static T? TryGet(Game? game = null) {
+		game ??= Current.Game;
+		if (game is null)
+			return null;
+		if (!ReferenceEquals(_game, game) || _component is null) {
+			_game = game;
+			_component = game.GetComponent<T>();
 		}
+		return _component;
 	}
 
-	public static void Touch() {
-		if (_ref is null || !_ref.TryGetTarget(out var game) || !ReferenceEquals(game, Current.Game))
-			Update();
-	}
-
-	private static Game Update() {
-		var newGame = Current.Game;
-		if (_ref is null)
-			_ref = new System.WeakReference<Game>(newGame);
-		else
-			_ref.SetTarget(newGame);
-		GameChanged?.Invoke(null, newGame);
-		return newGame;
-	}
-
-	public class GameChangedEventArgs(Game newGame) : EventArgs {
-		public Game NewGame { get; } = newGame;
-
-		public static implicit operator GameChangedEventArgs(Game game) => new(game);
+	public static void Reset() {
+		_game = null;
+		_component = null;
 	}
 }
