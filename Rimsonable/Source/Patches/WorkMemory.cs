@@ -26,22 +26,61 @@ public static class WorkMemory {
 
 	internal static WorkMemoryComponent Component => CachedGameComponent<WorkMemoryComponent>.Component;
 
+	public static bool TryGetDisplay(Pawn? pawn, string key, out string text) {
+		text = string.Empty;
+		var recipe = pawn?.CurJob?.RecipeDef;
+		if (recipe is null || !IsTrackedRecipe(recipe))
+			return false;
+		var multiplier = Component.GetMultiplier(pawn!, recipe, 0);
+		text = key.Translate(multiplier.ToStringPercent());
+		return true;
+	}
+
 	[HarmonyPatch(typeof(Toils_Recipe), nameof(Toils_Recipe.DoRecipeWork))]
 	[HarmonyTranspiler]
-	private static IEnumerable<CodeInstruction> Inspect(IEnumerable<CodeInstruction> insts)
+	internal static IEnumerable<CodeInstruction> Inspect(IEnumerable<CodeInstruction> insts)
 		=> _finder.Transpile(insts);
 
 	[HarmonyPatch(typeof(Pawn), nameof(Pawn.GetInspectString))]
 	[HarmonyPostfix]
-	private static void Inspect(Pawn __instance, ref string __result) {
-		if (!TryGetInspectLine(__instance, out string line))
+	internal static void Inspect(Pawn __instance, ref string __result) {
+		if (!TryGetDisplay(__instance, "Rimsonable.WorkMemory.InspectLine", out string line))
 			return;
 		__result = __result.NullOrEmpty() ? line : $"{__result}\n{line}";
 	}
 
+	[PatchHook(PatchHookTiming.AfterPatch)]
+	internal static void Patch(Harmony harmony) {
+		switch (_finder.Closures.Count) {
+			case 0:
+				Helper.Logger.Error(
+					$"Work Memory could not resolve {nameof(Toils_Recipe.DoRecipeWork)} {nameof(Toil.tickIntervalAction)}.",
+					true
+				); break;
+			case 1 when _tickIntervalAction != _finder.Closures[0]:
+				Unpatch(harmony);
+				_tickIntervalAction = _finder.Closures[0];
+				harmony.Patch(_tickIntervalAction, transpiler: new HarmonyMethod(_transpileMethod));
+				break;
+			case > 1:
+				Helper.Logger.Error(
+					$"Work Memory found multiple {nameof(Toils_Recipe.DoRecipeWork)} {nameof(Toil.tickIntervalAction)} closures.",
+					true
+				); break;
+		}
+	}
+
+	[PatchHook(PatchHookTiming.BeforeUnpatch)]
+	internal static void Unpatch(Harmony harmony) {
+		if (_tickIntervalAction is null)
+			return;
+		harmony.Unpatch(_tickIntervalAction, _transpileMethod);
+		_tickIntervalAction = null;
+	}
+
 	private static bool IsTrackedRecipe(RecipeDef recipe) => recipe.products?.Any(product => product.thingDef.HasComp(typeof(CompQuality))) == true;
 
-	private static float ApplyWorkMemoryMultiplier(float workDone, JobDriver_DoBill driver, int delta) {
+	private static float ApplyWorkMemoryMultiplier(float workDone, JobDriver_DoBill? driver, int delta) {
 		if (workDone <= 0f || delta <= 0)
 			return workDone;
 		var pawn = driver?.pawn;
@@ -62,47 +101,6 @@ public static class WorkMemory {
 			true
 		);
 		return codeList;
-	}
-
-	private static bool TryGetInspectLine(Pawn pawn, out string line) {
-		line = string.Empty;
-		var recipe = pawn.CurJob?.RecipeDef;
-		if (recipe is null || !IsTrackedRecipe(recipe))
-			return false;
-		float multiplier = Component.GetMultiplier(pawn, recipe, 0);
-		line = "Rimsonable.WorkMemory.InspectLine".Translate(multiplier.ToStringPercent());
-		return true;
-	}
-
-	[PatchHook(PatchHookTiming.AfterPatch)]
-	private static void Patch(Harmony harmony) {
-		switch (_finder.Closures.Count) {
-			case 0:
-				Helper.Logger.Error(
-					$"Work Memory could not resolve {nameof(Toils_Recipe.DoRecipeWork)} {nameof(Toil.tickIntervalAction)}.",
-					true
-				);
-				break;
-			case 1 when _tickIntervalAction != _finder.Closures[0]:
-				Unpatch(harmony);
-				_tickIntervalAction = _finder.Closures[0];
-				harmony.Patch(_tickIntervalAction, transpiler: new HarmonyMethod(_transpileMethod));
-				break;
-			case > 1:
-				Helper.Logger.Error(
-					$"Work Memory found multiple {nameof(Toils_Recipe.DoRecipeWork)} {nameof(Toil.tickIntervalAction)} closures.",
-					true
-				);
-				break;
-		}
-	}
-
-	[PatchHook(PatchHookTiming.BeforeUnpatch)]
-	private static void Unpatch(Harmony harmony) {
-		if (_tickIntervalAction is null)
-			return;
-		harmony.Unpatch(_tickIntervalAction, _transpileMethod);
-		_tickIntervalAction = null;
 	}
 
 	private static bool TryInjectWorkMemory(List<CodeInstruction> insts) {

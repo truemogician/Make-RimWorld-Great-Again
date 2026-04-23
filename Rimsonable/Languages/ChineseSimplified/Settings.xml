@@ -31,5 +31,6 @@
 	</Rimsonable.Settings>
 	<Rimsonable.WorkMemory>
 		<InspectLine>工作记忆：速度 {0}</InspectLine>
+		<InspectPostfix>（速度 {0}）</InspectPostfix>
 	</Rimsonable.WorkMemory>
 </LanguageData>
