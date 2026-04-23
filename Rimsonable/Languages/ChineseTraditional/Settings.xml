@@ -23,6 +23,10 @@
 				<label>工作手感</label>
 				<description>製作品質物品時，若持續專注於同一份工作，工作速度會逐步提升；中斷太久後又會慢慢退回，鼓勵持續處理同一份工作。</description>
 			</WorkMemory>
+			<BuildAtCorners>
+				<label>牆角施工</label>
+				<description>允許人員施工放置在牆角（十字形中心）的藍圖與框架。原版中，這類藍圖可以運送資源，卻因為沒有人能從斜角接觸而永遠無法完工。</description>
+			</BuildAtCorners>
 		</Features>
 		<AutoTargetMarksOnNonHostile>
 			<label>非敵對目標的火砲標記也納入自動瞄準</label>

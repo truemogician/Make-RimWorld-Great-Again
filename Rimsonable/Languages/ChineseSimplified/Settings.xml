@@ -23,6 +23,10 @@
 				<label>工作记忆</label>
 				<description>制作带品质的物品时，如果持续专注于同一项清单，速度会逐步提升；离开太久后则会回落，鼓励持续而专注的工作方式。</description>
 			</WorkMemory>
+			<BuildAtCorners>
+				<label>墙角施工</label>
+				<description>允许人员施工放置在墙角（十字形中心）的蓝图和框架。原版中，这类蓝图可以被运送资源，却因为没有人能从斜角接触到而永远无法完工。</description>
+			</BuildAtCorners>
 		</Features>
 		<AutoTargetMarksOnNonHostile>
 			<label>自动瞄准非敌对目标上的火炮标记</label>

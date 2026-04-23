@@ -22,6 +22,10 @@
 				<label>Arbeitsgedächtnis</label>
 				<description>Die Arbeitsgeschwindigkeit beim Herstellen von Gegenständen mit Qualität steigt, wenn sich jemand auf denselben Auftrag konzentriert, und fällt nach längerer Unterbrechung wieder ab. Das belohnt wiederholte Arbeit am selben Auftrag.</description>
 			</WorkMemory>
+			<BuildAtCorners>
+				<label>Bau an Wandecken</label>
+				<description>Erlaubt Personen, Baupläne und Rahmen an Wandecken (dem Mittelpunkt einer +-Form) zu errichten. Im Vanilla-Spiel lassen sich solche Baupläne zwar mit Material beliefern, aber nie fertigstellen, weil niemand diagonal an sie herankommt.</description>
+			</BuildAtCorners>
 		</Features>
 		<AutoTargetMarksOnNonHostile>
 			<label>Artilleriemarkierungen auf nicht feindlichen Zielen automatisch anvisieren</label>

@@ -23,6 +23,10 @@
 				<label>Work Memory</label>
 				<description>Quality crafting speed ramps up when a pawn stays focused on making the same thing and falls off after time away, encouraging repeated work on the same bill.</description>
 			</WorkMemory>
+			<BuildAtCorners>
+				<label>Build at Corners</label>
+				<description>Allow colonists to construct blueprints and frames placed at wall corners (the center of a + shape). In vanilla, such blueprints can be delivered to but never finished because no pawn can reach them through the diagonal.</description>
+			</BuildAtCorners>
 		</Features>
 		<AutoTargetMarksOnNonHostile>
 			<label>Auto Target Artillery Markers on Non-Hostile Entities</label>
