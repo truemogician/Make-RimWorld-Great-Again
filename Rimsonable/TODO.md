@@ -12,7 +12,7 @@
 - **Duplication:** [Inspiration Tweaks](https://steamcommunity.com/sharedfiles/filedetails/?id=2117570018)
 
 ### Aircraft Fuel Consumption
-- **Description:** Correct the fuel consumption of air vehicles (pods, planes and helicopters) from $kd$ to $k_1md + 2k_2m$, where $d$ is distance, $m$ is total mass, $k_1$ and $k_2$ are constants. This accounts for distance, mass, and takeoff/landing costs.
+- **Description:** Correct the fuel consumption of air vehicles (pods, planes and helicopters) from $kd$ to $k_1md + 2k_2m$, where $d$ is distance, $m$ is total mass, $k_1$ and $k_2$ are constants. This accounts for distance, mass, and takeoff/landing costs. $k_1$ and $k_2$ are specific to each vehicle type.
 - **Mod Requirements:** Vehicle Framework
 - **Mod Compatibility:**
     - [ ] Vanilla Vehicles Expanded
@@ -71,3 +71,5 @@
 ### ~~Auto Avoid Proximity Activators~~
 - **Description:** Pawns not drafted should automatically avoid mechanoid detectors when moving around the map, similar to how they avoid fire. Applicable to pawns from all factions.
 - **Completion Date:** 2026-03-21
+### Build at Corners
+- **Description:** In vanilla game, the build blueprint at wall corners (the central tile of a + shape) can be hauled to, but not built on. This feature intends to fix that by allowing construction at corners.
