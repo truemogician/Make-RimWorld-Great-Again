@@ -26,7 +26,9 @@ public enum Features : ulong {
 
 	AutoAvoidProximityActivators = 1 << 3,
 
-	WorkMemory = 1 << 4
+	WorkMemory = 1 << 4,
+
+	BuildAtCorners = 1 << 5
 }
 
 [Translation("Rimsonable.Settings")]
@@ -52,6 +54,7 @@ public class Settings : FeatureSettings<Features> {
 		AddFeaturePatches(Features.SafeRestLocation, typeof(SafeRestLocation));
 		AddFeaturePatches(Features.AutoAvoidProximityActivators, typeof(AutoAvoidProximityActivators));
 		AddFeaturePatches(Features.WorkMemory, typeof(WorkMemory));
+		AddFeaturePatches(Features.BuildAtCorners, typeof(BuildAtCorners));
 	}
 
 	public static Settings Default { get; internal set; } = null!;
