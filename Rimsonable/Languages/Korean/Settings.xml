@@ -27,6 +27,10 @@
 			<label>비적대 대상 포격 표식 자동 조준</label>
 			<description>포병과 박격포가 중립 동물이나 방문객처럼 비적대 대상에 찍힌 포격 표식을 자동으로 조준할지 설정합니다.</description>
 		</AutoTargetMarksOnNonHostile>
+		<WorkMemoryNonQualityRecipes>
+			<label>품질이 없는 작업에도 적용</label>
+			<description>요리나 정제처럼 결과물에 품질이 붙지 않는 작업에도 작업 기억이 적용됩니다.</description>
+		</WorkMemoryNonQualityRecipes>
 	</Rimsonable.Settings>
 	<Rimsonable.WorkMemory>
 		<InspectLine>작업 기억: 속도 {0}</InspectLine>

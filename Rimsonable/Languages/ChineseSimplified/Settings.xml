@@ -28,6 +28,10 @@
 			<label>自动瞄准非敌对目标上的火炮标记</label>
 			<description>是否允许火炮和迫击炮自动攻击带有火炮标记的非敌对目标，例如中立动物或访客。</description>
 		</AutoTargetMarksOnNonHostile>
+		<WorkMemoryNonQualityRecipes>
+			<label>对非品质配方也生效</label>
+			<description>让工作记忆也会影响烹饪、精炼等不会产出品质物品的工作单。</description>
+		</WorkMemoryNonQualityRecipes>
 	</Rimsonable.Settings>
 	<Rimsonable.WorkMemory>
 		<InspectLine>工作记忆：速度 {0}</InspectLine>

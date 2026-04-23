@@ -35,15 +35,15 @@ public class Settings : FeatureSettings<Features> {
 
 	private bool _autoTargetMarksOnNonHostile;
 
+	private bool _workMemoryNonQualityRecipes;
+
 	public Settings() : base(Helper.Logger) {
 		AfterDrawFeatureRow += (_, args) => {
 			var conf = args.Config;
-			if (args is { Feature: Features.EnhanceArtilleryMarkers, Enabled: true }) {
-				var rect = args.NewLine().Padding(0, conf.ResetButtonWidth + conf.Gap, 0, _ADDITIONAL_SETTINGS_INDENT);
-				if (Translate(nameof(AutoTargetMarksOnNonHostile), "description") is { } tip && !tip.NullOrEmpty())
-					TooltipHandler.TipRegion(rect, tip);
-				Widgets.CheckboxLabeled(rect, Translate(nameof(AutoTargetMarksOnNonHostile), "label"), ref _autoTargetMarksOnNonHostile);
-			}
+			if (args is { Feature: Features.EnhanceArtilleryMarkers, Enabled: true })
+				DrawSubSetting(args, conf, nameof(AutoTargetMarksOnNonHostile), ref _autoTargetMarksOnNonHostile);
+			if (args is { Feature: Features.WorkMemory, Enabled: true })
+				DrawSubSetting(args, conf, nameof(WorkMemoryNonQualityRecipes), ref _workMemoryNonQualityRecipes);
 		};
 	}
 
@@ -61,12 +61,23 @@ public class Settings : FeatureSettings<Features> {
 	[Translation]
 	public bool AutoTargetMarksOnNonHostile => _autoTargetMarksOnNonHostile;
 
-	public override void ExposeData() {
-		base.ExposeData();
-		Scribe_Values.Look(ref _autoTargetMarksOnNonHostile, nameof(AutoTargetMarksOnNonHostile).ToCamelCase());
+	[Translation]
+	public bool WorkMemoryNonQualityRecipes => _workMemoryNonQualityRecipes;
+
+	private static void DrawSubSetting(DrawFeatureRowEventArgs args, SettingsMenuConfig conf, string memberName, ref bool value) {
+		var rect = args.NewLine().Padding(0, conf.ResetButtonWidth + conf.Gap, 0, _ADDITIONAL_SETTINGS_INDENT);
+		if (Translate(memberName, "description") is { } tip && !tip.NullOrEmpty())
+			TooltipHandler.TipRegion(rect, tip);
+		Widgets.CheckboxLabeled(rect, Translate(memberName, "label"), ref value);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static string? Translate(string memberName, string? subField = null)
 		=> typeof(Settings).TranslateMember(memberName, subField);
+
+	public override void ExposeData() {
+		base.ExposeData();
+		Scribe_Values.Look(ref _autoTargetMarksOnNonHostile, nameof(AutoTargetMarksOnNonHostile).ToCamelCase());
+		Scribe_Values.Look(ref _workMemoryNonQualityRecipes, nameof(WorkMemoryNonQualityRecipes).ToCamelCase());
+	}
 }

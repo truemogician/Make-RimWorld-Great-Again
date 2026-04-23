@@ -28,6 +28,10 @@
 			<label>Auto Target Artillery Markers on Non-Hostile Entities</label>
 			<description>Whether artillery and mortars should automatically target artillery markers on non-hostile entities (e.g., neutral animals or visitors).</description>
 		</AutoTargetMarksOnNonHostile>
+		<WorkMemoryNonQualityRecipes>
+			<label>Apply to Non-Quality Recipes</label>
+			<description>Extends work memory to recipes that do not produce quality items, such as cooking or refining bills.</description>
+		</WorkMemoryNonQualityRecipes>
 	</Rimsonable.Settings>
 	<Rimsonable.WorkMemory>
 		<InspectLine>Work memory: {0} speed</InspectLine>

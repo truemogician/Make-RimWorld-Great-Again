@@ -78,7 +78,11 @@ public static class WorkMemory {
 		_tickIntervalAction = null;
 	}
 
-	private static bool IsTrackedRecipe(RecipeDef recipe) => recipe.products?.Any(product => product.thingDef.HasComp(typeof(CompQuality))) == true;
+	private static bool IsTrackedRecipe(RecipeDef recipe) {
+		if (Settings.Default.WorkMemoryNonQualityRecipes)
+			return true;
+		return recipe.products?.Any(product => product.thingDef.HasComp(typeof(CompQuality))) == true;
+	}
 
 	private static float ApplyWorkMemoryMultiplier(float workDone, JobDriver_DoBill? driver, int delta) {
 		if (workDone <= 0f || delta <= 0)

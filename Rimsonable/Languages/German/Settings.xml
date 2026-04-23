@@ -27,6 +27,10 @@
 			<label>Artilleriemarkierungen auf nicht feindlichen Zielen automatisch anvisieren</label>
 			<description>Ob Artillerie und Mörser Artilleriemarkierungen auf nicht feindlichen Zielen wie neutralen Tieren oder Besuchern automatisch als Ziel wählen sollen.</description>
 		</AutoTargetMarksOnNonHostile>
+		<WorkMemoryNonQualityRecipes>
+			<label>Auch bei Rezepten ohne Qualitätsstufe</label>
+			<description>Das Arbeitsgedächtnis greift dann auch bei Aufträgen ohne Qualitätsstufe, etwa beim Kochen oder Verarbeiten.</description>
+		</WorkMemoryNonQualityRecipes>
 	</Rimsonable.Settings>
 	<Rimsonable.WorkMemory>
 		<InspectLine>Arbeitsgedaechtnis: {0} Geschwindigkeit</InspectLine>

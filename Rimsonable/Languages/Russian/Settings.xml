@@ -27,6 +27,10 @@
 			<label>Автоматически целиться по артиллерийским меткам на невраждебных целях</label>
 			<description>Должны ли артиллерия и миномёты автоматически наводиться на артиллерийские метки на невраждебных целях, например на нейтральных животных или гостях.</description>
 		</AutoTargetMarksOnNonHostile>
+		<WorkMemoryNonQualityRecipes>
+			<label>Работает и для рецептов без качества</label>
+			<description>Рабочая память будет действовать и на задания без качества результата, например на готовку или переработку.</description>
+		</WorkMemoryNonQualityRecipes>
 	</Rimsonable.Settings>
 	<Rimsonable.WorkMemory>
 		<InspectLine>Рабочая память: скорость {0}</InspectLine>
