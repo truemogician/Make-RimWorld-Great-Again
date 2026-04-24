@@ -21,7 +21,7 @@ public static class AllowGrenadesThroughShields {
 	[HarmonyPatch(nameof(CompShield.CompAllowVerbCast))]
 	[HarmonyPriority(Priority.First)]
 	[HarmonyPrefix]
-	public static bool CompAllowVerbCast_Prefix(CompShield __instance, Verb verb, ref bool __result) {
+	internal static bool CompAllowVerbCast_Prefix(CompShield __instance, Verb verb, ref bool __result) {
 		if (!__instance.Props.blocksRangedWeapons)
 			return true;
 		if (!_launchVerbs.Any(t => t.IsInstanceOfType(verb)))

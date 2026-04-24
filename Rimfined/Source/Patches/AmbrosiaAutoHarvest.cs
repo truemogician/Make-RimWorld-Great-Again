@@ -7,7 +7,7 @@ namespace TrueMogician.RimWorld.Rimfined.Patches;
 internal static class AmbrosiaAutoHarvestPatches {
 	[HarmonyPatch(typeof(Plant), nameof(Plant.TickLong))]
 	[HarmonyPostfix]
-	private static void Plant_TickLong_Postfix(Plant __instance) {
+	internal static void Plant_TickLong_Postfix(Plant __instance) {
 		if (__instance.def != ThingDefOf.Plant_Ambrosia)
 			return;
 		if (!__instance.HarvestableNow)

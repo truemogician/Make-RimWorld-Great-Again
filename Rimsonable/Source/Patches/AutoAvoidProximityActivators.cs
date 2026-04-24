@@ -27,7 +27,7 @@ public static class AutoAvoidProximityActivators {
 
 	[HarmonyPatch(typeof(PathGrid), nameof(PathGrid.CalculatedCostAt))]
 	[HarmonyPostfix]
-	private static void PathGrid_CalculatedCostAt_Postfix(
+	internal static void PathGrid_CalculatedCostAt_Postfix(
 		PathGrid __instance,
 		IntVec3 c,
 		bool perceivedStatic,
@@ -42,11 +42,11 @@ public static class AutoAvoidProximityActivators {
 
 	[HarmonyPatch(typeof(Map), nameof(Map.FinalizeInit))]
 	[HarmonyPostfix]
-	private static void Map_FinalizeInit_Postfix(Map __instance) => RebuildCoverageGrid(__instance);
+	internal static void Map_FinalizeInit_Postfix(Map __instance) => RebuildCoverageGrid(__instance);
 
 	[HarmonyPatch(typeof(ThingWithComps), nameof(ThingWithComps.SpawnSetup))]
 	[HarmonyPostfix]
-	private static void ThingWithComps_SpawnSetup_Postfix(ThingWithComps __instance) {
+	internal static void ThingWithComps_SpawnSetup_Postfix(ThingWithComps __instance) {
 		var comp = __instance.GetComp<CompSendSignalOnMotion>();
 		if (comp is not { Sent: false } || !__instance.Spawned)
 			return;
@@ -55,7 +55,7 @@ public static class AutoAvoidProximityActivators {
 
 	[HarmonyPatch(typeof(ThingWithComps), nameof(ThingWithComps.DeSpawn))]
 	[HarmonyPrefix]
-	private static void ThingWithComps_DeSpawn_Prefix(ThingWithComps __instance) {
+	internal static void ThingWithComps_DeSpawn_Prefix(ThingWithComps __instance) {
 		var comp = __instance.GetComp<CompSendSignalOnMotion>();
 		if (comp is not { Sent: false } || !__instance.Spawned)
 			return;
@@ -65,37 +65,37 @@ public static class AutoAvoidProximityActivators {
 	// #region Trigger / Expire
 	[HarmonyPatch(typeof(CompSendSignalOnMotion), "Trigger")]
 	[HarmonyPrefix]
-	private static void CompSendSignalOnMotion_Trigger_Prefix(CompSendSignalOnMotion __instance, out bool __state)
+	internal static void CompSendSignalOnMotion_Trigger_Prefix(CompSendSignalOnMotion __instance, out bool __state)
 		=> __state = IsActive(__instance);
 
 	[HarmonyPatch(typeof(CompSendSignalOnMotion), "Trigger")]
 	[HarmonyPostfix]
-	private static void CompSendSignalOnMotion_Trigger_Postfix(CompSendSignalOnMotion __instance, bool __state)
+	internal static void CompSendSignalOnMotion_Trigger_Postfix(CompSendSignalOnMotion __instance, bool __state)
 		=> SyncActivatorCoverage(__instance, __state);
 
 	[HarmonyPatch(typeof(CompSendSignalOnMotion), nameof(CompSendSignalOnMotion.Notify_SignalReceived))]
 	[HarmonyPrefix]
-	private static void CompSendSignalOnMotion_Notify_SignalReceived_Prefix(CompSendSignalOnMotion __instance, out bool __state)
+	internal static void CompSendSignalOnMotion_Notify_SignalReceived_Prefix(CompSendSignalOnMotion __instance, out bool __state)
 		=> __state = IsActive(__instance);
 
 	[HarmonyPatch(typeof(CompSendSignalOnMotion), nameof(CompSendSignalOnMotion.Notify_SignalReceived))]
 	[HarmonyPostfix]
-	private static void CompSendSignalOnMotion_Notify_SignalReceived_Postfix(CompSendSignalOnMotion __instance, bool __state)
+	internal static void CompSendSignalOnMotion_Notify_SignalReceived_Postfix(CompSendSignalOnMotion __instance, bool __state)
 		=> SyncActivatorCoverage(__instance, __state);
 
 	[HarmonyPatch(typeof(CompSendSignalOnMotion), nameof(CompSendSignalOnMotion.Expire))]
 	[HarmonyPrefix]
-	private static void CompSendSignalOnMotion_Expire_Prefix(CompSendSignalOnMotion __instance, out bool __state)
+	internal static void CompSendSignalOnMotion_Expire_Prefix(CompSendSignalOnMotion __instance, out bool __state)
 		=> __state = IsActive(__instance);
 
 	[HarmonyPatch(typeof(CompSendSignalOnMotion), nameof(CompSendSignalOnMotion.Expire))]
 	[HarmonyPostfix]
-	private static void CompSendSignalOnMotion_Expire_Postfix(CompSendSignalOnMotion __instance, bool __state)
+	internal static void CompSendSignalOnMotion_Expire_Postfix(CompSendSignalOnMotion __instance, bool __state)
 		=> SyncActivatorCoverage(__instance, __state);
 	// #endregion
 
 	[PatchHook(PatchHookTiming.AfterPatch)]
-	private static void AfterPatch() {
+	internal static void AfterPatch() {
 		EnsureActivatorDefsInitialized();
 		if (Find.Maps == null)
 			return;
@@ -104,7 +104,7 @@ public static class AutoAvoidProximityActivators {
 	}
 
 	[PatchHook(PatchHookTiming.AfterUnpatch)]
-	private static void AfterUnpatch() {
+	internal static void AfterUnpatch() {
 		if (Find.Maps != null) {
 			foreach (var map in Find.Maps) {
 				if (_coverageGrids.TryGetValue(map, out var grid))

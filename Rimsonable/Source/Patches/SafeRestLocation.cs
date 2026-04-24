@@ -19,7 +19,7 @@ public static class SafeRestLocation {
 	[HarmonyPatch(typeof(JobGiver_GetRest), "IsValidCell")]
 	[HarmonyPriority(Priority.Last)]
 	[HarmonyPostfix]
-	private static void JobGiver_GetRest_IsValidCell_Postfix(Pawn? pawn, IntVec3 cell, ref bool __result) {
+	internal static void JobGiver_GetRest_IsValidCell_Postfix(Pawn? pawn, IntVec3 cell, ref bool __result) {
 		if (!__result)
 			return;
 		if (pawn?.Map is not { } map || !cell.InBounds(map))
