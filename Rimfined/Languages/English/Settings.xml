@@ -17,6 +17,10 @@
 				<label>Ambrosia auto harvest</label>
 				<description>Automatically designates ambrosia bushes for harvest when they become harvestable.</description>
 			</AmbrosiaAutoHarvest>
+			<DelayedQuestAcceptance>
+				<label>Delayed quest acceptance</label>
+				<description>Replaces quest accept buttons with configurable delayed acceptance controls so offers can be accepted automatically later.</description>
+			</DelayedQuestAcceptance>
 		</Features>
 		<AutoNoTargetForPrisonerRelatives>
 			<label>Include prisoner relations</label>
@@ -41,4 +45,45 @@
 			<description>Wardens will capture this downed pawn when a prisoner bed is available.</description>
 		</Capture>
 	</Rimfined.Commands>
+	<Rimfined.DelayedQuestAcceptance>
+		<Control>
+			<Delay>Delay</Delay>
+			<DelayTip>Schedule quest acceptance instead of accepting it immediately.</DelayTip>
+		</Control>
+		<Preset>
+			<Custom>Custom</Custom>
+			<OneDayAfter>1 day after</OneDayAfter>
+			<OneDayBeforeExpiration>1 day before expiration</OneDayBeforeExpiration>
+			<RightBeforeExpiration>Right before expiration</RightBeforeExpiration>
+		</Preset>
+		<Unit>
+			<Hour>Hour</Hour>
+			<Day>Day</Day>
+		</Unit>
+		<Direction>
+			<SinceNow>Since now</SinceNow>
+			<BeforeExpiration>Before expiration</BeforeExpiration>
+		</Direction>
+		<ScheduledRow>Delayed acceptance scheduled: {0}</ScheduledRow>
+		<ScheduledTooltip>Scheduled for {0}</ScheduledTooltip>
+		<Countdown>Accepting in {0}</Countdown>
+		<Buttons>
+			<Cancel>Cancel</Cancel>
+			<AcceptNow>Accept now</AcceptNow>
+		</Buttons>
+		<Errors>
+			<NeedsExpiration>This quest has no expiration.</NeedsExpiration>
+			<TimePassed>The selected acceptance time has already passed.</TimePassed>
+			<AfterExpiration>The selected acceptance time would be at or after quest expiration.</AfterExpiration>
+		</Errors>
+		<Messages>
+			<ScheduledCreated>Delayed acceptance scheduled for {0}.</ScheduledCreated>
+			<ScheduledReplaced>Delayed acceptance rescheduled for {0}.</ScheduledReplaced>
+			<ScheduledCanceled>Delayed acceptance canceled.</ScheduledCanceled>
+			<Accepted>Automatically accepted quest: {0}.</Accepted>
+			<CanceledFailed>Delayed acceptance canceled for {0}: {1}</CanceledFailed>
+			<CanceledRequiresAccepter>Delayed acceptance canceled for {0}: this quest must be accepted manually by a colonist.</CanceledRequiresAccepter>
+			<CanceledInvalid>Delayed acceptance canceled for {0}: the selected reward is no longer available.</CanceledInvalid>
+		</Messages>
+	</Rimfined.DelayedQuestAcceptance>
 </LanguageData>

@@ -24,7 +24,9 @@ public enum Features : ulong {
 
 	CaptureAsJob = 1 << 1,
 
-	AmbrosiaAutoHarvest = 1 << 2
+	AmbrosiaAutoHarvest = 1 << 2,
+
+	DelayedQuestAcceptance = 1 << 3
 }
 
 [Translation("Rimfined.Settings")]
@@ -81,6 +83,7 @@ public class Settings : FeatureSettings<Features> {
 		AddFeaturePatches(Features.NoTarget, typeof(NoTargetPatches), typeof(NoTargetScopePatches));
 		AddFeaturePatches(Features.CaptureAsJob, typeof(CaptureAsJobPatches));
 		AddFeaturePatches(Features.AmbrosiaAutoHarvest, typeof(AmbrosiaAutoHarvestPatches));
+		AddFeaturePatches(Features.DelayedQuestAcceptance, typeof(DelayedQuestAcceptancePatches));
 	}
 
 	public static Settings Default { get; internal set; } = null!;
