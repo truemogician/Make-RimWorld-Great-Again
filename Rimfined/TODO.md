@@ -12,7 +12,7 @@
   - [ ] Search and Destroy
 
 ### Construction Priority
-- **Description:** Add a gizmo on construction blueprints to set construction priority. Pawns will prioritize higher priority blueprints when choosing what to build next.
+- **Description:** Add a gizmo on construction blueprints to set construction priority. Pawns will prioritize higher priority blueprints when choosing what to build next, similar to the priority mechanism in Smart Farming.
 
 ### Build Plan Overrides
 - **Description:** Allow new build plans to override existing plans, if the buildings are of the same size and type.
@@ -44,6 +44,9 @@
 ### ~~Ambrosia Auto Harvest~~
 - **Description:** Automatically mark ambrosia plants for harvest when they are fully grown.
 - **Completion Date:** 2026-03-21
+
+### Delayed Quest Acceptance
+- **Description:** Add a button in the quest dialog to set the time to accept the quest. When clicked, it should show a list of time options (e.g. 1 day, 3 days, 1 week, right before expiration) and a "Cancel" button. The quest will be automatically accepted after the selected time has passed, or can be accepted manually before that.
 
 ### Vehicle Tweaks
 - **Pending Passenger:** Show pawns entering a vehicle on the passenger list with a "pending" status, and a "cancel" button next to it.
