@@ -82,6 +82,7 @@
 			<ScheduledCreated>已将延迟接受安排为 {0} 后触发。</ScheduledCreated>
 			<ScheduledReplaced>已将延迟接受重新安排为 {0} 后触发。</ScheduledReplaced>
 			<ScheduledCanceled>已取消延迟接受。</ScheduledCanceled>
+			<AcceptanceReminder>提醒：{0} 将在 {1} 后自动接受。</AcceptanceReminder>
 			<Accepted>已自动接受任务：{0}。</Accepted>
 			<CanceledFailed>已取消 {0} 的延迟接受：{1}</CanceledFailed>
 			<CanceledRequiresAccepter>已取消 {0} 的延迟接受：该任务必须由殖民者手动接受。</CanceledRequiresAccepter>

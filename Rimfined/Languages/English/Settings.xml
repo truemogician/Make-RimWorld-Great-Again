@@ -82,6 +82,7 @@
 			<ScheduledCreated>Delayed acceptance scheduled for {0}.</ScheduledCreated>
 			<ScheduledReplaced>Delayed acceptance rescheduled for {0}.</ScheduledReplaced>
 			<ScheduledCanceled>Delayed acceptance canceled.</ScheduledCanceled>
+			<AcceptanceReminder>Reminder: {0} will be accepted automatically in {1}.</AcceptanceReminder>
 			<Accepted>Automatically accepted quest: {0}.</Accepted>
 			<CanceledFailed>Delayed acceptance canceled for {0}: {1}</CanceledFailed>
 			<CanceledRequiresAccepter>Delayed acceptance canceled for {0}: this quest must be accepted manually by a colonist.</CanceledRequiresAccepter>

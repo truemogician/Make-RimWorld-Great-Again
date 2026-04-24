@@ -82,6 +82,7 @@
 			<ScheduledCreated>已將延遲接受排程為 {0} 後觸發。</ScheduledCreated>
 			<ScheduledReplaced>已將延遲接受重新排程為 {0} 後觸發。</ScheduledReplaced>
 			<ScheduledCanceled>已取消延遲接受。</ScheduledCanceled>
+			<AcceptanceReminder>提醒：{0} 將在 {1} 後自動接受。</AcceptanceReminder>
 			<Accepted>已自動接受任務：{0}。</Accepted>
 			<CanceledFailed>已取消 {0} 的延遲接受：{1}</CanceledFailed>
 			<CanceledRequiresAccepter>已取消 {0} 的延遲接受：該任務必須由殖民者手動接受。</CanceledRequiresAccepter>

@@ -85,6 +85,8 @@ public sealed class DelayedQuestAcceptanceManager : GameComponent {
 		schedule.Amount = draft.Amount;
 		schedule.Unit = draft.Unit;
 		schedule.Direction = draft.Direction;
+		schedule.ReminderSent = false;
+		TryNotifyReminder(schedule, Find.TickManager.TicksGame);
 		_drafts[quest.id] = DelayedQuestAcceptanceDraft.FromSchedule(schedule);
 		if (!replaced)
 			_schedules.Add(schedule);
@@ -112,6 +114,7 @@ public sealed class DelayedQuestAcceptanceManager : GameComponent {
 				_schedules.RemoveAt(i);
 				continue;
 			}
+			TryNotifyReminder(schedule, now);
 			if (schedule.FireTick > now)
 				continue;
 			try {
@@ -144,6 +147,10 @@ public sealed class DelayedQuestAcceptanceManager : GameComponent {
 		if (Scribe.mode == LoadSaveMode.PostLoadInit) {
 			_schedules ??= [];
 			_schedules.RemoveAll(schedule => schedule?.Quest is null);
+			int now = Find.TickManager?.TicksGame ?? 0;
+			foreach (var schedule in _schedules)
+				if (schedule is not null && GetReminderTick(schedule.FireTick) < now)
+					schedule.ReminderSent = true;
 			_drafts.Clear();
 		}
 	}
@@ -155,6 +162,8 @@ public sealed class DelayedQuestAcceptanceSchedule : IExposable {
 	public int FireTick;
 
 	public int ChoiceIndex = -1;
+
+	public bool ReminderSent;
 
 	public DelayedQuestAcceptancePreset Preset;
 
@@ -168,6 +177,7 @@ public sealed class DelayedQuestAcceptanceSchedule : IExposable {
 		Scribe_References.Look(ref Quest, "quest");
 		Scribe_Values.Look(ref FireTick, "fireTick");
 		Scribe_Values.Look(ref ChoiceIndex, "choiceIndex", -1);
+		Scribe_Values.Look(ref ReminderSent, "reminderSent");
 		Scribe_Values.Look(ref Preset, "preset");
 		Scribe_Values.Look(ref Amount, "amount", 1);
 		Scribe_Values.Look(ref Unit, "unit");
@@ -342,6 +352,26 @@ internal static class DelayedQuestAcceptanceUtility {
 			return false;
 		}
 		return true;
+	}
+
+	internal static int GetReminderTick(int fireTick) => fireTick - 2 * GenDate.TicksPerHour;
+
+	internal static void TryNotifyReminder(DelayedQuestAcceptanceSchedule schedule, int now) {
+		if (schedule.ReminderSent || schedule.Quest is null || schedule.FireTick <= now)
+			return;
+		int reminderTick = GetReminderTick(schedule.FireTick);
+		if (reminderTick < now) {
+			schedule.ReminderSent = true;
+			return;
+		}
+		if (reminderTick != now)
+			return;
+		schedule.ReminderSent = true;
+		Messages.Message(
+			Translate("Messages.AcceptanceReminder", schedule.Quest.name, Math.Max(schedule.FireTick - now, 0).ToStringTicksToPeriod()),
+			MessageTypeDefOf.NeutralEvent,
+			false
+		);
 	}
 
 	internal static string GetCountdownLabel(int fireTick) {
