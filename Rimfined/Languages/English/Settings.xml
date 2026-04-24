@@ -70,6 +70,8 @@
 		<Buttons>
 			<Cancel>Cancel</Cancel>
 			<AcceptNow>Accept now</AcceptNow>
+			<ScheduleAccept>Schedule accept</ScheduleAccept>
+			<ScheduleAcceptFor>Schedule accept for</ScheduleAcceptFor>
 		</Buttons>
 		<Errors>
 			<NeedsExpiration>This quest has no expiration.</NeedsExpiration>

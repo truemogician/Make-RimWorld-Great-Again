@@ -17,6 +17,10 @@
 				<label>仙馐树自动收获</label>
 				<description>仙馐树可收获时，自动将其标记为收获。</description>
 			</AmbrosiaAutoHarvest>
+			<DelayedQuestAcceptance>
+				<label>延迟接受任务</label>
+				<description>将任务接受按钮替换为可配置的延迟接受控件，以便稍后自动接受任务。</description>
+			</DelayedQuestAcceptance>
 		</Features>
 		<AutoNoTargetForPrisonerRelatives>
 			<label>包含囚犯关系</label>
@@ -41,4 +45,47 @@
 			<description>有可用囚犯床位时，狱卒会抓捕这名倒地角色。</description>
 		</Capture>
 	</Rimfined.Commands>
+	<Rimfined.DelayedQuestAcceptance>
+		<Control>
+			<Delay>延迟</Delay>
+			<DelayTip>安排稍后接受任务，而不是立即接受。</DelayTip>
+		</Control>
+		<Preset>
+			<Custom>自定义</Custom>
+			<OneDayAfter>1天后</OneDayAfter>
+			<OneDayBeforeExpiration>过期前1天</OneDayBeforeExpiration>
+			<RightBeforeExpiration>临近过期时</RightBeforeExpiration>
+		</Preset>
+		<Unit>
+			<Hour>小时</Hour>
+			<Day>天</Day>
+		</Unit>
+		<Direction>
+			<SinceNow>从现在起</SinceNow>
+			<BeforeExpiration>在过期前</BeforeExpiration>
+		</Direction>
+		<ScheduledRow>已计划延迟接受：{0}</ScheduledRow>
+		<ScheduledTooltip>计划于 {0} 接受</ScheduledTooltip>
+		<Countdown>将在 {0} 后接受</Countdown>
+		<Buttons>
+			<Cancel>取消</Cancel>
+			<AcceptNow>立即接受</AcceptNow>
+			<ScheduleAccept>计划接受</ScheduleAccept>
+			<ScheduleAcceptFor>计划接受奖励</ScheduleAcceptFor>
+		</Buttons>
+		<Errors>
+			<NeedsExpiration>此任务没有过期时间。</NeedsExpiration>
+			<TimePassed>所选接受时间已经过去。</TimePassed>
+			<AfterExpiration>所选接受时间会落在任务过期时或之后。</AfterExpiration>
+		</Errors>
+		<Messages>
+			<ScheduledCreated>已将延迟接受安排为 {0} 后触发。</ScheduledCreated>
+			<ScheduledReplaced>已将延迟接受重新安排为 {0} 后触发。</ScheduledReplaced>
+			<ScheduledCanceled>已取消延迟接受。</ScheduledCanceled>
+			<Accepted>已自动接受任务：{0}。</Accepted>
+			<CanceledFailed>已取消 {0} 的延迟接受：{1}</CanceledFailed>
+			<CanceledRequiresAccepter>已取消 {0} 的延迟接受：该任务必须由殖民者手动接受。</CanceledRequiresAccepter>
+			<CanceledInvalid>已取消 {0} 的延迟接受：所选奖励已不可用。</CanceledInvalid>
+		</Messages>
+	</Rimfined.DelayedQuestAcceptance>
 </LanguageData>
