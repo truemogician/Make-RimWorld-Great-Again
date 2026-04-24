@@ -21,6 +21,10 @@
 				<label>延遲接受任務</label>
 				<description>將任務接受按鈕替換為可設定的延遲接受控制，讓任務可在稍後自動接受。</description>
 			</DelayedQuestAcceptance>
+			<ConstructionPriority>
+				<label>建造優先級</label>
+				<description>為玩家陣營的建造藍圖與框架新增優先級指令，讓建造者與搬運者優先處理更高優先級的建造目標。</description>
+			</ConstructionPriority>
 		</Features>
 		<AutoNoTargetForPrisonerRelatives>
 			<label>包含囚犯關係</label>
@@ -45,6 +49,12 @@
 			<description>有可用囚犯床位時，獄卒會抓捕這名倒地人物。</description>
 		</Capture>
 	</Rimfined.Commands>
+	<Rimfined.ConstructionPriority>
+		<Commands>
+			<Label>優先級</Label>
+			<Description>設定此藍圖或框架的建造優先級。</Description>
+		</Commands>
+	</Rimfined.ConstructionPriority>
 	<Rimfined.DelayedQuestAcceptance>
 		<Control>
 			<Delay>延遲</Delay>

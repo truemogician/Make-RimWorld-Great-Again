@@ -21,6 +21,10 @@
 				<label>Delayed quest acceptance</label>
 				<description>Replaces quest accept buttons with configurable delayed acceptance controls so offers can be accepted automatically later.</description>
 			</DelayedQuestAcceptance>
+			<ConstructionPriority>
+				<label>Construction priority</label>
+				<description>Adds a priority gizmo to player-owned construction blueprints and frames so builders and haulers prefer higher-priority construction targets.</description>
+			</ConstructionPriority>
 		</Features>
 		<AutoNoTargetForPrisonerRelatives>
 			<label>Include prisoner relations</label>
@@ -45,6 +49,12 @@
 			<description>Wardens will capture this downed pawn when a prisoner bed is available.</description>
 		</Capture>
 	</Rimfined.Commands>
+	<Rimfined.ConstructionPriority>
+		<Commands>
+			<Label>Priority</Label>
+			<Description>Set construction priority for this blueprint or frame.</Description>
+		</Commands>
+	</Rimfined.ConstructionPriority>
 	<Rimfined.DelayedQuestAcceptance>
 		<Control>
 			<Delay>Delay</Delay>
