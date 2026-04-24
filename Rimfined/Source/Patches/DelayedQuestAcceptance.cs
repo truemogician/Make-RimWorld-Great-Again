@@ -33,9 +33,9 @@ internal static class DelayedQuestAcceptancePatches {
 
 	private static readonly Color _scheduledChoiceOutlineColor = new(0.43f, 0.65f, 0.95f);
 
-	private static readonly Color _cancelIconColor = new(1f, 0.84f, 0.84f);
+	private static readonly Texture2D _cancelScheduleIcon = ContentFinder<Texture2D>.Get("UI/Buttons/CancelQuestAcceptanceSchedule");
 
-	private static readonly Color _acceptNowIconColor = new(0.84f, 1f, 0.84f);
+	private static readonly Texture2D _acceptNowIcon = ContentFinder<Texture2D>.Get("UI/Buttons/AcceptQuestNow");
 
 	private static readonly Texture2D _charityQuestIcon = ContentFinder<Texture2D>.Get("UI/Icons/CharityQuestIcon");
 
@@ -186,17 +186,11 @@ internal static class DelayedQuestAcceptancePatches {
 		if (!Manager.TryGetSchedule(quest, out var schedule))
 			return;
 		GetScheduledActionRects(innerRect, out var cancelRect, out var acceptNowRect);
-		if (Widgets.ButtonImage(cancelRect, TexButton.Suspend, _cancelIconColor, true, Translate("Buttons.Cancel"))) {
+		if (Widgets.ButtonImage(cancelRect, _cancelScheduleIcon, true, Translate("Buttons.Cancel"))) {
 			if (Manager.CancelSchedule(quest))
 				Messages.Message(Translate("Messages.ScheduledCanceled"), MessageTypeDefOf.TaskCompletion, false);
 		}
-		if (Widgets.ButtonImage(
-			acceptNowRect,
-			TexButton.Play,
-			_acceptNowIconColor,
-			true,
-			Translate("Buttons.AcceptNow")
-		))
+		if (Widgets.ButtonImage(acceptNowRect, _acceptNowIcon, true, Translate("Buttons.AcceptNow")))
 			AcceptNow(__instance, quest, schedule.ChoiceIndex >= 0 ? schedule.ChoiceIndex : null);
 	}
 
