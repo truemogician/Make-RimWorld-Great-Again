@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 	<AnimalHaulExtended.Settings>
+		<Preset>
+			<Label>Animal hauling preset</Label>
+			<Description>Choose which hauling-related jobs trained animals may perform before they fall back to vanilla haul-to-storage behavior.</Description>
+		</Preset>
+		<PresetMode>
+			<RequireHaulCapability>
+				<Label>All jobs requiring hauling capability</Label>
+				<Description>Use the curated hauling-capability list. This keeps hauling-style work enabled while excluding hauling work types that are really bill or stripping jobs.</Description>
+			</RequireHaulCapability>
+			<HaulingWorkType>
+				<Label>All jobs under hauling work type</Label>
+				<Description>Enable every work giver in RimWorld's hauling work type, including edge cases such as hauling-category bill work.</Description>
+			</HaulingWorkType>
+			<Custom>
+				<Label>Custom</Label>
+				<Description>Enable or disable each curated hauling-capability job individually.</Description>
+			</Custom>
+		</PresetMode>
+		<CustomList>
+			<Label>Job switches</Label>
+			<Description>These switches reflect the currently selected preset. Changing any switch will turn the preset into Custom.</Description>
+			<ResetLabel>Reset custom switches</ResetLabel>
+		</CustomList>
 	</AnimalHaulExtended.Settings>
 </LanguageData>
