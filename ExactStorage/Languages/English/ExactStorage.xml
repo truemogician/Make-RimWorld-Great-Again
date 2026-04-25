@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<ExactStorage>
+		<UI>
+			<Min>Min</Min>
+			<Max>Max</Max>
+			<Toggle>Exact Storage</Toggle>
+			<ToggleTip>Enable Exact Storage controls for this storage.</ToggleTip>
+			<UseStockUnits>Use stock units</UseStockUnits>
+			<UseStockUnitsTip>Show quota values as storage stock instead of raw item counts. Category quotas with mixed stack sizes are only editable in stock units.</UseStockUnitsTip>
+			<SeparateLinkedStorages>Separate linked storages</SeparateLinkedStorages>
+			<SeparateLinkedStoragesTip>Apply this linked profile separately to each identical linked storage building.</SeparateLinkedStoragesTip>
+			<MinTip>Desired minimum stock. Haulers prioritize storage below this amount.</MinTip>
+			<MaxTip>Maximum stock. Haulers stop filling this storage at this amount and move excess elsewhere.</MaxTip>
+			<InvalidRangeTip>Minimum is greater than maximum. This row is saved but ignored until the range is valid.</InvalidRangeTip>
+			<Summary>{0} minimum / {1} maximum / {2} stock capacity</Summary>
+			<SummaryNoMax>{0} minimum / no maximum / {1} stock capacity</SummaryNoMax>
+			<SummaryUnknownCapacity>{0} minimum / {1} maximum / unknown stock capacity</SummaryUnknownCapacity>
+			<SummaryWarning>Configured minimums exceed the estimated stock capacity.</SummaryWarning>
+			<SummaryUnknownCapacityWarning>Exact Storage cannot estimate this storage's stock capacity. Vanilla storage checks still apply.</SummaryUnknownCapacityWarning>
+		</UI>
+	</ExactStorage>
+</LanguageData>
