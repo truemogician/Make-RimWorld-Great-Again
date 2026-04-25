@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using HarmonyLib;
 using RimWorld;
 using Verse;
@@ -7,7 +6,7 @@ using Verse.AI;
 
 namespace TrueMogician.RimWorld.AnimalHaulExtended;
 
-public static class AnimalHaulExtension {
+public static class MainPatch {
 	internal static TrainableDef HaulDef => field ??= DefDatabase<TrainableDef>.GetNamed("Haul");
 
 	[HarmonyPatch(
@@ -24,9 +23,9 @@ public static class AnimalHaulExtension {
 		JobDef jobForReservation,
 		ref bool __result
 	) {
-		if (!IsTrainedPlayerHauler(pawn) || workType != WorkTypeDefOf.Hauling)
+		if (workType != WorkTypeDefOf.Hauling || !IsTrainedPlayerHauler(pawn))
 			return true;
-		__result = GenConstruct.CanConstruct(t, pawn, workType == WorkTypeDefOf.Construction, forced, jobForReservation);
+		__result = GenConstruct.CanConstruct(t, pawn, false, forced, jobForReservation);
 		return false;
 	}
 
@@ -64,97 +63,16 @@ public static class AnimalHaulExtension {
 		return !pawn.RaceProps.IsMechanoid || giver.def.canBeDoneByMechs;
 	}
 
-	private static Thing? FindBestThingTarget(Pawn pawn, WorkGiver_Scanner scanner) {
-		IEnumerable<Thing>? globalThings = scanner.PotentialWorkThingsGlobal(pawn);
-		if (scanner.Prioritized) {
-			var searchSet = globalThings ?? pawn.Map.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest);
-			return scanner.AllowUnreachable
-				? GenClosest.ClosestThing_Global(pawn.Position, searchSet, 99999f, Validator, thing => scanner.GetPriority(pawn, thing))
-				: GenClosest.ClosestThing_Global_Reachable(
-					pawn.Position,
-					pawn.Map,
-					searchSet,
-					scanner.PathEndMode,
-					TraverseParms.For(pawn, scanner.MaxPathDanger(pawn)),
-					9999f,
-					Validator,
-					thing => scanner.GetPriority(pawn, thing)
-				);
-		}
-
-		if (scanner.AllowUnreachable) {
-			var searchSet = globalThings ?? pawn.Map.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest);
-			return GenClosest.ClosestThing_Global(pawn.Position, searchSet, 99999f, Validator);
-		}
-
-		return GenClosest.ClosestThingReachable(
-			pawn.Position,
-			pawn.Map,
-			scanner.PotentialWorkThingRequest,
-			scanner.PathEndMode,
-			TraverseParms.For(pawn, scanner.MaxPathDanger(pawn)),
-			9999f,
-			Validator,
-			globalThings,
-			0,
-			scanner.MaxRegionsToScanBeforeGlobalSearch,
-			globalThings != null
-		);
-
-		bool Validator(Thing t) => !t.IsForbidden(pawn) && scanner.HasJobOnThing(pawn, t);
-	}
-
-	private static bool TryFindBestCellTarget(Pawn pawn, WorkGiver_Scanner scanner, out IntVec3 bestCell) {
-		bestCell = IntVec3.Invalid;
-		var closestDistSquared = 99999f;
-		var bestPriority = float.MinValue;
-		bool prioritized = scanner.Prioritized;
-		bool allowUnreachable = scanner.AllowUnreachable;
-		var maxPathDanger = scanner.MaxPathDanger(pawn);
-
-		foreach (var cell in scanner.PotentialWorkCellsGlobal(pawn)) {
-			var isCandidate = false;
-			float distSquared = (cell - pawn.Position).LengthHorizontalSquared;
-			var cellPriority = 0f;
-
-			if (prioritized) {
-				if (!cell.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, cell)) {
-					if (!allowUnreachable && !pawn.CanReach(cell, scanner.PathEndMode, maxPathDanger))
-						continue;
-					cellPriority = scanner.GetPriority(pawn, cell);
-					if (cellPriority > bestPriority || (Math.Abs(cellPriority - bestPriority) < 0.001f && distSquared < closestDistSquared))
-						isCandidate = true;
-				}
-			}
-			else if (distSquared < closestDistSquared && !cell.IsForbidden(pawn) && scanner.HasJobOnCell(pawn, cell)) {
-				if (!allowUnreachable && !pawn.CanReach(cell, scanner.PathEndMode, maxPathDanger))
-					continue;
-				isCandidate = true;
-			}
-
-			if (!isCandidate)
-				continue;
-
-			bestCell = cell;
-			closestDistSquared = distSquared;
-			bestPriority = cellPriority;
-		}
-
-		return bestCell.IsValid;
-	}
-
 	private static bool TryGiveExtendedHaulJob(Pawn pawn, out Job? job) {
 		job = null;
 		int priorityInType = -999;
-		var bestTarget = TargetInfo.Invalid;
-		WorkGiver_Scanner? scannerWhoProvidedTarget = null;
+		ScanState state = default;
 
 		foreach (var workGiver in Settings.Default.EnabledWorkGivers) {
-			if (workGiver.def.priorityInType != priorityInType && bestTarget.IsValid)
+			if (workGiver.def.priorityInType != priorityInType && state.HasTarget)
 				break;
 			if (!PawnCanUseWorkGiver(pawn, workGiver))
 				continue;
-
 			try {
 				if (workGiver.NonScanJob(pawn) is { } nonScanJob) {
 					nonScanJob.workGiverDef = workGiver.def;
@@ -163,38 +81,130 @@ public static class AnimalHaulExtension {
 				}
 
 				if (workGiver is WorkGiver_Scanner scanner) {
-					if (scanner.def.scanThings && FindBestThingTarget(pawn, scanner) is { } thingTarget) {
-						bestTarget = thingTarget;
-						scannerWhoProvidedTarget = scanner;
-					}
-
-					if (scanner.def.scanCells && TryFindBestCellTarget(pawn, scanner, out var cellTarget)) {
-						bestTarget = new TargetInfo(cellTarget, pawn.Map);
-						scannerWhoProvidedTarget = scanner;
-					}
+					if (scanner.def.scanThings)
+						ScanThings(pawn, scanner, ref state);
+					if (scanner.def.scanCells)
+						ScanCells(pawn, scanner, ref state);
 				}
 			}
 			catch (Exception ex) {
 				Helper.Logger.Error($"{pawn} threw exception in WorkGiver {workGiver.def.defName}: {ex}");
 			}
-
-			if (bestTarget.IsValid && scannerWhoProvidedTarget != null) {
-				job = bestTarget.HasThing
-					? scannerWhoProvidedTarget.JobOnThing(pawn, bestTarget.Thing)
-					: scannerWhoProvidedTarget.JobOnCell(pawn, bestTarget.Cell);
+			if (state.HasTarget) {
+				job = state.Target.HasThing
+					? state.Scanner!.JobOnThing(pawn, state.Target.Thing)
+					: state.Scanner!.JobOnCell(pawn, state.Target.Cell);
 				if (job != null) {
-					job.workGiverDef = scannerWhoProvidedTarget.def;
+					job.workGiverDef = state.Scanner.def;
 					return true;
 				}
 				Helper.Logger.Error(
-					$"{scannerWhoProvidedTarget} provided target {bestTarget} but yielded no actual job for pawn {pawn}. The CanGiveJob and JobOnX methods may not be synchronized.",
+					$"{state.Scanner} provided target {state.Target} but yielded no actual job for pawn {pawn}. The CanGiveJob and JobOnX methods may not be synchronized.",
 					true
 				);
 			}
-
 			priorityInType = workGiver.def.priorityInType;
 		}
 
 		return false;
+	}
+
+	private static void ScanThings(Pawn pawn, WorkGiver_Scanner scanner, ref ScanState state) {
+		var globalThings = scanner.PotentialWorkThingsGlobal(pawn);
+
+		Thing? thing;
+		if (scanner.Prioritized) {
+			var searchSet = globalThings ?? pawn.Map.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest);
+			thing = scanner.AllowUnreachable
+				? GenClosest.ClosestThing_Global(pawn.Position, searchSet, 99999f, Validator, t => scanner.GetPriority(pawn, t))
+				: GenClosest.ClosestThing_Global_Reachable(
+					pawn.Position,
+					pawn.Map,
+					searchSet,
+					scanner.PathEndMode,
+					TraverseParms.For(pawn, scanner.MaxPathDanger(pawn)),
+					9999f,
+					Validator,
+					t => scanner.GetPriority(pawn, t)
+				);
+		}
+		else if (scanner.AllowUnreachable) {
+			var searchSet = globalThings ?? pawn.Map.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest);
+			thing = GenClosest.ClosestThing_Global(pawn.Position, searchSet, 99999f, Validator);
+		}
+		else {
+			thing = GenClosest.ClosestThingReachable(
+				pawn.Position,
+				pawn.Map,
+				scanner.PotentialWorkThingRequest,
+				scanner.PathEndMode,
+				TraverseParms.For(pawn, scanner.MaxPathDanger(pawn)),
+				9999f,
+				Validator,
+				globalThings,
+				0,
+				scanner.MaxRegionsToScanBeforeGlobalSearch,
+				globalThings != null
+			);
+		}
+
+		if (thing == null)
+			return;
+		state.Target = thing;
+		state.Scanner = scanner;
+		state.ClosestDistSquared = (thing.Position - pawn.Position).LengthHorizontalSquared;
+		state.BestPriority = scanner.Prioritized ? scanner.GetPriority(pawn, thing) : float.MinValue;
+		return;
+
+		bool Validator(Thing t) => !t.IsForbidden(pawn) && scanner.HasJobOnThing(pawn, t);
+	}
+
+	private static void ScanCells(Pawn pawn, WorkGiver_Scanner scanner, ref ScanState state) {
+		bool prioritized = scanner.Prioritized;
+		bool allowUnreachable = scanner.AllowUnreachable;
+		var maxPathDanger = scanner.MaxPathDanger(pawn);
+
+		foreach (var cell in scanner.PotentialWorkCellsGlobal(pawn)) {
+			float distSquared = (cell - pawn.Position).LengthHorizontalSquared;
+			var cellPriority = 0f;
+			bool isCandidate;
+			if (prioritized) {
+				if (cell.IsForbidden(pawn) || !scanner.HasJobOnCell(pawn, cell))
+					continue;
+				if (!allowUnreachable && !pawn.CanReach(cell, scanner.PathEndMode, maxPathDanger))
+					continue;
+				cellPriority = scanner.GetPriority(pawn, cell);
+				// fuzzy compare to avoid float-equality flicker between ties
+				isCandidate = cellPriority > state.BestPriority
+					|| (Math.Abs(cellPriority - state.BestPriority) < 0.001f && distSquared < state.ClosestDistSquared);
+			}
+			else {
+				if (distSquared >= state.ClosestDistSquared)
+					continue;
+				if (cell.IsForbidden(pawn) || !scanner.HasJobOnCell(pawn, cell))
+					continue;
+				if (!allowUnreachable && !pawn.CanReach(cell, scanner.PathEndMode, maxPathDanger))
+					continue;
+				isCandidate = true;
+			}
+			if (!isCandidate)
+				continue;
+			state.Target = new TargetInfo(cell, pawn.Map);
+			state.Scanner = scanner;
+			state.ClosestDistSquared = distSquared;
+			state.BestPriority = cellPriority;
+		}
+	}
+
+	private struct ScanState() {
+		public TargetInfo Target = TargetInfo.Invalid;
+
+		public WorkGiver_Scanner? Scanner = null;
+
+		public float ClosestDistSquared = 99999f;
+
+		public float BestPriority = float.MinValue;
+
+		public readonly bool HasTarget => Target.IsValid && Scanner != null;
 	}
 }

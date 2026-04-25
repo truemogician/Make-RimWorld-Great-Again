@@ -12,9 +12,9 @@ internal static class HaulWorkGiverCatalog {
 	public static bool IsHaulCapabilityWorkGiver(WorkGiverDef def) {
 		if (def.workType != WorkTypeDefOf.Hauling)
 			return false;
-		if (def.giverClass == typeof(WorkGiver_DoBill))
+		if (typeof(WorkGiver_DoBill).IsAssignableFrom(def.giverClass))
 			return false;
-		return def.giverClass != typeof(WorkGiver_Strip);
+		return !typeof(WorkGiver_Strip).IsAssignableFrom(def.giverClass);
 	}
 
 	private static IReadOnlyList<WorkGiverDef> BuildAllHaulingWorkGivers() {

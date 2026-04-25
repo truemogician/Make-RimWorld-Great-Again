@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using RimWorld;
+using TrueMogician.RimWorld.Utility.Extensions;
+using TrueMogician.RimWorld.Utility.GUI;
 using UnityEngine;
+using UnityEngine.UIElements;
 using Verse;
 
 namespace TrueMogician.RimWorld.AnimalHaulExtended;
@@ -16,6 +19,18 @@ public enum HaulJobPreset : byte {
 
 public sealed class Settings : ModSettings {
 	private const string _TRANSLATION_PREFIX = "AnimalHaulExtended.Settings";
+
+	private const float _PRESET_SECTION_HEIGHT = 190f;
+
+	private const float _SECTION_GAP = 12f;
+
+	private const float _SECTION_PADDING = 8f;
+
+	private const float _CUSTOM_HEADER_HEIGHT = 30f;
+
+	private const float _CUSTOM_HEADER_GAP = 6f;
+
+	private const float _CUSTOM_ROW_HEIGHT = 28f;
 
 	private readonly Harmony _harmony = new(ThisAssembly.Project.PackageId);
 
@@ -36,7 +51,7 @@ public sealed class Settings : ModSettings {
 	public void Apply() {
 		if (_patched)
 			return;
-		_harmony.CreateClassProcessor(typeof(AnimalHaulExtension)).Patch();
+		_harmony.CreateClassProcessor(typeof(MainPatch)).Patch();
 		_patched = true;
 	}
 
@@ -45,19 +60,28 @@ public sealed class Settings : ModSettings {
 		Scribe_Values.Look(ref _preset, "preset", HaulJobPreset.RequireHaulCapability);
 		Scribe_Collections.Look(ref _disabledCustomWorkGivers, "disabledCustomWorkGivers", LookMode.Value);
 		_disabledCustomWorkGivers ??= [];
-		InvalidateCaches();
+		if (Scribe.mode == LoadSaveMode.LoadingVars)
+			InvalidateCaches();
 	}
 
 	public void DrawContents(Rect inRect) {
-		Rect presetRect = new(inRect.x, inRect.y, inRect.width, 190f);
-		Rect customRect = new(inRect.x, presetRect.yMax + 12f, inRect.width, Mathf.Max(0f, inRect.height - presetRect.height - 12f));
-
-		DrawPresetSection(presetRect);
-		if (customRect.height > 0f)
-			DrawCustomSection(customRect);
+		var rects = inRect
+			.ToFlexbox(FlexDirection.Column, [_PRESET_SECTION_HEIGHT, Flexbox.Length.Auto], _SECTION_GAP)
+			.ToArray();
+		DrawPresetSection(rects[0]);
+		if (rects[1].height > 0f)
+			DrawCustomSection(rects[1]);
 	}
 
 	internal bool IsWorkGiverEnabled(WorkGiverDef def) => IsWorkGiverEnabled(def, _preset);
+
+	private static string Translate(string suffix)
+		=> $"{_TRANSLATION_PREFIX}.{suffix}".Translate();
+
+	private static string? TranslateOrNull(string suffix) {
+		var key = $"{_TRANSLATION_PREFIX}.{suffix}";
+		return key.TryTranslate(out var translated) ? translated.Resolve() : null;
+	}
 
 	private IReadOnlyList<WorkGiver> BuildEnabledWorkGivers()
 		=> GetEnabledWorkGiverDefs()
@@ -67,32 +91,36 @@ public sealed class Settings : ModSettings {
 
 	private void DrawCustomSection(Rect rect) {
 		Widgets.DrawMenuSection(rect);
-		var innerRect = rect.ContractedBy(8f);
-		Rect headerRect = new(innerRect.x, innerRect.y, innerRect.width, 30f);
-		float buttonWidth = Mathf.Min(innerRect.width * 0.45f, Mathf.Max(190f, Text.CalcSize(Translate("CustomList.ResetLabel")).x + 28f));
-		Rect buttonRect = new(headerRect.xMax - buttonWidth, headerRect.y, buttonWidth, headerRect.height);
-		Rect labelRect = new(headerRect.x, headerRect.y, headerRect.width - buttonRect.width - 8f, headerRect.height);
+		var inner = rect.Padding(_SECTION_PADDING);
+		var rows = inner.ToFlexbox(FlexDirection.Column, [_CUSTOM_HEADER_HEIGHT, Flexbox.Length.Auto], _CUSTOM_HEADER_GAP).ToArray();
+		DrawCustomHeader(rows[0]);
+		DrawCustomList(rows[1]);
+	}
 
-		Widgets.Label(labelRect, Translate("CustomList.Label"));
-		TooltipHandler.TipRegion(labelRect, Translate("CustomList.Description"));
-		if (Widgets.ButtonText(buttonRect, Translate("CustomList.ResetLabel")))
+	private void DrawCustomHeader(Rect headerRect) {
+		string resetLabel = Translate("CustomList.ResetLabel");
+		float buttonWidth = Mathf.Min(headerRect.width * 0.45f, Mathf.Max(190f, Text.CalcSize(resetLabel).x + 28f));
+		var cells = headerRect.ToFlexbox([Flexbox.Length.Auto, buttonWidth], _SECTION_PADDING).ToArray();
+
+		Widgets.Label(cells[0], Translate("CustomList.Label"));
+		TooltipHandler.TipRegion(cells[0], Translate("CustomList.Description"));
+		if (Widgets.ButtonText(cells[1], resetLabel))
 			ResetCustomWorkGivers();
+	}
 
-		Rect outRect = new(innerRect.x, headerRect.yMax + 6f, innerRect.width, innerRect.height - headerRect.height - 6f);
-		const float rowHeight = 28f;
-		Rect viewRect = new(0f, 0f, outRect.width - 16f, HaulWorkGiverCatalog.AllHaulingWorkGivers.Count * rowHeight);
+	private void DrawCustomList(Rect outRect) {
+		Rect viewRect = new(0f, 0f, outRect.width - 16f, HaulWorkGiverCatalog.AllHaulingWorkGivers.Count * _CUSTOM_ROW_HEIGHT);
 
 		Widgets.BeginScrollView(outRect, ref _customScrollPosition, viewRect);
 		var y = 0f;
 		foreach (var def in HaulWorkGiverCatalog.AllHaulingWorkGivers) {
-			Rect rowRect = new(0f, y, viewRect.width, 24f);
+			Rect rowRect = new(0f, y, viewRect.width, _CUSTOM_ROW_HEIGHT - 4f);
 			bool enabled = IsWorkGiverEnabled(def);
-			var label = def.LabelCap;
 			TooltipHandler.TipRegion(rowRect, def.LabelCap);
-			Widgets.CheckboxLabeled(rowRect, label, ref enabled);
+			Widgets.CheckboxLabeled(rowRect, def.LabelCap, ref enabled);
 			if (enabled != IsWorkGiverEnabled(def))
 				ToggleWorkGiver(def, enabled);
-			y += rowHeight;
+			y += _CUSTOM_ROW_HEIGHT;
 		}
 		Widgets.EndScrollView();
 	}
@@ -100,20 +128,20 @@ public sealed class Settings : ModSettings {
 	private void DrawPresetSection(Rect rect) {
 		Widgets.DrawMenuSection(rect);
 		var listing = new Listing_Standard();
-		listing.Begin(rect.ContractedBy(8f));
+		listing.Begin(rect.Padding(_SECTION_PADDING));
 		listing.Label(Translate("Preset.Label"));
 		if (TranslateOrNull("Preset.Description") is { } description)
 			listing.Label(description);
-		listing.Gap(6f);
+		listing.Gap(_CUSTOM_HEADER_GAP);
 
-		DrawPresetOption(ref listing, HaulJobPreset.RequireHaulCapability, "PresetMode.RequireHaulCapability");
-		DrawPresetOption(ref listing, HaulJobPreset.HaulingWorkType, "PresetMode.HaulingWorkType");
-		DrawPresetOption(ref listing, HaulJobPreset.Custom, "PresetMode.Custom");
+		DrawPresetOption(listing, HaulJobPreset.RequireHaulCapability, "PresetMode.RequireHaulCapability");
+		DrawPresetOption(listing, HaulJobPreset.HaulingWorkType, "PresetMode.HaulingWorkType");
+		DrawPresetOption(listing, HaulJobPreset.Custom, "PresetMode.Custom");
 
 		listing.End();
 	}
 
-	private void DrawPresetOption(ref Listing_Standard listing, HaulJobPreset preset, string keySuffix) {
+	private void DrawPresetOption(Listing_Standard listing, HaulJobPreset preset, string keySuffix) {
 		if (listing.RadioButton(Translate($"{keySuffix}.Label"), _preset == preset, tooltip: TranslateOrNull($"{keySuffix}.Description")))
 			SetPreset(preset);
 	}
@@ -159,7 +187,7 @@ public sealed class Settings : ModSettings {
 		if (_preset == HaulJobPreset.Custom)
 			return;
 
-		HaulJobPreset previousPreset = _preset;
+		var previousPreset = _preset;
 		_disabledCustomWorkGivers = HaulWorkGiverCatalog.AllHaulingWorkGivers
 			.Where(def => !IsWorkGiverEnabled(def, previousPreset))
 			.Select(def => def.defName)
@@ -174,13 +202,5 @@ public sealed class Settings : ModSettings {
 			return;
 		_preset = preset;
 		InvalidateCaches();
-	}
-
-	private static string Translate(string suffix)
-		=> $"{_TRANSLATION_PREFIX}.{suffix}".Translate();
-
-	private static string? TranslateOrNull(string suffix) {
-		var key = $"{_TRANSLATION_PREFIX}.{suffix}";
-		return key.TryTranslate(out var translated) ? translated.Resolve() : null;
 	}
 }
