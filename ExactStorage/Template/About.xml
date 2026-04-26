@@ -22,5 +22,6 @@
 		<li>PureMJ.MjRimMods.StorageRefillHysteresis</li>
 		<li>Mlie.FlickableStorage</li>
 		<li>savestoragesettings.kv.rw.fishtmp</li>
+		<li>Mehni.PickUpAndHaul</li>
 	</loadAfter>
 </ModMetaData>
