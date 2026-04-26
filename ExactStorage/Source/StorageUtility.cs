@@ -9,6 +9,10 @@ namespace TrueMogician.RimWorld.ExactStorage;
 public static class StorageUtility {
 	public const int NO_LIMIT = int.MaxValue;
 
+	private static readonly List<EnrouteStockProvider> _enrouteStockProviders = [];
+
+	public delegate decimal EnrouteStockProvider(StorageSettings settings, Quota quota, ISlotGroupParent? parent, Map map, Pawn pawn, Job job);
+
 	private enum CellSearchMode {
 		PreferMinimum,
 		AnyAllowed
@@ -40,7 +44,7 @@ public static class StorageUtility {
 	}
 
 	public static IEnumerable<Thing> HeldThings(StorageSettings? settings, ISlotGroupParent? parent = null) {
-		if (parent is not null && parent.GetSlotGroup() is { } scopedGroup) {
+		if (parent?.GetSlotGroup() is { } scopedGroup) {
 			foreach (var thing in scopedGroup.HeldThings)
 				yield return thing;
 			yield break;
@@ -65,10 +69,21 @@ public static class StorageUtility {
 		=> Allows(settings, thing, currentlyStored, parent, null);
 
 	public static bool ShouldPreferForMinimum(StorageSettings settings, Thing thing, IntVec3? storeCell = null, Map? map = null)
-		=> ShouldPreferForMinimum(settings, thing, storeCell, map, null);
+		=> ShouldPreferForMinimum(settings, thing, storeCell, map, (Job?)null);
+
+	public static bool ShouldPreferForMinimum(StorageSettings settings, Thing thing, IntVec3? storeCell, Map? map, Job? ignoredJob)
+		=> ShouldPreferForMinimum(settings, thing, storeCell, map, new StorageEvaluationCache(ignoredJob));
 
 	public static int DestinationCountLimit(StorageSettings settings, Thing thing, bool preferMinimum, IntVec3 storeCell, Map map)
-		=> DestinationCountLimit(settings, thing, preferMinimum, storeCell, map, null);
+		=> DestinationCountLimit(settings, thing, preferMinimum, storeCell, map, (Job?)null);
+
+	public static int DestinationCountLimit(StorageSettings settings, Thing thing, bool preferMinimum, IntVec3 storeCell, Map map, Job? ignoredJob)
+		=> DestinationCountLimit(settings, thing, preferMinimum, storeCell, map, new StorageEvaluationCache(ignoredJob));
+
+	public static void AddEnrouteStockProvider(EnrouteStockProvider provider) {
+		if (!_enrouteStockProviders.Contains(provider))
+			_enrouteStockProviders.Add(provider);
+	}
 
 	public static int SourceExcessLimit(Thing thing) => SourceExcessLimit(thing, null);
 
@@ -91,7 +106,6 @@ public static class StorageUtility {
 	internal static bool Contains(StorageSettings? settings, Thing thing, StorageEvaluationCache? evaluation) {
 		if (evaluation is not null)
 			return evaluation.Contains(settings, thing);
-
 		var parent = ParentForStoredThing(settings, thing);
 		foreach (var heldThing in HeldThings(settings, parent)) {
 			if (heldThing == thing)
@@ -113,11 +127,9 @@ public static class StorageUtility {
 			parent = ParentForStoredThing(settings, thing);
 		if (UseSeparateLinkedStorage(settings) && parent is null && !currentlyStored)
 			return true;
-
 		var quotas = evaluation?.MatchingQuotas(profile, thing) ?? profile.MatchingQuotas(thing);
 		if (quotas.Count == 0)
 			return true;
-
 		foreach (var quota in quotas) {
 			if (quota.HasMax && profile.CountFor(quota, parent, evaluation) > quota.MaxStock)
 				return false;
@@ -148,7 +160,7 @@ public static class StorageUtility {
 			return false;
 		var underMin = false;
 		foreach (var quota in quotas) {
-			var count = profile.CountFor(quota, parent, evaluation) + EnrouteStockFor(settings, quota, parent, evaluation);
+			decimal count = profile.CountFor(quota, parent, evaluation) + EnrouteStockFor(settings, quota, parent, evaluation);
 			if (quota.HasMax && count >= quota.MaxStock)
 				return false;
 			if (quota.HasMin && count < quota.MinStock)
@@ -171,15 +183,14 @@ public static class StorageUtility {
 		var quotas = evaluation?.MatchingQuotas(profile, thing) ?? profile.MatchingQuotas(thing);
 		if (quotas.Count == 0)
 			return NO_LIMIT;
-
 		var thingDef = InnerDefOf(thing);
-		var limit = NO_LIMIT;
+		int limit = NO_LIMIT;
 		if (preferMinimum) {
 			foreach (var quota in quotas) {
 				if (!quota.HasMin)
 					continue;
-				var count = profile.CountFor(quota, parent, evaluation) + EnrouteStockFor(settings, quota, parent, evaluation);
-				var remaining = quota.MinStock - count;
+				decimal count = profile.CountFor(quota, parent, evaluation) + EnrouteStockFor(settings, quota, parent, evaluation);
+				decimal remaining = quota.MinStock - count;
 				if (remaining > 0m)
 					limit = Math.Min(limit, AmountUtility.StockToRawCeiling(remaining, thingDef));
 			}
@@ -187,7 +198,7 @@ public static class StorageUtility {
 		foreach (var quota in quotas) {
 			if (!quota.HasMax)
 				continue;
-			var count = profile.CountFor(quota, parent, evaluation) + EnrouteStockFor(settings, quota, parent, evaluation);
+			decimal count = profile.CountFor(quota, parent, evaluation) + EnrouteStockFor(settings, quota, parent, evaluation);
 			limit = Math.Min(limit, AmountUtility.StockToRawFloor(quota.MaxStock - count, thingDef));
 		}
 		return Math.Max(0, limit);
@@ -204,11 +215,11 @@ public static class StorageUtility {
 		var parent = ParentForStoredThing(settings, thing);
 		var quotas = evaluation?.MatchingQuotas(profile, thing) ?? profile.MatchingQuotas(thing);
 		var thingDef = InnerDefOf(thing);
-		var limit = NO_LIMIT;
+		int limit = NO_LIMIT;
 		foreach (var quota in quotas) {
 			if (!quota.HasMax)
 				continue;
-			var excess = profile.CountFor(quota, parent, evaluation) - quota.MaxStock;
+			decimal excess = profile.CountFor(quota, parent, evaluation) - quota.MaxStock;
 			if (excess > 0m)
 				limit = Math.Min(limit, AmountUtility.StockToRawCeiling(excess, thingDef));
 		}
@@ -241,8 +252,8 @@ public static class StorageUtility {
 		var slotGroup = cell.GetSlotGroup(map);
 		if (slotGroup is null || !slotGroup.parent.Accepts(thing))
 			return false;
-		var limit = DestinationCountLimit(slotGroup.Settings, thing, false, cell, map, evaluation);
-		return limit == NO_LIMIT || limit > 0;
+		int limit = DestinationCountLimit(slotGroup.Settings, thing, false, cell, map, evaluation);
+		return limit is NO_LIMIT or > 0;
 	}
 
 	internal static ISlotGroupParent? ParentForStoredThing(StorageSettings? settings, Thing thing) {
@@ -282,6 +293,30 @@ public static class StorageUtility {
 
 	internal static ThingDef InnerDefOf(Thing thing) => (thing.GetInnerIfMinified() ?? thing).def;
 
+	internal static decimal ModEnrouteStockFor(StorageSettings settings, Quota quota, ISlotGroupParent? parent, Job? ignoredJob) {
+		var map = MapFor(settings, parent);
+		if (map is null)
+			return 0m;
+		var count = 0m;
+		var countedJobs = new HashSet<Job>();
+		foreach (var pawn in map.mapPawns.AllPawnsSpawned) {
+			if (pawn.jobs is null)
+				continue;
+			foreach (var job in pawn.jobs.AllJobs()) {
+				if (job is null || job == ignoredJob || !countedJobs.Add(job))
+					continue;
+				count += ModEnrouteStockForJob(settings, quota, parent, map, pawn, job);
+			}
+		}
+		foreach (var reservation in map.reservationManager.ReservationsReadOnly) {
+			var job = reservation.Job;
+			if (job is null || job == ignoredJob || !countedJobs.Add(job))
+				continue;
+			count += ModEnrouteStockForJob(settings, quota, parent, map, reservation.Claimant, job);
+		}
+		return count;
+	}
+
 	private static bool TryFindCell(
 		Thing thing,
 		Pawn carrier,
@@ -306,14 +341,13 @@ public static class StorageUtility {
 				break;
 			if (!ShouldConsiderGroup(group, faction))
 				continue;
-			var fixedSlotGroup = group;
 			foreach (var candidate in group.CellsList) {
-				var slotGroup = fixedSlotGroup ?? candidate.GetSlotGroup(map);
+				var slotGroup = group ?? candidate.GetSlotGroup(map);
 				if (slotGroup is null || !slotGroup.parent.Accepts(thing))
 					continue;
 				if (!CandidateAllowed(group.Settings, slotGroup.parent, thing, candidate, map, mode, evaluation))
 					continue;
-				var dist = (start - candidate).LengthHorizontalSquared;
+				int dist = (start - candidate).LengthHorizontalSquared;
 				if (dist > closestDist || !StoreUtility.IsGoodStoreCell(candidate, map, thing, carrier, faction))
 					continue;
 				cell = candidate;
@@ -351,8 +385,8 @@ public static class StorageUtility {
 	) {
 		if (!parent.Accepts(thing))
 			return false;
-		var limit = DestinationCountLimit(settings, thing, false, cell, map, evaluation);
-		return limit == NO_LIMIT || limit > 0;
+		int limit = DestinationCountLimit(settings, thing, false, cell, map, evaluation);
+		return limit is NO_LIMIT or > 0;
 	}
 
 	private static bool ShouldConsiderGroup(ISlotGroup? group, Faction faction) {
@@ -386,7 +420,7 @@ public static class StorageUtility {
 			case StorageGroup group:
 				map = group.Map;
 				return group.CellsList;
-			case ISlotGroupParent settingsParent when settingsParent is IHaulDestination dest:
+			case ISlotGroupParent settingsParent and IHaulDestination dest:
 				map = dest.Map;
 				return settingsParent.AllSlotCells();
 			default:
@@ -403,7 +437,6 @@ public static class StorageUtility {
 	) {
 		if (evaluation is not null)
 			return evaluation.EnrouteStockFor(settings, quota, parent);
-
 		var map = MapFor(settings, parent);
 		if (map is null)
 			return 0m;
@@ -435,21 +468,39 @@ public static class StorageUtility {
 		Pawn pawn,
 		Job job
 	) {
-		if (job.def != JobDefOf.HaulToCell || job.haulMode != HaulMode.ToCellStorage)
-			return 0m;
-		if (!JobTargetsScope(settings, parent, map, job))
-			return 0m;
+		if (job.def != JobDefOf.HaulToCell || job.haulMode != HaulMode.ToCellStorage || !JobTargetsScope(settings, parent, map, job))
+			return ModEnrouteStockForJob(settings, quota, parent, map, pawn, job);
 		var thing = job.GetTarget(TargetIndex.A).Thing;
 		if (thing is null || !quota.Matches(thing))
-			return 0m;
-		var raw = Math.Max(0, Math.Min(job.count, thing.stackCount));
+			return ModEnrouteStockForJob(settings, quota, parent, map, pawn, job);
+		int raw = Math.Max(0, Math.Min(job.count, thing.stackCount));
 		if (pawn.jobs?.curJob == job && pawn.carryTracker.CarriedThing is { } carried && quota.Matches(carried))
 			raw += carried.stackCount;
-		return AmountUtility.RawToStock(raw, InnerDefOf(thing));
+		return AmountUtility.RawToStock(raw, InnerDefOf(thing)) + ModEnrouteStockForJob(settings, quota, parent, map, pawn, job);
+	}
+
+	private static decimal ModEnrouteStockForJob(
+		StorageSettings settings,
+		Quota quota,
+		ISlotGroupParent? parent,
+		Map map,
+		Pawn pawn,
+		Job job
+	) {
+		var count = 0m;
+		foreach (var provider in _enrouteStockProviders) {
+			try {
+				count += provider(settings, quota, parent, map, pawn, job);
+			}
+			catch (Exception e) {
+				Helper.Logger.Warning($"Enroute stock provider failed: {e.GetType().Name} {e.Message}", true);
+			}
+		}
+		return count;
 	}
 }
 
-internal sealed class StorageEvaluationCache {
+internal sealed class StorageEvaluationCache(Job? ignoredJob = null) {
 	private readonly Dictionary<(Profile Profile, ThingDef ThingDef), List<Quota>> _matchingQuotas = [];
 
 	private readonly Dictionary<(StorageSettings Settings, ISlotGroupParent? Parent), ScopeSnapshot> _scopeSnapshots = [];
@@ -466,7 +517,6 @@ internal sealed class StorageEvaluationCache {
 	public bool Contains(StorageSettings? settings, Thing thing) {
 		if (settings is null)
 			return false;
-
 		var parent = StorageUtility.ParentForStoredThing(settings, thing);
 		return SnapshotFor(settings, parent).HeldThings.Contains(thing);
 	}
@@ -477,7 +527,6 @@ internal sealed class StorageEvaluationCache {
 		var key = (profile, thingDef);
 		if (_matchingQuotas.TryGetValue(key, out var quotas))
 			return quotas;
-
 		quotas = profile.MatchingQuotas(thingDef);
 		_matchingQuotas.Add(key, quotas);
 		return quotas;
@@ -485,9 +534,8 @@ internal sealed class StorageEvaluationCache {
 
 	public decimal CountFor(StorageSettings settings, Quota quota, ISlotGroupParent? parent) {
 		var key = (settings, parent, quota);
-		if (_heldCounts.TryGetValue(key, out var count))
+		if (_heldCounts.TryGetValue(key, out decimal count))
 			return count;
-
 		count = SnapshotFor(settings, parent).Sum(quota, CountKind.Held);
 		_heldCounts.Add(key, count);
 		return count;
@@ -495,10 +543,9 @@ internal sealed class StorageEvaluationCache {
 
 	public decimal EnrouteStockFor(StorageSettings settings, Quota quota, ISlotGroupParent? parent) {
 		var key = (settings, parent, quota);
-		if (_enrouteCounts.TryGetValue(key, out var count))
+		if (_enrouteCounts.TryGetValue(key, out decimal count))
 			return count;
-
-		count = SnapshotFor(settings, parent).Sum(quota, CountKind.Enroute);
+		count = SnapshotFor(settings, parent).Sum(quota, CountKind.Enroute) + StorageUtility.ModEnrouteStockFor(settings, quota, parent, ignoredJob);
 		_enrouteCounts.Add(key, count);
 		return count;
 	}
@@ -509,17 +556,18 @@ internal sealed class StorageEvaluationCache {
 		ISlotGroupParent? parent,
 		Map map,
 		Pawn pawn,
-		Job job
+		Job job,
+		Job? ignoredJob
 	) {
+		if (job == ignoredJob)
+			return;
 		if (job.def != JobDefOf.HaulToCell || job.haulMode != HaulMode.ToCellStorage)
 			return;
 		if (!StorageUtility.JobTargetsScope(settings, parent, map, job))
 			return;
-
 		var thing = job.GetTarget(TargetIndex.A).Thing;
 		if (thing is null)
 			return;
-
 		snapshot.AddEnroute(StorageUtility.InnerDefOf(thing), Math.Max(0, Math.Min(job.count, thing.stackCount)));
 		if (pawn.jobs?.curJob == job && pawn.carryTracker.CarriedThing is { } carried)
 			snapshot.AddEnroute(StorageUtility.InnerDefOf(carried), carried.stackCount);
@@ -545,14 +593,14 @@ internal sealed class StorageEvaluationCache {
 				foreach (var job in pawn.jobs.AllJobs()) {
 					if (job is null || !countedJobs.Add(job))
 						continue;
-					AddEnroute(snapshot, settings, parent, map, pawn, job);
+					AddEnroute(snapshot, settings, parent, map, pawn, job, ignoredJob);
 				}
 			}
 			foreach (var reservation in map.reservationManager.ReservationsReadOnly) {
 				var job = reservation.Job;
 				if (job is null || !countedJobs.Add(job))
 					continue;
-				AddEnroute(snapshot, settings, parent, map, reservation.Claimant, job);
+				AddEnroute(snapshot, settings, parent, map, reservation.Claimant, job, ignoredJob);
 			}
 		}
 
@@ -575,10 +623,8 @@ internal sealed class StorageEvaluationCache {
 			var source = kind == CountKind.Held ? _heldStockByDef : _enrouteStockByDef;
 			if (quota.ThingDef is { } thingDef)
 				return source.GetValueOrDefault(thingDef);
-
 			if (quota.CategoryDef is not { } categoryDef)
 				return 0m;
-
 			var count = 0m;
 			foreach (var descendant in DefCache.DescendantThingDefsOf(categoryDef))
 				count += source.GetValueOrDefault(descendant);
@@ -588,7 +634,6 @@ internal sealed class StorageEvaluationCache {
 		private static void AddStock(Dictionary<ThingDef, decimal> stockByDef, ThingDef thingDef, int rawCount) {
 			if (rawCount <= 0)
 				return;
-
 			stockByDef[thingDef] = stockByDef.GetValueOrDefault(thingDef) + AmountUtility.RawToStock(rawCount, thingDef);
 		}
 	}
