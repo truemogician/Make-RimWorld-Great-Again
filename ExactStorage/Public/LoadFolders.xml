@@ -4,5 +4,6 @@
 		<li>Shared</li>
 		<li>1.6</li>
 		<li IfModActive="PureMJ.MjRimMods.StorageRefillHysteresis">SRH/1.6</li>
+		<li IfModActive="savestoragesettings.kv.rw.fishtmp">SSS/1.6</li>
 	</v1.6>
 </loadFolders>
