@@ -12,6 +12,7 @@ namespace TrueMogician.RimWorld.ExactStorage;
 using static Utility.Formatter;
 using static StorageUtility;
 
+[StaticConstructorOnStartup]
 public static class UI {
 	public const float BASE_WIDTH = 300f;
 
@@ -56,6 +57,8 @@ public static class UI {
 	private static readonly Dictionary<Quota, string> _minBuffers = new();
 
 	private static readonly Dictionary<Quota, string> _maxBuffers = new();
+
+	private static readonly HashSet<string> _focusedFields = [];
 
 	public static StorageSettings? CurrentSettings { get; set; }
 
@@ -222,7 +225,9 @@ public static class UI {
 	private static void DrawField(Rect rect, Quota quota, bool min, StorageSettings settings, Profile profile) {
 		var value = min ? quota.MinStock : quota.MaxStock;
 		var buffers = min ? _minBuffers : _maxBuffers;
-		if (!buffers.TryGetValue(quota, out var buffer))
+		var control = FieldControlName(quota, min);
+		var wasFocused = _focusedFields.Contains(control);
+		if (!buffers.TryGetValue(quota, out var buffer) || !wasFocused)
 			buffer = DisplayValue(profile, quota, value);
 		Widgets.DrawHighlightIfMouseover(rect);
 		TooltipHandler.TipRegion(
@@ -233,24 +238,42 @@ public static class UI {
 		var color = GUI.color;
 		if (!quota.ValidRange)
 			GUI.color = _warnColor;
+		GUI.SetNextControlName(control);
 		var next = Widgets.TextField(rect, buffer);
 		GUI.color = color;
-		if (next == buffer)
-			return;
 		next = Sanitize(next, profile.UseStockUnits);
+		var focused = GUI.GetNameOfFocusedControl() == control;
+		if (focused) {
+			_focusedFields.Add(control);
+			buffers[quota] = next;
+			return;
+		}
+		if (!wasFocused)
+			return;
+		_focusedFields.Remove(control);
 		buffers[quota] = next;
-		if (next.NullOrEmpty()) {
-			if (min)
-				quota.MinStock = AmountUtility.UNSET;
-			else
-				quota.MaxStock = AmountUtility.UNSET;
+		CommitField(buffers, quota, min, settings, profile);
+	}
+
+	private static void CommitField(Dictionary<Quota, string> buffers, Quota quota, bool min, StorageSettings settings, Profile profile) {
+		if (!buffers.TryGetValue(quota, out var text))
+			return;
+		var oldValue = min ? quota.MinStock : quota.MaxStock;
+		decimal value;
+		if (text.NullOrEmpty())
+			value = AmountUtility.UNSET;
+		else if (!TryParseDisplayValue(profile, quota, text, out value)) {
+			buffers[quota] = DisplayValue(profile, quota, oldValue);
+			return;
 		}
-		else if (TryParseDisplayValue(profile, quota, next, out var parsed)) {
-			if (min)
-				quota.MinStock = parsed;
-			else
-				quota.MaxStock = parsed;
-		}
+		if (min)
+			quota.MinStock = value;
+		else
+			quota.MaxStock = value;
+		var newValue = min ? quota.MinStock : quota.MaxStock;
+		buffers[quota] = DisplayValue(profile, quota, newValue);
+		if (newValue == oldValue)
+			return;
 		ClearInactive(settings, quota);
 		NotifyChanged(settings);
 	}
@@ -337,9 +360,12 @@ public static class UI {
 
 	private static string Translate(string key, params NamedArgument[] args) => $"{nameof(ExactStorage)}.{nameof(UI)}.{key}".Translate(args);
 
+	private static string FieldControlName(Quota quota, bool min) => $"{nameof(ExactStorage)}.{quota.Key}.{(min ? "Min" : "Max")}";
+
 	private static void ClearBuffers() {
 		_minBuffers.Clear();
 		_maxBuffers.Clear();
+		_focusedFields.Clear();
 	}
 
 	private static string Sanitize(string text, bool allowDecimal) {
