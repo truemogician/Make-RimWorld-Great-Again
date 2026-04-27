@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 using Verse;
 
@@ -5,43 +8,26 @@ namespace TrueMogician.RimWorld.ExactStorage;
 
 using static AmountUtility;
 
-public sealed class Quota : IExposable {
-	private ThingDef? _thingDef;
-
-	private ThingCategoryDef? _categoryDef;
-
+public abstract class Quota : IExposable {
 	private decimal _minStock = UNSET;
 
 	private decimal _maxStock = UNSET;
 
-	private string? _minStockValue;
-
-	private string? _maxStockValue;
-
-	public Quota() { }
-
-	public Quota(ThingDef thingDef) => _thingDef = thingDef;
-
-	public Quota(ThingCategoryDef categoryDef) => _categoryDef = categoryDef;
-
-	public void ExposeData() {
-		Scribe_Defs.Look(ref _thingDef, "thingDef");
-		Scribe_Defs.Look(ref _categoryDef, "categoryDef");
+	public virtual void ExposeData() {
+		string? minStock = null, maxStock = null;
 		if (Scribe.mode == LoadSaveMode.Saving) {
-			_minStockValue = Format(_minStock);
-			_maxStockValue = Format(_maxStock);
+			minStock = Format(_minStock);
+			maxStock = Format(_maxStock);
 		}
-		Scribe_Values.Look(ref _minStockValue, "minStock");
-		Scribe_Values.Look(ref _maxStockValue, "maxStock");
+		Scribe_Values.Look(ref minStock, "minStock");
+		Scribe_Values.Look(ref maxStock, "maxStock");
 		if (Scribe.mode == LoadSaveMode.PostLoadInit) {
-			_minStock = ParseSaved(_minStockValue);
-			_maxStock = ParseSaved(_maxStockValue);
+			_minStock = ParseSaved(minStock);
+			_maxStock = ParseSaved(maxStock);
 		}
 	}
 
-	public ThingDef? ThingDef => _thingDef;
-
-	public ThingCategoryDef? CategoryDef => _categoryDef;
+	public abstract string Key { get; }
 
 	public decimal MinStock {
 		get => _minStock;
@@ -59,32 +45,80 @@ public sealed class Quota : IExposable {
 
 	public bool Active => HasMin || HasMax;
 
-	public bool IsValidKey => _thingDef is not null || _categoryDef is not null;
+	public abstract bool Valid { get; }
 
 	public bool ValidRange => !HasMin || !HasMax || _minStock <= _maxStock;
 
-	public bool Effective => Active && IsValidKey && ValidRange;
-
-	public string Key => _thingDef?.defName ?? $"Category:{_categoryDef?.defName}";
+	public bool Effective => Valid && Active && ValidRange;
 
 	public bool Matches(Thing thing) => Matches((thing.GetInnerIfMinified() ?? thing).def);
 
-	public bool Matches(ThingDef def) {
-		if (_thingDef is not null)
-			return _thingDef == def;
-		return _categoryDef is not null && DefCache.Contains(_categoryDef, def);
-	}
+	public abstract bool Matches(ThingDef def);
 
-	public Quota Clone() => new() {
-		_thingDef = _thingDef,
-		_categoryDef = _categoryDef,
-		_minStock = _minStock,
-		_maxStock = _maxStock
-	};
+	public Quota Clone() => (Quota)MemberwiseClone();
 
 	private static decimal ParseSaved(string? value) {
 		if (!value.NullOrEmpty() && TryParse(value!, out var stock))
 			return Normalize(stock);
 		return UNSET;
+	}
+}
+
+public class ThingQuota : Quota {
+	private ThingDef? _thingDef;
+
+	public ThingQuota() { }
+
+	public ThingQuota(ThingDef thingDef) => _thingDef = thingDef;
+
+	public override string Key => _thingDef?.defName ?? throw new InvalidOperationException("ThingQuota has no valid ThingDef");
+
+	public override bool Valid => _thingDef is not null;
+
+	public ThingDef? ThingDef => _thingDef;
+
+	public override void ExposeData() {
+		Scribe_Defs.Look(ref _thingDef, "thingDef");
+		base.ExposeData();
+	}
+
+	public override bool Matches(ThingDef def) => _thingDef == def || _thingDef?.defName == def.defName;
+}
+
+public abstract class ThingGroupQuota : Quota {
+	private HashSet<string> _thingDefNames = [];
+
+	public IReadOnlyCollection<ThingDef> ThingDefs {
+		get;
+		protected set {
+			field = value;
+			_thingDefNames = [.. value.Select(t => t.defName)];
+		}
+	} = [];
+
+	public override bool Matches(ThingDef def) => _thingDefNames.Contains(def.defName);
+}
+
+public class ThingCategoryQuota : ThingGroupQuota {
+	private ThingCategoryDef? _categoryDef;
+
+	public ThingCategoryQuota() { }
+
+	public ThingCategoryQuota(ThingCategoryDef categoryDef) {
+		_categoryDef = categoryDef;
+		ThingDefs = DefCache.DescendantThingDefsOf(categoryDef);
+	}
+
+	public override string Key => _categoryDef?.defName ?? throw new InvalidOperationException("ThingCategoryQuota has no valid ThingCategoryDef");
+
+	public override bool Valid => _categoryDef is not null;
+
+	public ThingCategoryDef? CategoryDef => _categoryDef;
+
+	public override void ExposeData() {
+		Scribe_Defs.Look(ref _categoryDef, "categoryDef");
+		if (Scribe.mode == LoadSaveMode.PostLoadInit && _categoryDef is not null)
+			ThingDefs = DefCache.DescendantThingDefsOf(_categoryDef);
+		base.ExposeData();
 	}
 }

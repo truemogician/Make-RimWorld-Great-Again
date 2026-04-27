@@ -13,6 +13,7 @@
 			<MinTip>Desired minimum stock. Haulers prioritize storage below this amount.</MinTip>
 			<MaxTip>Maximum stock. Haulers stop filling this storage at this amount and move excess elsewhere.</MaxTip>
 			<InvalidRangeTip>Minimum is greater than maximum. This row is saved but ignored until the range is valid.</InvalidRangeTip>
+			<InvalidCategoryTotalTip>Category quota is lower than the sum of configured child item and category quotas. This row is saved but ignored until the total is valid.</InvalidCategoryTotalTip>
 			<Summary>{0} minimum / {1} maximum / {2} stock capacity</Summary>
 			<SummaryNoMax>{0} minimum / no maximum / {1} stock capacity</SummaryNoMax>
 			<SummaryUnknownCapacity>{0} minimum / {1} maximum / unknown stock capacity</SummaryUnknownCapacity>

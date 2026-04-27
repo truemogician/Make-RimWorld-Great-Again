@@ -1,25 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
 using TrueMogician.RimWorld.Utility;
+using TrueMogician.RimWorld.Utility.Extensions;
+using TrueMogician.RimWorld.Utility.GUI;
 using UnityEngine;
 using Verse;
 
 namespace TrueMogician.RimWorld.ExactStorage;
 
 using static Formatter;
-using static StorageUtility;
 
 [StaticConstructorOnStartup]
 public static class UI {
-	public const float BASE_WIDTH = 300f;
+	public const float BASE_WIDTH = 280f;
 
 	public const float BASE_HEIGHT = 480f;
-
-	public const float WIDTH_EXTRA = 120f;
 
 	public const float TOGGLE_HEIGHT = 25f;
 
@@ -35,13 +35,13 @@ public static class UI {
 
 	private const float _FIELD_WIDTH = 40f;
 
-	private const float _FIELD_GAP = 4f;
-
-	private static readonly FieldInfo _curYField = AccessTools.Field(typeof(Listing), "curY");
+	private const float _CONTROLS_WIDTH = _FIELD_WIDTH * 2 + 20f;
 
 	private static readonly Color _okColor = new(0.35f, 0.75f, 0.45f);
 
 	private static readonly Color _warnColor = new(0.9f, 0.25f, 0.18f);
+
+	private static readonly Color _pendingColor = new(0.55f, 0.55f, 0.55f);
 
 	private static readonly Texture2D _okTex = SolidTex(_okColor);
 
@@ -53,41 +53,40 @@ public static class UI {
 
 	private static readonly Dictionary<(Quota Quota, bool Min), (string Buffer, bool Focused)> _editState = new();
 
+	private static readonly FieldInfo _listingCurY = AccessTools.Field(typeof(Listing), "curY");
+
 	public static StorageSettings? CurrentSettings { get; set; }
 
 	public static object? CurrentRow { get; set; }
 
-	public static bool Active => CurrentSettings is { } settings && Enabled(settings);
+	public static bool Active => CurrentSettings is { ExactStorageEnabled: true };
 
-	public static bool Enabled(StorageSettings settings)
-		=> SupportsExactStorage(settings) && Manager.TryGetProfile(settings, out var profile) && profile.Enabled;
-
-	public static float WindowWidth(StorageSettings settings) => Enabled(settings) ? BASE_WIDTH + WIDTH_EXTRA : BASE_WIDTH;
+	public static float WindowWidth(StorageSettings settings) => settings.ExactStorageEnabled ? BASE_WIDTH + _CONTROLS_WIDTH : BASE_WIDTH;
 
 	public static float FooterHeight(StorageSettings? settings) {
-		if (settings is null || !SupportsExactStorage(settings))
+		if (settings is null || !settings.SupportsExactStorage)
 			return 0f;
-		var height = TOGGLE_HEIGHT;
-		if (!Enabled(settings))
+		float height = TOGGLE_HEIGHT;
+		if (!settings.ExactStorageEnabled)
 			return height;
 		height += _DIVIDER_HEIGHT + TOGGLE_HEIGHT;
-		if (SeparateLinkedStorageAvailable(settings))
+		if (settings.SeparateLinkedStorageAvailable)
 			height += TOGGLE_HEIGHT;
 		return height + _BAR_TOP_PADDING + BAR_HEIGHT;
 	}
 
 	public static void DrawFooter(StorageSettings settings) {
-		if (!SupportsExactStorage(settings))
+		if (!settings.SupportsExactStorage)
 			return;
-		var y = BASE_HEIGHT - 3f;
+		float y = BASE_HEIGHT - 3f;
 		DrawToggle(settings, y);
-		if (!Enabled(settings))
+		if (!settings.ExactStorageEnabled)
 			return;
 		y += TOGGLE_HEIGHT;
 		Widgets.DrawLineHorizontal(_TOGGLE_MARGIN, y + 3f, WindowWidth(settings) - 2 * _TOGGLE_MARGIN, Widgets.SeparatorLineColor);
 		y += _DIVIDER_HEIGHT;
 		DrawUnitToggle(settings, y);
-		if (SeparateLinkedStorageAvailable(settings)) {
+		if (settings.SeparateLinkedStorageAvailable) {
 			y += TOGGLE_HEIGHT;
 			DrawSeparateToggle(settings, y);
 		}
@@ -96,32 +95,32 @@ public static class UI {
 	}
 
 	public static void DrawCurrentRow(Listing_TreeThingFilter listing) {
-		if (CurrentSettings is not { } settings || !Enabled(settings) || !RowAllowed(settings, listing))
+		if (CurrentSettings is not { ExactStorageEnabled: true } settings || !RowAllowed(settings, listing))
 			return;
 		var profile = Manager.GetProfile(settings);
-		var quota = CurrentRow switch {
-			ThingDef thingDef           => profile.GetQuota(thingDef, true),
-			TreeNode_ThingCategory node => profile.GetQuota(node.catDef, true),
+		Quota? quota = CurrentRow switch {
+			ThingDef thingDef           => profile.GetOrCreateQuota(thingDef),
+			TreeNode_ThingCategory node => profile.GetOrCreateQuota(node.catDef),
 			_                           => null
 		};
 		if (quota is null)
 			return;
-		var curY = (float)_curYField.GetValue(listing);
-		var row = new Rect(listing.ColumnWidth - CONTROLS_WIDTH, curY, CONTROLS_WIDTH, listing.lineHeight);
-		var minRect = new Rect(row.x, row.y, _FIELD_WIDTH, row.height);
-		var maxRect = new Rect(minRect.xMax + _FIELD_GAP, row.y, _FIELD_WIDTH, row.height);
-		DrawField(minRect, quota, true, settings, profile);
-		DrawField(maxRect, quota, false, settings, profile);
+		var rects = new Rect(listing.ColumnWidth - CONTROLS_WIDTH, (float)_listingCurY.GetValue(listing), CONTROLS_WIDTH, listing.lineHeight)
+			.Padding(0f, 10f, 0f, 5f)
+			.ToFlexbox([_FIELD_WIDTH, _FIELD_WIDTH], 0f, JustifyContent.SpaceBetween)
+			.ToArray();
+		DrawField(rects[0], quota, true, settings, profile);
+		DrawField(rects[1], quota, false, settings, profile);
 	}
 
 	public static void DrawSummaryBar(StorageSettings settings, float y) {
-		if (!Enabled(settings))
+		if (!settings.ExactStorageEnabled)
 			return;
 		var profile = Manager.GetProfile(settings);
 		int min = 0, max = 0;
 		var hasMax = false;
 		foreach (var quota in profile.Quotas) {
-			if (!profile.QuotaUsable(quota) || !QuotaAllowed(settings, quota))
+			if (!profile.QuotaValid(quota) || !settings.QuotaAllowed(quota))
 				continue;
 			if (quota.HasMin)
 				min += AmountUtility.StockSlots(quota.MinStock);
@@ -135,9 +134,9 @@ public static class UI {
 			}
 		}
 		var rect = new Rect(_TOGGLE_MARGIN, y, WindowWidth(settings) - _TOGGLE_MARGIN * 2, 22f);
-		var knownCapacity = TryGetCapacity(settings, out var capacity);
-		var warning = knownCapacity && min > capacity;
-		var fill = knownCapacity && capacity > 0 ? Mathf.Clamp01((float)min / capacity) : 1f;
+		bool knownCapacity = settings.TryGetCapacity(out int capacity);
+		bool warning = knownCapacity && min > capacity;
+		float fill = knownCapacity && capacity > 0 ? Mathf.Clamp01((float)min / capacity) : 1f;
 
 		Widgets.DrawMenuSection(rect);
 		var bar = rect.ContractedBy(2f);
@@ -150,9 +149,9 @@ public static class UI {
 		var minBar = bar;
 		minBar.width *= fill;
 		GUI.DrawTexture(minBar, warning ? _warnTex : knownCapacity ? _okTex : _unknownTex);
-		DrawSummaryLabel(bar, min, hasMax, max, knownCapacity, capacity, warning);
+		DrawSummaryLabel(bar, min, hasMax, max, knownCapacity, capacity);
 		if (Mouse.IsOver(rect)) {
-			var tip = warning
+			string tip = warning
 				? Translate("SummaryWarning")
 				: knownCapacity
 					? hasMax
@@ -172,11 +171,11 @@ public static class UI {
 	private static void DrawToggle(StorageSettings settings, float y) {
 		var profile = Manager.GetProfile(settings);
 		var rect = new Rect(_TOGGLE_MARGIN, y, WindowWidth(settings) - 2 * _TOGGLE_MARGIN, 24f);
-		var enabled = profile.Enabled;
+		bool enabled = profile.Enabled;
 		Widgets.CheckboxLabeled(rect, Bold(Translate("Toggle")), ref enabled);
 		if (enabled != profile.Enabled) {
 			profile.Enabled = enabled;
-			NotifyChanged(settings);
+			settings.NotifyChanged();
 		}
 		TooltipHandler.TipRegion(rect, Translate("ToggleTip"));
 	}
@@ -184,12 +183,12 @@ public static class UI {
 	private static void DrawUnitToggle(StorageSettings settings, float y) {
 		var profile = Manager.GetProfile(settings);
 		var rect = new Rect(_TOGGLE_MARGIN, y, WindowWidth(settings) - 2 * _TOGGLE_MARGIN, 24f);
-		var useStockUnits = profile.UseStockUnits;
+		bool useStockUnits = profile.UseStockUnits;
 		Widgets.CheckboxLabeled(rect, Translate("UseStockUnits"), ref useStockUnits);
 		if (useStockUnits != profile.UseStockUnits) {
 			profile.UseStockUnits = useStockUnits;
 			ClearBuffers();
-			NotifyChanged(settings);
+			settings.NotifyChanged();
 		}
 		TooltipHandler.TipRegion(rect, Translate("UseStockUnitsTip"));
 	}
@@ -197,37 +196,54 @@ public static class UI {
 	private static void DrawSeparateToggle(StorageSettings settings, float y) {
 		var profile = Manager.GetProfile(settings);
 		var rect = new Rect(_TOGGLE_MARGIN, y, WindowWidth(settings) - 2 * _TOGGLE_MARGIN, 24f);
-		var separate = profile.SeparateLinkedStorages;
+		bool separate = profile.SeparateLinkedStorages;
 		Widgets.CheckboxLabeled(rect, Translate("SeparateLinkedStorages"), ref separate);
 		if (separate != profile.SeparateLinkedStorages) {
 			profile.SeparateLinkedStorages = separate;
-			NotifyChanged(settings);
+			settings.NotifyChanged();
 		}
 		TooltipHandler.TipRegion(rect, Translate("SeparateLinkedStoragesTip"));
 	}
 
 	private static void DrawField(Rect rect, Quota quota, bool min, StorageSettings settings, Profile profile) {
 		var key = (quota, min);
-		var value = min ? quota.MinStock : quota.MaxStock;
-		var control = FieldControlName(quota, min);
-		var wasFocused = _editState.TryGetValue(key, out var state) && state.Focused;
-		var buffer = wasFocused ? state.Buffer : DisplayValue(profile, quota, value);
+		decimal value = min ? quota.MinStock : quota.MaxStock;
+		string control = FieldControlName(quota, min);
+		string committed = DisplayValue(profile, quota, value);
+		bool wasFocused = _editState.TryGetValue(key, out var state) && state.Focused;
+		string? buffer = wasFocused ? state.Buffer : committed;
+		bool pending = wasFocused && state.Buffer != committed;
+		bool invalidRange = quota is { Active: true, ValidRange: false };
+		bool invalidCategoryTotal = quota is { Active: true, ValidRange: true } && !profile.CategoryTotalsValid(quota);
+		bool invalid = invalidRange || invalidCategoryTotal;
 		Widgets.DrawHighlightIfMouseover(rect);
 		TooltipHandler.TipRegion(
 			rect,
-			!quota.ValidRange ? Translate("InvalidRangeTip") : min ? Translate("MinTip")
+			invalidRange ? Translate("InvalidRangeTip")
+			: invalidCategoryTotal ? Translate("InvalidCategoryTotalTip") : min ? Translate("MinTip")
 			: Translate("MaxTip")
 		);
 		var color = GUI.color;
-		if (!quota.ValidRange)
+		if (invalid)
 			GUI.color = _warnColor;
+		else if (pending)
+			GUI.color = _pendingColor;
+		bool enter = GUI.GetNameOfFocusedControl() == control
+			&& Event.current.type == EventType.KeyDown
+			&& Event.current.keyCode is KeyCode.Return or KeyCode.KeypadEnter;
 		GUI.SetNextControlName(control);
-		var next = Widgets.TextField(rect, buffer);
+		string? next = Widgets.TextField(rect, buffer);
 		GUI.color = color;
 		next = Sanitize(next, profile.UseStockUnits);
-		var focused = GUI.GetNameOfFocusedControl() == control;
+		bool focused = GUI.GetNameOfFocusedControl() == control;
 		if (focused) {
 			_editState[key] = (next, true);
+			if (enter) {
+				CommitField(quota, min, settings, profile);
+				GUIUtility.keyboardControl = 0;
+				if (Event.current.type == EventType.KeyDown)
+					Event.current.Use();
+			}
 			return;
 		}
 		if (!wasFocused)
@@ -240,7 +256,7 @@ public static class UI {
 		var key = (quota, min);
 		if (!_editState.TryGetValue(key, out var state))
 			return;
-		var oldValue = min ? quota.MinStock : quota.MaxStock;
+		decimal oldValue = min ? quota.MinStock : quota.MaxStock;
 		decimal value;
 		if (state.Buffer.NullOrEmpty())
 			value = AmountUtility.UNSET;
@@ -252,12 +268,12 @@ public static class UI {
 			quota.MinStock = value;
 		else
 			quota.MaxStock = value;
-		var newValue = min ? quota.MinStock : quota.MaxStock;
+		decimal newValue = min ? quota.MinStock : quota.MaxStock;
 		_editState[key] = (DisplayValue(profile, quota, newValue), false);
 		if (newValue == oldValue)
 			return;
 		ClearInactive(settings, quota);
-		NotifyChanged(settings);
+		settings.NotifyChanged();
 	}
 
 	private static bool RowAllowed(StorageSettings settings, Listing_TreeThingFilter listing) {
@@ -269,15 +285,15 @@ public static class UI {
 		};
 	}
 
-	private static void DrawSummaryLabel(Rect rect, int min, bool hasMax, int max, bool knownCapacity, int capacity, bool warning) {
-		var label = knownCapacity
+	private static void DrawSummaryLabel(Rect rect, int min, bool hasMax, int max, bool knownCapacity, int capacity) {
+		string label = knownCapacity
 			? hasMax
 				? Translate("Summary", min, max, capacity)
 				: Translate("SummaryNoMax", min, capacity)
 			: Translate("SummaryUnknownCapacity", min, hasMax ? max.ToStringCached() : "-");
 		using (new TextBlock(GameFont.Tiny, TextAnchor.MiddleLeft, false, Color.black)) {
-			var width = Text.CalcSize(label).x;
-			var x = rect.center.x - width / 2f;
+			float width = Text.CalcSize(label).x;
+			float x = rect.center.x - width / 2f;
 			var labelRect = new Rect(x, rect.y, width, rect.height);
 			Widgets.Label(new Rect(labelRect.x + 1f, labelRect.y + 1f, labelRect.width, labelRect.height), label);
 			GUI.color = Color.white;
@@ -290,9 +306,9 @@ public static class UI {
 			return string.Empty;
 		if (profile.UseStockUnits)
 			return AmountUtility.Format(stock);
-		if (!TryGetRawStackLimit(quota, out var stackLimit))
+		if (!TryGetRawStackLimit(quota, out int stackLimit))
 			return string.Empty;
-		var raw = Math.Round(stock * stackLimit, 0, MidpointRounding.AwayFromZero);
+		decimal raw = Math.Round(stock * stackLimit, 0, MidpointRounding.AwayFromZero);
 		return raw.ToString(CultureInfo.InvariantCulture);
 	}
 
@@ -304,21 +320,22 @@ public static class UI {
 			stock = AmountUtility.Normalize(stock);
 			return true;
 		}
-		if (!TryGetRawStackLimit(quota, out var stackLimit) || !int.TryParse(text, out var raw))
+		if (!TryGetRawStackLimit(quota, out int stackLimit) || !int.TryParse(text, out int raw))
 			return false;
 		stock = AmountUtility.RawToStock(raw, stackLimit);
 		return true;
 	}
 
 	private static bool TryGetRawStackLimit(Quota quota, out int stackLimit) {
-		if (quota.ThingDef is { } thingDef) {
-			stackLimit = DefCache.StackLimitOf(thingDef);
-			return true;
+		switch (quota) {
+			case ThingQuota { ThingDef: { } thingDef }:
+				stackLimit = Math.Max(1, thingDef.stackLimit);
+				return true;
+			case ThingCategoryQuota { CategoryDef: { } categoryDef }: return DefCache.TryGetUnifiedStackLimit(categoryDef, out stackLimit);
+			default:
+				stackLimit = 0;
+				return false;
 		}
-		if (quota.CategoryDef is { } categoryDef)
-			return DefCache.TryGetUnifiedStackLimit(categoryDef, out stackLimit);
-		stackLimit = 0;
-		return false;
 	}
 
 	private static bool CategoryEditable(Profile profile, ThingCategoryDef categoryDef)

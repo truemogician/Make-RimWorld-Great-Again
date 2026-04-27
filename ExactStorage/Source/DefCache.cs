@@ -5,20 +5,17 @@ using Verse;
 namespace TrueMogician.RimWorld.ExactStorage;
 
 public static class DefCache {
-	private static readonly Dictionary<ThingDef, int> _stackLimits = new();
-
 	private static readonly Dictionary<ThingDef, List<ThingCategoryDef>> _ancestorCategories = new();
+
+	private static readonly Dictionary<ThingCategoryDef, List<ThingCategoryDef>> _childCategories = new();
+
+	private static readonly Dictionary<ThingCategoryDef, List<ThingDef>> _directThingDefs = new();
 
 	private static readonly Dictionary<ThingCategoryDef, List<ThingDef>> _descendantThingDefs = new();
 
 	private static readonly Dictionary<ThingCategoryDef, int> _unifiedStackLimits = new();
 
 	private static bool _initialized;
-
-	public static int StackLimitOf(ThingDef def) {
-		Initialize();
-		return _stackLimits.GetValueOrDefault(def, 1);
-	}
 
 	public static IReadOnlyList<ThingDef> DescendantThingDefsOf(ThingCategoryDef def) {
 		Initialize();
@@ -28,6 +25,16 @@ public static class DefCache {
 	public static IReadOnlyList<ThingCategoryDef> AncestorCategoriesOf(ThingDef def) {
 		Initialize();
 		return _ancestorCategories.TryGetValue(def, out var categories) ? categories : [];
+	}
+
+	public static IReadOnlyList<ThingCategoryDef> ChildCategoriesOf(ThingCategoryDef def) {
+		Initialize();
+		return _childCategories.TryGetValue(def, out var categories) ? categories : [];
+	}
+
+	public static IReadOnlyList<ThingDef> DirectThingDefsOf(ThingCategoryDef def) {
+		Initialize();
+		return _directThingDefs.TryGetValue(def, out var thingDefs) ? thingDefs : [];
 	}
 
 	public static bool Contains(ThingCategoryDef categoryDef, ThingDef thingDef) {
@@ -45,13 +52,31 @@ public static class DefCache {
 			return;
 		_initialized = true;
 
-		foreach (var categoryDef in DefDatabase<ThingCategoryDef>.AllDefsListForReading)
+		foreach (var categoryDef in DefDatabase<ThingCategoryDef>.AllDefsListForReading) {
+			_childCategories[categoryDef] = [];
+			_directThingDefs[categoryDef] = [];
 			_descendantThingDefs[categoryDef] = [];
+		}
+
+		foreach (var categoryDef in DefDatabase<ThingCategoryDef>.AllDefsListForReading) {
+			if (categoryDef.parent is not { } parent)
+				continue;
+			if (!_childCategories.TryGetValue(parent, out var children)) {
+				children = [];
+				_childCategories.Add(parent, children);
+			}
+			children.Add(categoryDef);
+		}
 
 		foreach (var thingDef in DefDatabase<ThingDef>.AllDefsListForReading) {
-			_stackLimits[thingDef] = Math.Max(1, thingDef.stackLimit);
 			var categories = new List<ThingCategoryDef>();
 			foreach (var directCategory in thingDef.thingCategories ?? []) {
+				if (!_directThingDefs.TryGetValue(directCategory, out var directThings)) {
+					directThings = [];
+					_directThingDefs.Add(directCategory, directThings);
+				}
+				if (!directThings.Contains(thingDef))
+					directThings.Add(thingDef);
 				var category = directCategory;
 				while (category is not null) {
 					if (!categories.Contains(category)) {
@@ -73,7 +98,7 @@ public static class DefCache {
 			var stackLimit = -1;
 			var unified = true;
 			foreach (var thingDef in entry.Value) {
-				var next = StackLimitOf(thingDef);
+				var next = Math.Max(1, thingDef.stackLimit);
 				if (stackLimit < 0) {
 					stackLimit = next;
 					continue;

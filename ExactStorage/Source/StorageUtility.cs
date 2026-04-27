@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 using Verse;
 using Verse.AI;
@@ -18,247 +19,9 @@ public static class StorageUtility {
 		AnyAllowed
 	}
 
-	public static bool SupportsExactStorage(StorageSettings? settings)
-		=> settings?.owner is StorageGroup or ISlotGroupParent;
-
-	public static bool UseSeparateLinkedStorage(StorageSettings settings)
-		=> Manager.TryGetProfile(settings, out var profile)
-			&& profile is { Enabled: true, SeparateLinkedStorages: true }
-			&& SeparateLinkedStorageAvailable(settings);
-
-	public static bool SeparateLinkedStorageAvailable(StorageSettings settings) {
-		if (settings.owner is not StorageGroup { MemberCount: > 1 } group)
-			return false;
-		ThingDef? def = null;
-		foreach (var member in group.members) {
-			if (member is not Building_Storage building)
-				return false;
-			if (def is null) {
-				def = building.def;
-				continue;
-			}
-			if (def != building.def)
-				return false;
-		}
-		return def is not null;
-	}
-
-	public static IEnumerable<Thing> HeldThings(StorageSettings? settings, ISlotGroupParent? parent = null) {
-		if (parent?.GetSlotGroup() is { } scopedGroup) {
-			foreach (var thing in scopedGroup.HeldThings)
-				yield return thing;
-			yield break;
-		}
-		switch (settings?.owner) {
-			case StorageGroup group: {
-				foreach (var thing in group.HeldThings)
-					yield return thing;
-				yield break;
-			}
-			case ISlotGroupParent settingsParent when settingsParent.GetSlotGroup() is { } slotGroup: {
-				foreach (var thing in slotGroup.HeldThings)
-					yield return thing;
-				break;
-			}
-		}
-	}
-
-	public static bool Contains(StorageSettings? settings, Thing thing) => Contains(settings, thing, null);
-
-	public static bool Allows(StorageSettings settings, Thing thing, bool currentlyStored, ISlotGroupParent? parent = null)
-		=> Allows(settings, thing, currentlyStored, parent, null);
-
-	public static bool ShouldPreferForMinimum(StorageSettings settings, Thing thing, IntVec3? storeCell = null, Map? map = null)
-		=> ShouldPreferForMinimum(settings, thing, storeCell, map, (Job?)null);
-
-	public static bool ShouldPreferForMinimum(StorageSettings settings, Thing thing, IntVec3? storeCell, Map? map, Job? ignoredJob)
-		=> ShouldPreferForMinimum(settings, thing, storeCell, map, new StorageEvaluationCache(ignoredJob));
-
-	public static int DestinationCountLimit(StorageSettings settings, Thing thing, bool preferMinimum, IntVec3 storeCell, Map map)
-		=> DestinationCountLimit(settings, thing, preferMinimum, storeCell, map, (Job?)null);
-
-	public static int DestinationCountLimit(StorageSettings settings, Thing thing, bool preferMinimum, IntVec3 storeCell, Map map, Job? ignoredJob)
-		=> DestinationCountLimit(settings, thing, preferMinimum, storeCell, map, new StorageEvaluationCache(ignoredJob));
-
 	public static void AddEnrouteStockProvider(EnrouteStockProvider provider) {
 		if (!_enrouteStockProviders.Contains(provider))
 			_enrouteStockProviders.Add(provider);
-	}
-
-	public static int SourceExcessLimit(Thing thing) => SourceExcessLimit(thing, null);
-
-	public static bool CanReceiveAt(IntVec3 cell, Map map, Thing thing) => CanReceiveAt(cell, map, thing, null);
-
-	public static bool TryGetCapacity(StorageSettings settings, out int capacity)
-		=> TryGetCapacity(settings, ParentForCell(settings, null, null), out capacity);
-
-	public static void NotifyChanged(StorageSettings? settings) {
-		settings?.owner?.Notify_SettingsChanged();
-	}
-
-	public static bool MatchesScope(StorageSettings settings, ISlotGroupParent? parent, Map map, LocalTargetInfo target) {
-		if (target.HasThing || !target.Cell.IsValid)
-			return false;
-		var slotGroup = target.Cell.GetSlotGroup(map);
-		if (slotGroup is null)
-			return false;
-		if (parent is not null)
-			return slotGroup.parent == parent;
-		return settings.owner switch {
-			StorageGroup group              => slotGroup.StorageGroup == group,
-			ISlotGroupParent settingsParent => slotGroup.parent == settingsParent,
-			_                               => false
-		};
-	}
-
-	internal static bool Contains(StorageSettings? settings, Thing thing, StorageEvaluationCache? evaluation) {
-		if (evaluation is not null)
-			return evaluation.Contains(settings, thing);
-		var parent = ParentForStoredThing(settings, thing);
-		foreach (var heldThing in HeldThings(settings, parent)) {
-			if (heldThing == thing)
-				return true;
-		}
-		return false;
-	}
-
-	internal static bool Allows(
-		StorageSettings settings,
-		Thing thing,
-		bool currentlyStored,
-		ISlotGroupParent? parent,
-		StorageEvaluationCache? evaluation
-	) {
-		if (!SupportsExactStorage(settings) || !Manager.TryGetProfile(settings, out var profile) || !profile.Enabled)
-			return true;
-		if (parent is null && currentlyStored)
-			parent = ParentForStoredThing(settings, thing);
-		if (UseSeparateLinkedStorage(settings) && parent is null && !currentlyStored)
-			return true;
-		var quotas = evaluation?.MatchingQuotas(profile, thing) ?? profile.MatchingQuotas(thing);
-		foreach (var quota in quotas) {
-			if (QuotaAllowed(settings, quota) && quota.HasMax && profile.CountFor(quota, parent, evaluation) > quota.MaxStock)
-				return false;
-		}
-		var balance = MinimumBalance.For(settings, profile, parent, evaluation);
-		if (currentlyStored)
-			return !balance.ShouldDisplace(thing);
-		if (!balance.CanAccept(thing, null, null))
-			return false;
-		if (quotas.Count == 0)
-			return true;
-		if (!RefillGate.AllowsRefill(settings))
-			return false;
-		foreach (var quota in quotas) {
-			if (QuotaAllowed(settings, quota) && quota.HasMax && profile.CountFor(quota, parent, evaluation) >= quota.MaxStock)
-				return false;
-		}
-		return true;
-	}
-
-	internal static bool QuotaAllowed(StorageSettings settings, Quota quota) {
-		if (quota.ThingDef is { } thingDef)
-			return settings.filter.Allows(thingDef);
-		if (quota.CategoryDef is { } categoryDef) {
-			foreach (var childDef in DefCache.DescendantThingDefsOf(categoryDef)) {
-				if (settings.filter.Allows(childDef))
-					return true;
-			}
-		}
-		return false;
-	}
-
-	internal static bool ShouldPreferForMinimum(
-		StorageSettings settings,
-		Thing thing,
-		IntVec3? storeCell,
-		Map? map,
-		StorageEvaluationCache? evaluation
-	) {
-		if (!SupportsExactStorage(settings) || !Manager.TryGetProfile(settings, out var profile) || !profile.Enabled)
-			return false;
-		var parent = ParentForCell(settings, storeCell, map);
-		var quotas = evaluation?.MatchingQuotas(profile, thing) ?? profile.MatchingQuotas(thing);
-		if (quotas.Count == 0 || !RefillGate.AllowsRefill(settings))
-			return false;
-		var underMin = false;
-		foreach (var quota in quotas) {
-			decimal count = profile.CountFor(quota, parent, evaluation) + EnrouteStockFor(settings, quota, parent, evaluation);
-			if (quota.HasMax && count >= quota.MaxStock)
-				return false;
-			if (quota.HasMin && count < quota.MinStock)
-				underMin = true;
-		}
-		return underMin;
-	}
-
-	internal static int DestinationCountLimit(
-		StorageSettings settings,
-		Thing thing,
-		bool preferMinimum,
-		IntVec3 storeCell,
-		Map map,
-		StorageEvaluationCache? evaluation
-	) {
-		if (!Manager.TryGetProfile(settings, out var profile) || !profile.Enabled)
-			return NO_LIMIT;
-		var parent = ParentForCell(settings, storeCell, map);
-		var quotas = evaluation?.MatchingQuotas(profile, thing) ?? profile.MatchingQuotas(thing);
-		var thingDef = InnerDefOf(thing);
-		int limit = NO_LIMIT;
-		if (preferMinimum) {
-			foreach (var quota in quotas) {
-				if (!quota.HasMin)
-					continue;
-				decimal count = profile.CountFor(quota, parent, evaluation) + EnrouteStockFor(settings, quota, parent, evaluation);
-				decimal remaining = quota.MinStock - count;
-				if (remaining > 0m)
-					limit = Math.Min(limit, AmountUtility.StockToRawCeiling(remaining, thingDef));
-			}
-		}
-		foreach (var quota in quotas) {
-			if (!quota.HasMax)
-				continue;
-			decimal count = profile.CountFor(quota, parent, evaluation) + EnrouteStockFor(settings, quota, parent, evaluation);
-			limit = Math.Min(limit, AmountUtility.StockToRawFloor(quota.MaxStock - count, thingDef));
-		}
-		var balance = MinimumBalance.For(settings, profile, parent, evaluation);
-		var balanceLimit = balance.CountLimit(thing, storeCell, map);
-		if (balanceLimit != NO_LIMIT)
-			limit = Math.Min(limit, balanceLimit);
-		return Math.Max(0, limit);
-	}
-
-	internal static int SourceExcessLimit(Thing thing, StorageEvaluationCache? evaluation) {
-		if (
-			!thing.Spawned
-			|| StoreUtility.CurrentHaulDestinationOf(thing)?.GetStoreSettings() is not { } settings
-			|| !Manager.TryGetProfile(settings, out var profile)
-			|| !profile.Enabled
-		)
-			return NO_LIMIT;
-		var parent = ParentForStoredThing(settings, thing);
-		var quotas = evaluation?.MatchingQuotas(profile, thing) ?? profile.MatchingQuotas(thing);
-		var thingDef = InnerDefOf(thing);
-		int limit = NO_LIMIT;
-		foreach (var quota in quotas) {
-			if (!quota.HasMax)
-				continue;
-			decimal excess = profile.CountFor(quota, parent, evaluation) - quota.MaxStock;
-			if (excess > 0m)
-				limit = Math.Min(limit, AmountUtility.StockToRawCeiling(excess, thingDef));
-		}
-		return limit;
-	}
-
-	internal static bool TryGetCapacity(StorageSettings settings, ISlotGroupParent? parent, out int capacity) {
-		capacity = 0;
-		var cells = StorageCells(settings, parent, out var map);
-		if (map is null || cells is null)
-			return false;
-		foreach (var cell in cells)
-			capacity += Math.Max(1, cell.GetMaxItemsAllowedInCell(map));
-		return true;
 	}
 
 	internal static bool TryFindPreferredUnderMinCell(
@@ -267,10 +30,9 @@ public static class StorageUtility {
 		Map map,
 		StoragePriority currentPriority,
 		Faction faction,
-		StorageEvaluationCache? evaluation,
 		out IntVec3 cell,
 		out IHaulDestination destination
-	) => TryFindCell(thing, carrier, map, currentPriority, faction, CellSearchMode.PreferMinimum, evaluation, out cell, out destination);
+	) => TryFindCell(thing, carrier, map, currentPriority, faction, CellSearchMode.PreferMinimum, out cell, out destination);
 
 	internal static bool TryFindAllowedCell(
 		Thing thing,
@@ -278,70 +40,9 @@ public static class StorageUtility {
 		Map map,
 		StoragePriority currentPriority,
 		Faction faction,
-		StorageEvaluationCache? evaluation,
 		out IntVec3 cell,
 		out IHaulDestination destination
-	) => TryFindCell(thing, carrier, map, currentPriority, faction, CellSearchMode.AnyAllowed, evaluation, out cell, out destination);
-
-	internal static bool CanReceiveAt(IntVec3 cell, Map map, Thing thing, StorageEvaluationCache? evaluation) {
-		var slotGroup = cell.GetSlotGroup(map);
-		if (slotGroup is null || !slotGroup.parent.Accepts(thing))
-			return false;
-		if (IsCurrentStorageScope(thing, slotGroup.Settings, slotGroup.parent))
-			return false;
-		int limit = DestinationCountLimit(slotGroup.Settings, thing, false, cell, map, evaluation);
-		return limit is NO_LIMIT or > 0;
-	}
-
-	internal static ISlotGroupParent? ParentForStoredThing(StorageSettings? settings, Thing thing) {
-		if (settings is null || !UseSeparateLinkedStorage(settings) || !thing.Spawned)
-			return null;
-		var slotGroup = thing.Position.GetSlotGroup(thing.Map);
-		if (slotGroup is null)
-			return null;
-		return settings.owner is StorageGroup group && slotGroup.StorageGroup == group ? slotGroup.parent : null;
-	}
-
-	internal static bool JobTargetsScope(StorageSettings settings, ISlotGroupParent? parent, Map map, Job job)
-		=> MatchesScope(settings, parent, map, job.GetTarget(TargetIndex.B));
-
-	internal static Map? MapFor(StorageSettings settings, ISlotGroupParent? parent) {
-		if (parent is not null)
-			return parent.Map;
-		return settings.owner switch {
-			StorageGroup group           => group.Map,
-			IHaulDestination destination => destination.Map,
-			_                            => null
-		};
-	}
-
-	internal static ThingDef InnerDefOf(Thing thing) => (thing.GetInnerIfMinified() ?? thing).def;
-
-	internal static int StockSlotsFor(Thing thing) => AmountUtility.StockSlots(AmountUtility.RawToStock(thing.stackCount, InnerDefOf(thing)));
-
-	internal static bool IsCurrentStorageScope(Thing thing, StorageSettings settings, ISlotGroupParent parent) {
-		if (!thing.Spawned)
-			return false;
-		var sourceParent = thing.Position.GetSlotGroup(thing.Map)?.parent;
-		if (sourceParent is null)
-			return false;
-		if (sourceParent == parent)
-			return true;
-		return sourceParent.GetStoreSettings() == settings && !UseSeparateLinkedStorage(settings);
-	}
-
-	internal static decimal ModEnrouteStockFor(StorageSettings settings, Quota quota, ISlotGroupParent? parent, Job? ignoredJob) {
-		var map = MapFor(settings, parent);
-		if (map is null)
-			return 0m;
-		var count = 0m;
-		foreach (var (pawn, job) in EnumerateActiveJobs(map)) {
-			if (job == ignoredJob)
-				continue;
-			count += ModEnrouteStockForJob(settings, quota, parent, map, pawn, job);
-		}
-		return count;
-	}
+	) => TryFindCell(thing, carrier, map, currentPriority, faction, CellSearchMode.AnyAllowed, out cell, out destination);
 
 	internal static IEnumerable<(Pawn Claimant, Job Job)> EnumerateActiveJobs(Map map) {
 		var seen = new HashSet<Job>();
@@ -369,7 +70,6 @@ public static class StorageUtility {
 		StoragePriority currentPriority,
 		Faction faction,
 		CellSearchMode mode,
-		StorageEvaluationCache? evaluation,
 		out IntVec3 cell,
 		out IHaulDestination destination
 	) {
@@ -391,9 +91,9 @@ public static class StorageUtility {
 				var slotGroup = group ?? candidate.GetSlotGroup(map);
 				if (slotGroup is null || !slotGroup.parent.Accepts(thing))
 					continue;
-				if (IsCurrentStorageScope(thing, slotGroup.Settings, slotGroup.parent))
+				if (thing.IsCurrentStorageScope(slotGroup.Settings, slotGroup.parent))
 					continue;
-				if (!CandidateAllowed(slotGroup.Settings, thing, candidate, map, mode, evaluation))
+				if (!CandidateAllowed(slotGroup.Settings, thing, candidate, map, mode))
 					continue;
 				int dist = (start - candidate).LengthHorizontalSquared;
 				if (dist > closestDist || !StoreUtility.IsGoodStoreCell(candidate, map, thing, carrier, faction))
@@ -407,20 +107,46 @@ public static class StorageUtility {
 		return cell.IsValid && destination is not null;
 	}
 
-	private static bool CandidateAllowed(
-		StorageSettings settings,
-		Thing thing,
-		IntVec3 cell,
-		Map map,
-		CellSearchMode mode,
-		StorageEvaluationCache? evaluation
-	) {
-		return mode switch {
-			CellSearchMode.PreferMinimum => ShouldPreferForMinimum(settings, thing, cell, map, evaluation),
+	private static bool CandidateAllowed(StorageSettings settings, Thing thing, IntVec3 cell, Map map, CellSearchMode mode) {
+		var allowed = mode switch {
+			CellSearchMode.PreferMinimum => settings.ShouldPreferForMinimum(thing, cell, map),
 			// TryFindCell has already checked Accepts and IsCurrentStorageScope for this candidate.
-			CellSearchMode.AnyAllowed => DestinationCountLimit(settings, thing, false, cell, map, evaluation) is NO_LIMIT or > 0,
+			CellSearchMode.AnyAllowed => settings.DestinationCountLimit(thing, false, cell, map) is NO_LIMIT or > 0,
 			_                         => false
 		};
+		if (!allowed)
+			return false;
+		return thing.SourceCountLimit(cell, map) is NO_LIMIT or > 0;
+	}
+
+	private static int SourceMinimumLimit(Thing thing, IntVec3 storeCell, Map map) {
+		if (
+			!thing.Spawned
+			|| StoreUtility.CurrentHaulDestinationOf(thing)?.GetStoreSettings() is not { } sourceSettings
+			|| !Manager.TryGetProfile(sourceSettings, out var sourceProfile)
+			|| !sourceProfile.Enabled
+			|| CanDrainForHigherPriorityMinimum(sourceSettings, thing, storeCell, map)
+		)
+			return NO_LIMIT;
+		var parent = sourceSettings.ParentForStoredThing(thing);
+		var thingDef = thing.InnerDef;
+		int limit = NO_LIMIT;
+		foreach (var quota in sourceProfile.MatchingQuotas(thing)) {
+			if (!quota.HasMin || !sourceSettings.QuotaAllowed(quota))
+				continue;
+			decimal count = sourceProfile.CountFor(quota, parent) + EnrouteStockFor(sourceSettings, quota, parent);
+			limit = Math.Min(limit, AmountUtility.StockToRawFloor(count - quota.MinStock, thingDef));
+		}
+		return limit;
+	}
+
+	private static bool CanDrainForHigherPriorityMinimum(StorageSettings sourceSettings, Thing thing, IntVec3 storeCell, Map map) {
+		var slotGroup = storeCell.GetSlotGroup(map);
+		if (slotGroup is null)
+			return false;
+		var destinationSettings = slotGroup.Settings;
+		return (int)destinationSettings.Priority > (int)sourceSettings.Priority
+			&& destinationSettings.ShouldPreferForMinimum(thing, storeCell, map);
 	}
 
 	private static bool ShouldConsiderGroup(ISlotGroup? group, Faction faction) {
@@ -430,7 +156,7 @@ public static class StorageUtility {
 	}
 
 	private static ISlotGroupParent? ParentForCell(StorageSettings settings, IntVec3? cell, Map? map) {
-		if (!UseSeparateLinkedStorage(settings))
+		if (!settings.UseSeparateLinkedStorage)
 			return null;
 		if (cell is { } c && map is not null) {
 			var slotGroup = c.GetSlotGroup(map);
@@ -445,12 +171,10 @@ public static class StorageUtility {
 		return null;
 	}
 
-	private static int UsedStockSlots(StorageSettings settings, ISlotGroupParent? parent, StorageEvaluationCache? evaluation) {
-		if (evaluation is not null)
-			return evaluation.UsedStockSlots(settings, parent);
+	private static int UsedStockSlots(StorageSettings settings, ISlotGroupParent? parent) {
 		var slots = 0;
-		foreach (var thing in HeldThings(settings, parent))
-			slots += StockSlotsFor(thing);
+		foreach (var thing in settings.HeldThings(parent))
+			slots += thing.StockSlots;
 		return slots;
 	}
 
@@ -468,12 +192,12 @@ public static class StorageUtility {
 			? ExistingStackSpaceInCell(thing, c, map)
 			: ExistingStackSpaceInScope(settings, thing, parent);
 		var extraRaw = Math.Max(0, raw - stackSpace);
-		return AmountUtility.StockSlots(AmountUtility.RawToStock(extraRaw, InnerDefOf(thing)));
+		return AmountUtility.StockSlots(AmountUtility.RawToStock(extraRaw, thing.InnerDef));
 	}
 
 	private static int ExistingStackSpaceInScope(StorageSettings settings, Thing thing, ISlotGroupParent? parent) {
 		var space = 0;
-		foreach (var heldThing in HeldThings(settings, parent)) {
+		foreach (var heldThing in settings.HeldThings(parent)) {
 			if (heldThing.CanStackWith(thing))
 				space += Math.Max(0, heldThing.def.stackLimit - heldThing.stackCount);
 		}
@@ -507,20 +231,16 @@ public static class StorageUtility {
 		}
 	}
 
-	private static decimal EnrouteStockFor(
-		StorageSettings settings,
-		Quota quota,
-		ISlotGroupParent? parent,
-		StorageEvaluationCache? evaluation = null
-	) {
-		if (evaluation is not null)
-			return evaluation.EnrouteStockFor(settings, quota, parent);
-		var map = MapFor(settings, parent);
+	private static decimal EnrouteStockFor(StorageSettings settings, Quota quota, ISlotGroupParent? parent, Job? ignoredJob = null) {
+		var map = settings.MapFor(parent);
 		if (map is null)
 			return 0m;
 		var count = 0m;
-		foreach (var (pawn, job) in EnumerateActiveJobs(map))
+		foreach (var (pawn, job) in EnumerateActiveJobs(map)) {
+			if (job == ignoredJob)
+				continue;
 			count += EnrouteStockForJob(settings, quota, parent, map, pawn, job);
+		}
 		return count;
 	}
 
@@ -532,7 +252,11 @@ public static class StorageUtility {
 		Pawn pawn,
 		Job job
 	) {
-		if (job.def != JobDefOf.HaulToCell || job.haulMode != HaulMode.ToCellStorage || !JobTargetsScope(settings, parent, map, job))
+		if (
+			job.def != JobDefOf.HaulToCell
+			|| job.haulMode != HaulMode.ToCellStorage
+			|| !settings.MatchesScope(parent, map, job.GetTarget(TargetIndex.B))
+		)
 			return ModEnrouteStockForJob(settings, quota, parent, map, pawn, job);
 		var thing = job.GetTarget(TargetIndex.A).Thing;
 		if (thing is null || !quota.Matches(thing))
@@ -540,7 +264,7 @@ public static class StorageUtility {
 		int raw = Math.Max(0, Math.Min(job.count, thing.stackCount));
 		if (pawn.jobs?.curJob == job && pawn.carryTracker.CarriedThing is { } carried && quota.Matches(carried))
 			raw += carried.stackCount;
-		return AmountUtility.RawToStock(raw, InnerDefOf(thing)) + ModEnrouteStockForJob(settings, quota, parent, map, pawn, job);
+		return AmountUtility.RawToStock(raw, thing.InnerDef) + ModEnrouteStockForJob(settings, quota, parent, map, pawn, job);
 	}
 
 	private static decimal ModEnrouteStockForJob(
@@ -563,15 +287,16 @@ public static class StorageUtility {
 		return count;
 	}
 
-	// Owns the minimum-balance state for one (settings, parent) scope: capacity, used slots, unmet-minimum slots,
-	// and the list of quotas currently below their minimum. The cluster of free helpers it replaces all shared
-	// these locals; collapsing them into one ref struct removes a lot of parameter-passing noise.
+	/**
+	 * Owns the minimum-balance state for one (settings, parent) scope: capacity, used slots, unmet-minimum slots,
+	 * and the list of quotas currently below their minimum. The cluster of free helpers it replaces all shared
+	 * these locals; collapsing them into one ref struct removes a lot of parameter-passing noise.
+	 */
 	internal readonly ref struct MinimumBalance {
 		private readonly StorageSettings _settings;
 
 		private readonly ISlotGroupParent? _parent;
 
-		// True only when RefillGate is open AND capacity is known. When false, all checks become no-ops.
 		private readonly bool _gated;
 
 		private readonly int _capacity;
@@ -580,8 +305,6 @@ public static class StorageUtility {
 
 		private readonly int _unmetSlots;
 
-		// Each entry is a quota that is currently below its minimum, paired with the remaining stock to fill it.
-		// null when no quota is under-min.
 		private readonly List<(Quota Quota, decimal Remaining)>? _underMin;
 
 		private MinimumBalance(
@@ -602,21 +325,15 @@ public static class StorageUtility {
 			_underMin = underMin;
 		}
 
-		public static MinimumBalance For(
-			StorageSettings settings,
-			Profile profile,
-			ISlotGroupParent? parent,
-			StorageEvaluationCache? cache
-		) {
-			if (!RefillGate.AllowsRefill(settings) || !TryGetCapacity(settings, parent, out var capacity))
+		public static MinimumBalance For(StorageSettings settings, Profile profile, ISlotGroupParent? parent, Job? ignoredJob = null) {
+			if (!RefillGate.AllowsRefill(settings) || !settings.TryGetCapacity(out var capacity, parent))
 				return new MinimumBalance(settings, parent, false, 0, 0, 0, null);
-
 			List<(Quota Quota, decimal Remaining)>? underMin = null;
 			var unmetSlots = 0;
 			foreach (var quota in profile.Quotas) {
-				if (!profile.QuotaUsable(quota) || !quota.HasMin || !QuotaAllowed(settings, quota))
+				if (!profile.QuotaValid(quota) || !quota.HasMin || !settings.QuotaAllowed(quota))
 					continue;
-				decimal count = profile.CountFor(quota, parent, cache) + EnrouteStockFor(settings, quota, parent, cache);
+				decimal count = profile.CountFor(quota, parent) + EnrouteStockFor(settings, quota, parent, ignoredJob);
 				var remaining = quota.MinStock - count;
 				if (remaining <= 0m)
 					continue;
@@ -624,7 +341,7 @@ public static class StorageUtility {
 				underMin ??= [];
 				underMin.Add((quota, remaining));
 			}
-			var usedSlots = UsedStockSlots(settings, parent, cache);
+			var usedSlots = UsedStockSlots(settings, parent);
 			return new MinimumBalance(settings, parent, true, capacity, usedSlots, unmetSlots, underMin);
 		}
 
@@ -642,7 +359,6 @@ public static class StorageUtility {
 			var threshold = Math.Min(0, available - _unmetSlots);
 			if (BalanceAfterIncoming(thing, maxRaw, cell, map, available) >= threshold)
 				return NO_LIMIT;
-
 			var low = 0;
 			var high = maxRaw;
 			while (low < high) {
@@ -664,12 +380,12 @@ public static class StorageUtility {
 			var shortage = _unmetSlots - available;
 			if (shortage <= 0)
 				return false;
-			foreach (var heldThing in HeldThings(_settings, _parent)) {
+			foreach (var heldThing in _settings.HeldThings(_parent)) {
 				if (ContributesToUnmetMinimum(heldThing))
 					continue;
-				var slots = StockSlotsFor(heldThing);
+				var slots = heldThing.StockSlots;
 				if (heldThing == thing)
-					return shortage > 0;
+					return true;
 				shortage -= slots;
 				if (shortage <= 0)
 					return false;
@@ -690,7 +406,7 @@ public static class StorageUtility {
 		private (int Slots, decimal Stock) ReliefFor(Thing thing, int raw) {
 			if (raw <= 0 || _underMin is null)
 				return (0, 0m);
-			var stock = AmountUtility.RawToStock(raw, InnerDefOf(thing));
+			var stock = AmountUtility.RawToStock(raw, thing.InnerDef);
 			var slots = 0;
 			var stockRelief = 0m;
 			foreach ((var quota, decimal remaining) in _underMin) {
@@ -708,136 +424,266 @@ public static class StorageUtility {
 			return available - consumed - Math.Max(0, _unmetSlots - relief);
 		}
 	}
-}
 
-internal sealed class StorageEvaluationCache(Job? ignoredJob = null) {
-	private readonly Dictionary<(Profile Profile, ThingDef ThingDef), List<Quota>> _matchingQuotas = [];
+	extension(StorageSettings settings) {
+		public bool SupportsExactStorage => settings.owner is StorageGroup or ISlotGroupParent;
 
-	private readonly Dictionary<(StorageSettings Settings, ISlotGroupParent? Parent), ScopeSnapshot> _scopeSnapshots = [];
+		public Profile? ExactStorageProfile => Manager.TryGetProfile(settings, out var profile) ? profile : null;
 
-	private readonly Dictionary<(StorageSettings Settings, ISlotGroupParent? Parent, Quota Quota), decimal> _heldCounts = [];
+		public bool ExactStorageEnabled => settings is {
+			SupportsExactStorage: true,
+			ExactStorageProfile.Enabled: true
+		};
 
-	private readonly Dictionary<(StorageSettings Settings, ISlotGroupParent? Parent, Quota Quota), decimal> _enrouteCounts = [];
+		public bool SeparateLinkedStorageAvailable {
+			get {
+				if (settings.owner is not StorageGroup { MemberCount: > 1 } group)
+					return false;
+				ThingDef? def = null;
+				foreach (var member in group.members) {
+					if (member is not Building_Storage building)
+						return false;
+					if (def is null) {
+						def = building.def;
+						continue;
+					}
+					if (def != building.def)
+						return false;
+				}
+				return def is not null;
+			}
+		}
 
-	private enum CountKind {
-		Held,
-		Enroute
-	}
+		public bool UseSeparateLinkedStorage => settings is {
+			ExactStorageProfile: { Enabled: true, SeparateLinkedStorages: true },
+			SeparateLinkedStorageAvailable: true
+		};
 
-	public bool Contains(StorageSettings? settings, Thing thing) {
-		if (settings is null)
+		public IEnumerable<Thing> HeldThings(ISlotGroupParent? parent = null) {
+			if (parent?.GetSlotGroup() is { } scopedGroup) {
+				foreach (var thing in scopedGroup.HeldThings)
+					yield return thing;
+				yield break;
+			}
+			switch (settings.owner) {
+				case StorageGroup group: {
+					foreach (var thing in group.HeldThings)
+						yield return thing;
+					yield break;
+				}
+				case ISlotGroupParent settingsParent when settingsParent.GetSlotGroup() is { } slotGroup: {
+					foreach (var thing in slotGroup.HeldThings)
+						yield return thing;
+					break;
+				}
+			}
+		}
+
+		public bool Contains(Thing thing) {
+			var parent = settings.ParentForStoredThing(thing);
+			foreach (var heldThing in settings.HeldThings(parent)) {
+				if (heldThing == thing)
+					return true;
+			}
 			return false;
-		var parent = StorageUtility.ParentForStoredThing(settings, thing);
-		return SnapshotFor(settings, parent).HeldThings.Contains(thing);
-	}
-
-	public List<Quota> MatchingQuotas(Profile profile, Thing thing) => MatchingQuotas(profile, StorageUtility.InnerDefOf(thing));
-
-	public List<Quota> MatchingQuotas(Profile profile, ThingDef thingDef) {
-		var key = (profile, thingDef);
-		if (_matchingQuotas.TryGetValue(key, out var quotas))
-			return quotas;
-		quotas = profile.MatchingQuotas(thingDef);
-		_matchingQuotas.Add(key, quotas);
-		return quotas;
-	}
-
-	public decimal CountFor(StorageSettings settings, Quota quota, ISlotGroupParent? parent) {
-		var key = (settings, parent, quota);
-		if (_heldCounts.TryGetValue(key, out decimal count))
-			return count;
-		count = SnapshotFor(settings, parent).Sum(quota, CountKind.Held);
-		_heldCounts.Add(key, count);
-		return count;
-	}
-
-	public decimal EnrouteStockFor(StorageSettings settings, Quota quota, ISlotGroupParent? parent) {
-		var key = (settings, parent, quota);
-		if (_enrouteCounts.TryGetValue(key, out decimal count))
-			return count;
-		count = SnapshotFor(settings, parent).Sum(quota, CountKind.Enroute) + StorageUtility.ModEnrouteStockFor(settings, quota, parent, ignoredJob);
-		_enrouteCounts.Add(key, count);
-		return count;
-	}
-
-	public int UsedStockSlots(StorageSettings settings, ISlotGroupParent? parent) => SnapshotFor(settings, parent).UsedStockSlots;
-
-	private static void AddEnroute(
-		ScopeSnapshot snapshot,
-		StorageSettings settings,
-		ISlotGroupParent? parent,
-		Map map,
-		Pawn pawn,
-		Job job,
-		Job? ignoredJob
-	) {
-		if (job == ignoredJob)
-			return;
-		if (job.def != JobDefOf.HaulToCell || job.haulMode != HaulMode.ToCellStorage)
-			return;
-		if (!StorageUtility.JobTargetsScope(settings, parent, map, job))
-			return;
-		var thing = job.GetTarget(TargetIndex.A).Thing;
-		if (thing is null)
-			return;
-		snapshot.AddEnroute(StorageUtility.InnerDefOf(thing), Math.Max(0, Math.Min(job.count, thing.stackCount)));
-		if (pawn.jobs?.curJob == job && pawn.carryTracker.CarriedThing is { } carried)
-			snapshot.AddEnroute(StorageUtility.InnerDefOf(carried), carried.stackCount);
-	}
-
-	private ScopeSnapshot SnapshotFor(StorageSettings settings, ISlotGroupParent? parent) {
-		var key = (settings, parent);
-		if (_scopeSnapshots.TryGetValue(key, out var snapshot))
-			return snapshot;
-
-		snapshot = new ScopeSnapshot();
-		foreach (var thing in StorageUtility.HeldThings(settings, parent)) {
-			snapshot.HeldThings.Add(thing);
-			snapshot.AddHeld(StorageUtility.InnerDefOf(thing), thing.stackCount);
 		}
 
-		var map = StorageUtility.MapFor(settings, parent);
-		if (map is not null) {
-			foreach (var (pawn, job) in StorageUtility.EnumerateActiveJobs(map))
-				AddEnroute(snapshot, settings, parent, map, pawn, job, ignoredJob);
+		public bool Allows(Thing thing, bool currentlyStored, ISlotGroupParent? parent = null) {
+			if (!settings.SupportsExactStorage || !Manager.TryGetProfile(settings, out var profile) || !profile.Enabled)
+				return true;
+			if (parent is null && currentlyStored)
+				parent = settings.ParentForStoredThing(thing);
+			if (settings.UseSeparateLinkedStorage && parent is null && !currentlyStored)
+				return true;
+			var quotas = profile.MatchingQuotas(thing).ToList();
+			foreach (var quota in quotas) {
+				if (settings.QuotaAllowed(quota) && quota.HasMax && profile.CountFor(quota, parent) > quota.MaxStock)
+					return false;
+			}
+			var balance = MinimumBalance.For(settings, profile, parent);
+			if (currentlyStored)
+				return !balance.ShouldDisplace(thing);
+			if (!balance.CanAccept(thing, null, null))
+				return false;
+			if (quotas.Count == 0)
+				return true;
+			if (!RefillGate.AllowsRefill(settings))
+				return false;
+			foreach (var quota in quotas) {
+				if (settings.QuotaAllowed(quota) && quota.HasMax && profile.CountFor(quota, parent) >= quota.MaxStock)
+					return false;
+			}
+			return true;
 		}
 
-		_scopeSnapshots.Add(key, snapshot);
-		return snapshot;
+		public bool ShouldPreferForMinimum(Thing thing, IntVec3? storeCell = null, Map? map = null, Job? ignoredJob = null) {
+			if (!settings.SupportsExactStorage || !Manager.TryGetProfile(settings, out var profile) || !profile.Enabled)
+				return false;
+			var parent = ParentForCell(settings, storeCell, map);
+			var quotas = profile.MatchingQuotas(thing).ToList();
+			if (quotas.Count == 0 || !RefillGate.AllowsRefill(settings))
+				return false;
+			var underMin = false;
+			foreach (var quota in quotas) {
+				decimal count = profile.CountFor(quota, parent) + EnrouteStockFor(settings, quota, parent, ignoredJob);
+				if (quota.HasMax && count >= quota.MaxStock)
+					return false;
+				if (quota.HasMin && count < quota.MinStock)
+					underMin = true;
+			}
+			return underMin;
+		}
+
+		public int DestinationCountLimit(Thing thing, bool preferMinimum, IntVec3 storeCell, Map map, Job? ignoredJob = null) {
+			if (!Manager.TryGetProfile(settings, out var profile) || !profile.Enabled)
+				return NO_LIMIT;
+			var parent = ParentForCell(settings, storeCell, map);
+			var quotas = profile.MatchingQuotas(thing).ToList();
+			var thingDef = thing.InnerDef;
+			int limit = NO_LIMIT;
+			if (preferMinimum) {
+				foreach (var quota in quotas) {
+					if (!quota.HasMin)
+						continue;
+					decimal count = profile.CountFor(quota, parent) + EnrouteStockFor(settings, quota, parent, ignoredJob);
+					decimal remaining = quota.MinStock - count;
+					if (remaining > 0m)
+						limit = Math.Min(limit, AmountUtility.StockToRawCeiling(remaining, thingDef));
+				}
+			}
+			foreach (var quota in quotas) {
+				if (!quota.HasMax)
+					continue;
+				decimal count = profile.CountFor(quota, parent) + EnrouteStockFor(settings, quota, parent, ignoredJob);
+				limit = Math.Min(limit, AmountUtility.StockToRawFloor(quota.MaxStock - count, thingDef));
+			}
+			var balance = MinimumBalance.For(settings, profile, parent, ignoredJob);
+			var balanceLimit = balance.CountLimit(thing, storeCell, map);
+			if (balanceLimit != NO_LIMIT)
+				limit = Math.Min(limit, balanceLimit);
+			return Math.Max(0, limit);
+		}
+
+		public bool TryGetCapacity(out int capacity, ISlotGroupParent? parent = null) {
+			parent ??= ParentForCell(settings, null, null);
+			capacity = 0;
+			var cells = StorageCells(settings, parent, out var map);
+			if (map is null || cells is null)
+				return false;
+			foreach (var cell in cells)
+				capacity += Math.Max(1, cell.GetMaxItemsAllowedInCell(map));
+			return true;
+		}
+
+		public void NotifyChanged() => settings.owner?.Notify_SettingsChanged();
+
+		public bool MatchesScope(ISlotGroupParent? parent, Map map, LocalTargetInfo target) {
+			if (target.HasThing || !target.Cell.IsValid)
+				return false;
+			var slotGroup = target.Cell.GetSlotGroup(map);
+			if (slotGroup is null)
+				return false;
+			if (parent is not null)
+				return slotGroup.parent == parent;
+			return settings.owner switch {
+				StorageGroup group              => slotGroup.StorageGroup == group,
+				ISlotGroupParent settingsParent => slotGroup.parent == settingsParent,
+				_                               => false
+			};
+		}
+
+		public bool QuotaAllowed(Quota quota) {
+			switch (quota) {
+				case ThingQuota { ThingDef: { } thingDef }: return settings.filter.Allows(thingDef);
+				case ThingCategoryQuota { CategoryDef: { } categoryDef }: {
+					foreach (var childDef in DefCache.DescendantThingDefsOf(categoryDef)) {
+						if (settings.filter.Allows(childDef))
+							return true;
+					}
+					break;
+				}
+			}
+			return false;
+		}
+
+		public ISlotGroupParent? ParentForStoredThing(Thing thing) {
+			if (!settings.UseSeparateLinkedStorage || !thing.Spawned)
+				return null;
+			var slotGroup = thing.Position.GetSlotGroup(thing.Map);
+			if (slotGroup is null)
+				return null;
+			return settings.owner is StorageGroup group && slotGroup.StorageGroup == group ? slotGroup.parent : null;
+		}
+
+		public Map? MapFor(ISlotGroupParent? parent) {
+			if (parent is not null)
+				return parent.Map;
+			return settings.owner switch {
+				StorageGroup group           => group.Map,
+				IHaulDestination destination => destination.Map,
+				_                            => null
+			};
+		}
 	}
 
-	private sealed class ScopeSnapshot {
-		private readonly Dictionary<ThingDef, decimal> _heldStockByDef = [];
+	extension(Thing thing) {
+		public ThingDef InnerDef => (thing.GetInnerIfMinified() ?? thing).def;
 
-		private readonly Dictionary<ThingDef, decimal> _enrouteStockByDef = [];
+		public int StockSlots => AmountUtility.StockSlots(AmountUtility.RawToStock(thing.stackCount, thing.InnerDef));
 
-		public HashSet<Thing> HeldThings { get; } = [];
-
-		public int UsedStockSlots { get; private set; }
-
-		public void AddHeld(ThingDef thingDef, int rawCount) {
-			AddStock(_heldStockByDef, thingDef, rawCount);
-			UsedStockSlots += AmountUtility.StockSlots(AmountUtility.RawToStock(rawCount, thingDef));
+		public int SourceExcessLimit() {
+			if (
+				!thing.Spawned
+				|| StoreUtility.CurrentHaulDestinationOf(thing)?.GetStoreSettings() is not { } settings
+				|| !Manager.TryGetProfile(settings, out var profile)
+				|| !profile.Enabled
+			)
+				return NO_LIMIT;
+			var parent = settings.ParentForStoredThing(thing);
+			var thingDef = thing.InnerDef;
+			int limit = NO_LIMIT;
+			foreach (var quota in profile.MatchingQuotas(thing)) {
+				if (!quota.HasMax)
+					continue;
+				decimal excess = profile.CountFor(quota, parent) - quota.MaxStock;
+				if (excess > 0m)
+					limit = Math.Min(limit, AmountUtility.StockToRawCeiling(excess, thingDef));
+			}
+			return limit;
 		}
 
-		public void AddEnroute(ThingDef thingDef, int rawCount) => AddStock(_enrouteStockByDef, thingDef, rawCount);
-
-		public decimal Sum(Quota quota, CountKind kind) {
-			var source = kind == CountKind.Held ? _heldStockByDef : _enrouteStockByDef;
-			if (quota.ThingDef is { } thingDef)
-				return source.GetValueOrDefault(thingDef);
-			if (quota.CategoryDef is not { } categoryDef)
-				return 0m;
-			var count = 0m;
-			foreach (var descendant in DefCache.DescendantThingDefsOf(categoryDef))
-				count += source.GetValueOrDefault(descendant);
-			return count;
+		public int SourceCountLimit(IntVec3 storeCell, Map map) {
+			var limit = thing.SourceExcessLimit();
+			var minLimit = SourceMinimumLimit(thing, storeCell, map);
+			if (minLimit != NO_LIMIT)
+				limit = Math.Min(limit, minLimit);
+			return Math.Max(0, limit);
 		}
 
-		private static void AddStock(Dictionary<ThingDef, decimal> stockByDef, ThingDef thingDef, int rawCount) {
-			if (rawCount <= 0)
-				return;
-			stockByDef[thingDef] = stockByDef.GetValueOrDefault(thingDef) + AmountUtility.RawToStock(rawCount, thingDef);
+		public bool IsCurrentStorageScope(StorageSettings settings, ISlotGroupParent parent) {
+			if (!thing.Spawned)
+				return false;
+			var sourceParent = thing.Position.GetSlotGroup(thing.Map)?.parent;
+			if (sourceParent is null)
+				return false;
+			if (sourceParent == parent)
+				return true;
+			return sourceParent.GetStoreSettings() == settings && !settings.UseSeparateLinkedStorage;
+		}
+	}
+
+	extension(IntVec3 cell) {
+		public bool CanReceiveAt(Map map, Thing thing) {
+			var slotGroup = cell.GetSlotGroup(map);
+			if (slotGroup is null || !slotGroup.parent.Accepts(thing))
+				return false;
+			if (thing.IsCurrentStorageScope(slotGroup.Settings, slotGroup.parent))
+				return false;
+			int limit = slotGroup.Settings.DestinationCountLimit(thing, false, cell, map);
+			if (limit <= 0)
+				return false;
+			int sourceLimit = thing.SourceCountLimit(cell, map);
+			return sourceLimit is NO_LIMIT or > 0;
 		}
 	}
 }

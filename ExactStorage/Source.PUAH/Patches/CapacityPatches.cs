@@ -12,8 +12,11 @@ internal static class CapacityPatches {
 	internal static void WorkGiverHaulToInventory_CapacityAt_Postfix(Thing thing, IntVec3 storeCell, Map map, ref int __result) {
 		if (__result <= 0 || storeCell.GetSlotGroup(map)?.Settings is not { } settings)
 			return;
-		bool preferMin = StorageUtility.ShouldPreferForMinimum(settings, thing, storeCell, map);
-		int limit = StorageUtility.DestinationCountLimit(settings, thing, preferMin, storeCell, map);
+		bool preferMin = settings.ShouldPreferForMinimum(thing, storeCell, map);
+		int limit = settings.DestinationCountLimit(thing, preferMin, storeCell, map);
+		int sourceLimit = thing.SourceCountLimit(storeCell, map);
+		if (sourceLimit != StorageUtility.NO_LIMIT)
+			limit = Math.Min(limit, sourceLimit);
 		if (limit != StorageUtility.NO_LIMIT)
 			__result = Math.Min(__result, limit);
 	}

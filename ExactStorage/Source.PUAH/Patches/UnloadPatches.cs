@@ -36,8 +36,8 @@ internal static class UnloadPatches {
 		ref int countToDrop = ref Access.CountToDrop(driver);
 		if (countToDrop <= 0)
 			return;
-		bool preferMin = StorageUtility.ShouldPreferForMinimum(settings, thing, target.Cell, map, job);
-		int limit = StorageUtility.DestinationCountLimit(settings, thing, preferMin, target.Cell, map, job);
+		bool preferMin = settings.ShouldPreferForMinimum(thing, target.Cell, map, job);
+		int limit = settings.DestinationCountLimit(thing, preferMin, target.Cell, map, job);
 		if (limit == StorageUtility.NO_LIMIT || limit >= countToDrop)
 			return;
 		if (limit <= 0) {

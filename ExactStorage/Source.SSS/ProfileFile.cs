@@ -28,11 +28,11 @@ internal sealed class ProfileFile(FileInfo file) {
 			Write("UseStockUnits", profile.UseStockUnits.ToString());
 			Write("SeparateLinkedStorages", profile.SeparateLinkedStorages.ToString());
 			foreach (var quota in profile.Quotas) {
-				if (!quota.Active || !quota.IsValidKey)
+				if (!quota.Valid || !quota.Active)
 					continue;
-				if (quota.ThingDef is { } thingDef)
+				if (quota is ThingQuota { ThingDef: { } thingDef })
 					WriteQuota(_THING, thingDef.defName, quota);
-				else if (quota.CategoryDef is { } categoryDef)
+				else if (quota is ThingCategoryQuota { CategoryDef: { } categoryDef })
 					WriteQuota(_CATEGORY, categoryDef.defName, quota);
 			}
 			File.AppendAllText(file.FullName, _sb.ToString());
@@ -61,7 +61,7 @@ internal sealed class ProfileFile(FileInfo file) {
 			if (profile is null)
 				return;
 			Manager.SetProfile(settings, profile);
-			StorageUtility.NotifyChanged(settings);
+			settings.NotifyChanged();
 		}
 		catch (Exception e) {
 			Helper.Logger.Warning($"Failed to load Exact Storage profile from '{file.Name}': {e.GetType().Name} {e.Message}");
@@ -91,12 +91,12 @@ internal sealed class ProfileFile(FileInfo file) {
 	private static void ReadQuota(Profile profile, string[] parts) {
 		if (parts.Length < 6)
 			return;
-		var quota = parts[2] switch {
+		Quota? quota = parts[2] switch {
 			_THING => DefDatabase<ThingDef>.GetNamedSilentFail(parts[3]) is { } thingDef
-				? profile.GetQuota(thingDef, true)
+				? profile.GetOrCreateQuota(thingDef)
 				: null,
 			_CATEGORY => DefDatabase<ThingCategoryDef>.GetNamedSilentFail(parts[3]) is { } categoryDef
-				? profile.GetQuota(categoryDef, true)
+				? profile.GetOrCreateQuota(categoryDef)
 				: null,
 			_ => null
 		};

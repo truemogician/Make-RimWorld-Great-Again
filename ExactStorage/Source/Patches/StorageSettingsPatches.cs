@@ -35,22 +35,20 @@ internal static class StorageSettingsPatches {
 	internal static void StorageSettings_AllowedToAcceptThing_Postfix(StorageSettings __instance, Thing t, ref bool __result) {
 		if (!__result)
 			return;
-		if (!StorageUtility.SupportsExactStorage(__instance) || !Manager.TryGetProfile(__instance, out var profile) || !profile.Enabled)
+		if (!__instance.SupportsExactStorage || !Manager.TryGetProfile(__instance, out var profile) || !profile.Enabled)
 			return;
-		var evaluation = new StorageEvaluationCache();
-		__result = StorageUtility.Allows(__instance, t, StorageUtility.Contains(__instance, t, evaluation), null, evaluation);
+		__result = __instance.Allows(t, __instance.Contains(t));
 	}
 
 	[HarmonyPatch(typeof(StorageSettings), nameof(StorageSettings.AllowedToAccept), typeof(ThingDef))]
 	[HarmonyPostfix]
 	internal static void StorageSettings_AllowedToAcceptThingDef_Postfix(StorageSettings __instance, ThingDef t, ref bool __result) {
-		if (!__result || !StorageUtility.SupportsExactStorage(__instance) || !Manager.TryGetProfile(__instance, out var profile))
+		if (!__result || !__instance.SupportsExactStorage || !Manager.TryGetProfile(__instance, out var profile))
 			return;
-		if (!profile.Enabled || StorageUtility.UseSeparateLinkedStorage(__instance))
+		if (!profile.Enabled || __instance.UseSeparateLinkedStorage)
 			return;
-		var evaluation = new StorageEvaluationCache();
-		foreach (var quota in evaluation.MatchingQuotas(profile, t)) {
-			if (quota.HasMax && profile.CountFor(quota, null, evaluation) >= quota.MaxStock) {
+		foreach (var quota in profile.MatchingQuotas(t)) {
+			if (quota.HasMax && profile.CountFor(quota) >= quota.MaxStock) {
 				__result = false;
 				return;
 			}
@@ -65,7 +63,6 @@ internal static class StorageSettingsPatches {
 		var settings = __instance.GetStoreSettings();
 		if (!Manager.TryGetProfile(settings, out var profile) || !profile.Enabled)
 			return;
-		var evaluation = new StorageEvaluationCache();
-		__result = StorageUtility.Allows(settings, t, StorageUtility.Contains(settings, t, evaluation), __instance, evaluation);
+		__result = settings.Allows(t, settings.Contains(t), __instance);
 	}
 }
