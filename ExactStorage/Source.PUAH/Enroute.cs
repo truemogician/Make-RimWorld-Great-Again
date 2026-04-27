@@ -18,7 +18,7 @@ internal static class Enroute {
 	}
 
 	private static decimal CountHaulToInventory(StorageSettings settings, Quota quota, ISlotGroupParent? parent, Map map, Pawn pawn, Job job) {
-		if (!Targeting.MatchesAny(settings, parent, map, job))
+		if (!TargetsScope(settings, parent, map, job))
 			return 0m;
 		var count = 0m;
 		var current = job.GetTarget(TargetIndex.A).Thing;
@@ -35,10 +35,22 @@ internal static class Enroute {
 	}
 
 	private static decimal CountUnload(StorageSettings settings, Quota quota, ISlotGroupParent? parent, Map map, Pawn pawn, Job job) {
-		if (!Targeting.Matches(settings, parent, map, job.GetTarget(TargetIndex.B)))
+		if (!StorageUtility.MatchesScope(settings, parent, map, job.GetTarget(TargetIndex.B)))
 			return 0m;
 		var thing = job.GetTarget(TargetIndex.A).Thing;
 		return thing is not null && quota.Matches(thing) ? StockFor(thing, CountToDrop(pawn, job, thing)) : 0m;
+	}
+
+	private static bool TargetsScope(StorageSettings settings, ISlotGroupParent? parent, Map map, Job job) {
+		if (StorageUtility.MatchesScope(settings, parent, map, job.GetTarget(TargetIndex.B)))
+			return true;
+		if (job.targetQueueB is null)
+			return false;
+		foreach (var target in job.targetQueueB) {
+			if (StorageUtility.MatchesScope(settings, parent, map, target))
+				return true;
+		}
+		return false;
 	}
 
 	private static decimal CountTrackedInventory(Quota quota, Pawn pawn) {
@@ -60,7 +72,7 @@ internal static class Enroute {
 
 	private static int CountToDrop(Pawn pawn, Job job, Thing thing) {
 		if (pawn.jobs?.curJob == job && pawn.jobs.curDriver is JobDriver_UnloadYourHauledInventory driver) {
-			var count = Access.CountToDrop(driver);
+			int count = Access.CountToDrop(driver);
 			if (count > 0)
 				return Math.Min(count, thing.stackCount);
 		}
@@ -68,7 +80,7 @@ internal static class Enroute {
 	}
 
 	private static decimal StockFor(Thing thing, int count) {
-		var raw = Math.Max(0, Math.Min(count, thing.stackCount));
+		int raw = Math.Max(0, Math.Min(count, thing.stackCount));
 		return AmountUtility.RawToStock(raw, (thing.GetInnerIfMinified() ?? thing).def);
 	}
 }

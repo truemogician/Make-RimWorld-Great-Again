@@ -52,6 +52,8 @@ internal static class StorageBehaviorPatches {
 	internal static void HaulAIUtility_HaulToCellStorageJob_Postfix(Pawn p, Thing t, IntVec3 storeCell, ref Job? __result) {
 		if (__result is null || storeCell.GetSlotGroup(p.Map)?.Settings is not { } settings)
 			return;
+		if (!Manager.TryGetProfile(settings, out var profile) || !profile.Enabled)
+			return;
 		var evaluation = new StorageEvaluationCache();
 		var preferMin = ShouldPreferForMinimum(settings, t, storeCell, p.Map, evaluation);
 		var limit = DestinationCountLimit(settings, t, preferMin, storeCell, p.Map, evaluation);
@@ -68,7 +70,7 @@ internal static class StorageBehaviorPatches {
 	internal static void HaulAIUtility_HaulToStorageJob_Postfix(Thing t, ref Job? __result) {
 		if (__result is null)
 			return;
-		var limit = SourceExcessLimit(t, new StorageEvaluationCache());
+		var limit = SourceExcessLimit(t);
 		if (limit != NO_LIMIT)
 			__result.count = Mathf.Min(__result.count, limit);
 		if (__result.count <= 0)

@@ -18,10 +18,6 @@ public sealed class Quota : IExposable {
 
 	private string? _maxStockValue;
 
-	private int _legacyMin = -1;
-
-	private int _legacyMax = -1;
-
 	public Quota() { }
 
 	public Quota(ThingDef thingDef) => _thingDef = thingDef;
@@ -37,13 +33,9 @@ public sealed class Quota : IExposable {
 		}
 		Scribe_Values.Look(ref _minStockValue, "minStock");
 		Scribe_Values.Look(ref _maxStockValue, "maxStock");
-		if (Scribe.mode == LoadSaveMode.LoadingVars) {
-			Scribe_Values.Look(ref _legacyMin, "min", -1);
-			Scribe_Values.Look(ref _legacyMax, "max", -1);
-		}
 		if (Scribe.mode == LoadSaveMode.PostLoadInit) {
-			_minStock = ParseSaved(_minStockValue, _legacyMin);
-			_maxStock = ParseSaved(_maxStockValue, _legacyMax);
+			_minStock = ParseSaved(_minStockValue);
+			_maxStock = ParseSaved(_maxStockValue);
 		}
 	}
 
@@ -90,19 +82,9 @@ public sealed class Quota : IExposable {
 		_maxStock = _maxStock
 	};
 
-	private decimal ParseSaved(string? value, int legacyValue) {
+	private static decimal ParseSaved(string? value) {
 		if (!value.NullOrEmpty() && TryParse(value!, out var stock))
 			return Normalize(stock);
-		return LegacyToStock(legacyValue);
-	}
-
-	private decimal LegacyToStock(int value) {
-		if (value < 0)
-			return UNSET;
-		if (_thingDef is not null)
-			return RawToStock(value, _thingDef);
-		if (_categoryDef is not null && DefCache.TryGetUnifiedStackLimit(_categoryDef, out var stackLimit))
-			return RawToStock(value, stackLimit);
-		return value;
+		return UNSET;
 	}
 }

@@ -47,10 +47,10 @@ internal sealed class ProfileFile(FileInfo file) {
 			return;
 		try {
 			Profile? profile = null;
-			foreach (var line in File.ReadLines(file.FullName)) {
+			foreach (string? line in File.ReadLines(file.FullName)) {
 				if (!line.StartsWith(_PREFIX + "|"))
 					continue;
-				var parts = line.Split('|');
+				string[]? parts = line.Split('|');
 				if (parts.Length < 3)
 					continue;
 				profile ??= new Profile(settings);
@@ -71,15 +71,15 @@ internal sealed class ProfileFile(FileInfo file) {
 	private static void ReadLine(Profile profile, string[] parts) {
 		switch (parts[1]) {
 			case "Enabled":
-				if (bool.TryParse(parts[2], out var enabled))
+				if (bool.TryParse(parts[2], out bool enabled))
 					profile.Enabled = enabled;
 				return;
 			case "UseStockUnits":
-				if (bool.TryParse(parts[2], out var useStockUnits))
+				if (bool.TryParse(parts[2], out bool useStockUnits))
 					profile.UseStockUnits = useStockUnits;
 				return;
 			case "SeparateLinkedStorages":
-				if (bool.TryParse(parts[2], out var separateLinkedStorages))
+				if (bool.TryParse(parts[2], out bool separateLinkedStorages))
 					profile.SeparateLinkedStorages = separateLinkedStorages;
 				return;
 			case "Quota":
@@ -106,14 +106,14 @@ internal sealed class ProfileFile(FileInfo file) {
 		quota.MaxStock = ParseStock(parts[5]);
 	}
 
+	private static decimal ParseStock(string value) =>
+		decimal.TryParse(value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal stock)
+			? AmountUtility.Normalize(stock)
+			: AmountUtility.UNSET;
+
 	private void WriteQuota(string type, string defName, Quota quota) {
 		_sb.AppendLine(string.Join('|', _PREFIX, "Quota", type, defName, AmountUtility.Format(quota.MinStock), AmountUtility.Format(quota.MaxStock)));
 	}
-
-	private static decimal ParseStock(string value) =>
-		decimal.TryParse(value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var stock)
-			? AmountUtility.Normalize(stock)
-			: AmountUtility.UNSET;
 
 	private void Write(string key, string value) {
 		_sb.AppendLine(string.Join('|', _PREFIX, key, value));

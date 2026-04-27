@@ -4,12 +4,13 @@ using System.Globalization;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
+using TrueMogician.RimWorld.Utility;
 using UnityEngine;
 using Verse;
 
 namespace TrueMogician.RimWorld.ExactStorage;
 
-using static Utility.Formatter;
+using static Formatter;
 using static StorageUtility;
 
 [StaticConstructorOnStartup]
@@ -32,7 +33,7 @@ public static class UI {
 
 	private const float _BAR_TOP_PADDING = 6f;
 
-	private const float _FIELD_WIDTH = 42f;
+	private const float _FIELD_WIDTH = 40f;
 
 	private const float _FIELD_GAP = 4f;
 
@@ -42,37 +43,21 @@ public static class UI {
 
 	private static readonly Color _warnColor = new(0.9f, 0.25f, 0.18f);
 
-	private static readonly Color _maxColor = new(0.3f, 0.55f, 0.95f);
+	private static readonly Texture2D _okTex = SolidTex(_okColor);
 
-	private static readonly Color _unknownColor = new(0.6f, 0.6f, 0.6f);
+	private static readonly Texture2D _warnTex = SolidTex(_warnColor);
 
-	private static Texture2D? _okTex;
+	private static readonly Texture2D _maxTex = SolidTex(new(0.3f, 0.55f, 0.95f));
 
-	private static Texture2D? _warnTex;
+	private static readonly Texture2D _unknownTex = SolidTex(new(0.6f, 0.6f, 0.6f));
 
-	private static Texture2D? _maxTex;
-
-	private static Texture2D? _unknownTex;
-
-	private static readonly Dictionary<Quota, string> _minBuffers = new();
-
-	private static readonly Dictionary<Quota, string> _maxBuffers = new();
-
-	private static readonly HashSet<string> _focusedFields = [];
+	private static readonly Dictionary<(Quota Quota, bool Min), (string Buffer, bool Focused)> _editState = new();
 
 	public static StorageSettings? CurrentSettings { get; set; }
 
 	public static object? CurrentRow { get; set; }
 
 	public static bool Active => CurrentSettings is { } settings && Enabled(settings);
-
-	private static Texture2D OkTex => _okTex ??= SolidTex(_okColor);
-
-	private static Texture2D WarnTex => _warnTex ??= SolidTex(_warnColor);
-
-	private static Texture2D MaxTex => _maxTex ??= SolidTex(_maxColor);
-
-	private static Texture2D UnknownTex => _unknownTex ??= SolidTex(_unknownColor);
 
 	public static bool Enabled(StorageSettings settings)
 		=> SupportsExactStorage(settings) && Manager.TryGetProfile(settings, out var profile) && profile.Enabled;
@@ -133,11 +118,10 @@ public static class UI {
 		if (!Enabled(settings))
 			return;
 		var profile = Manager.GetProfile(settings);
-		var min = 0;
-		var max = 0;
+		int min = 0, max = 0;
 		var hasMax = false;
 		foreach (var quota in profile.Quotas) {
-			if (!profile.QuotaUsable(quota) || !QuotaAllowed(settings, profile, quota))
+			if (!profile.QuotaUsable(quota) || !QuotaAllowed(settings, quota))
 				continue;
 			if (quota.HasMin)
 				min += AmountUtility.StockSlots(quota.MinStock);
@@ -150,22 +134,22 @@ public static class UI {
 				hasMax = true;
 			}
 		}
-		var rect = new Rect(8f, y, WindowWidth(settings) - 16f, 22f);
+		var rect = new Rect(_TOGGLE_MARGIN, y, WindowWidth(settings) - _TOGGLE_MARGIN * 2, 22f);
 		var knownCapacity = TryGetCapacity(settings, out var capacity);
 		var warning = knownCapacity && min > capacity;
 		var fill = knownCapacity && capacity > 0 ? Mathf.Clamp01((float)min / capacity) : 1f;
 
 		Widgets.DrawMenuSection(rect);
-		var bar = rect.ContractedBy(3f);
-		GUI.DrawTexture(bar, UnknownTex);
+		var bar = rect.ContractedBy(2f);
+		GUI.DrawTexture(bar, _unknownTex);
 		if (knownCapacity && capacity > 0 && hasMax) {
 			var maxBar = bar;
 			maxBar.width *= Mathf.Clamp01((float)max / capacity);
-			GUI.DrawTexture(maxBar, MaxTex);
+			GUI.DrawTexture(maxBar, _maxTex);
 		}
 		var minBar = bar;
 		minBar.width *= fill;
-		GUI.DrawTexture(minBar, warning ? WarnTex : knownCapacity ? OkTex : UnknownTex);
+		GUI.DrawTexture(minBar, warning ? _warnTex : knownCapacity ? _okTex : _unknownTex);
 		DrawSummaryLabel(bar, min, hasMax, max, knownCapacity, capacity, warning);
 		if (Mouse.IsOver(rect)) {
 			var tip = warning
@@ -223,12 +207,11 @@ public static class UI {
 	}
 
 	private static void DrawField(Rect rect, Quota quota, bool min, StorageSettings settings, Profile profile) {
+		var key = (quota, min);
 		var value = min ? quota.MinStock : quota.MaxStock;
-		var buffers = min ? _minBuffers : _maxBuffers;
 		var control = FieldControlName(quota, min);
-		var wasFocused = _focusedFields.Contains(control);
-		if (!buffers.TryGetValue(quota, out var buffer) || !wasFocused)
-			buffer = DisplayValue(profile, quota, value);
+		var wasFocused = _editState.TryGetValue(key, out var state) && state.Focused;
+		var buffer = wasFocused ? state.Buffer : DisplayValue(profile, quota, value);
 		Widgets.DrawHighlightIfMouseover(rect);
 		TooltipHandler.TipRegion(
 			rect,
@@ -244,26 +227,25 @@ public static class UI {
 		next = Sanitize(next, profile.UseStockUnits);
 		var focused = GUI.GetNameOfFocusedControl() == control;
 		if (focused) {
-			_focusedFields.Add(control);
-			buffers[quota] = next;
+			_editState[key] = (next, true);
 			return;
 		}
 		if (!wasFocused)
 			return;
-		_focusedFields.Remove(control);
-		buffers[quota] = next;
-		CommitField(buffers, quota, min, settings, profile);
+		_editState[key] = (next, false);
+		CommitField(quota, min, settings, profile);
 	}
 
-	private static void CommitField(Dictionary<Quota, string> buffers, Quota quota, bool min, StorageSettings settings, Profile profile) {
-		if (!buffers.TryGetValue(quota, out var text))
+	private static void CommitField(Quota quota, bool min, StorageSettings settings, Profile profile) {
+		var key = (quota, min);
+		if (!_editState.TryGetValue(key, out var state))
 			return;
 		var oldValue = min ? quota.MinStock : quota.MaxStock;
 		decimal value;
-		if (text.NullOrEmpty())
+		if (state.Buffer.NullOrEmpty())
 			value = AmountUtility.UNSET;
-		else if (!TryParseDisplayValue(profile, quota, text, out value)) {
-			buffers[quota] = DisplayValue(profile, quota, oldValue);
+		else if (!TryParseDisplayValue(profile, quota, state.Buffer, out value)) {
+			_editState[key] = (DisplayValue(profile, quota, oldValue), false);
 			return;
 		}
 		if (min)
@@ -271,7 +253,7 @@ public static class UI {
 		else
 			quota.MaxStock = value;
 		var newValue = min ? quota.MinStock : quota.MaxStock;
-		buffers[quota] = DisplayValue(profile, quota, newValue);
+		_editState[key] = (DisplayValue(profile, quota, newValue), false);
 		if (newValue == oldValue)
 			return;
 		ClearInactive(settings, quota);
@@ -287,35 +269,19 @@ public static class UI {
 		};
 	}
 
-	private static bool QuotaAllowed(StorageSettings settings, Profile profile, Quota quota) {
-		if (!profile.QuotaUsable(quota))
-			return false;
-		if (quota.ThingDef is { } thingDef)
-			return settings.filter.Allows(thingDef);
-		if (quota.CategoryDef is { } categoryDef) {
-			foreach (var childDef in DefCache.DescendantThingDefsOf(categoryDef)) {
-				if (settings.filter.Allows(childDef))
-					return true;
-			}
-		}
-		return false;
-	}
-
 	private static void DrawSummaryLabel(Rect rect, int min, bool hasMax, int max, bool knownCapacity, int capacity, bool warning) {
 		var label = knownCapacity
 			? hasMax
 				? Translate("Summary", min, max, capacity)
 				: Translate("SummaryNoMax", min, capacity)
 			: Translate("SummaryUnknownCapacity", min, hasMax ? max.ToStringCached() : "-");
-		using (new TextBlock(GameFont.Tiny, TextAnchor.MiddleLeft, false)) {
+		using (new TextBlock(GameFont.Tiny, TextAnchor.MiddleLeft, false, Color.black)) {
 			var width = Text.CalcSize(label).x;
 			var x = rect.center.x - width / 2f;
 			var labelRect = new Rect(x, rect.y, width, rect.height);
-			GUI.color = Color.black;
 			Widgets.Label(new Rect(labelRect.x + 1f, labelRect.y + 1f, labelRect.width, labelRect.height), label);
 			GUI.color = Color.white;
 			Widgets.Label(labelRect, label);
-			GUI.color = Color.white;
 		}
 	}
 
@@ -362,11 +328,7 @@ public static class UI {
 
 	private static string FieldControlName(Quota quota, bool min) => $"{nameof(ExactStorage)}.{quota.Key}.{(min ? "Min" : "Max")}";
 
-	private static void ClearBuffers() {
-		_minBuffers.Clear();
-		_maxBuffers.Clear();
-		_focusedFields.Clear();
-	}
+	private static void ClearBuffers() => _editState.Clear();
 
 	private static string Sanitize(string text, bool allowDecimal) {
 		if (text.NullOrEmpty())

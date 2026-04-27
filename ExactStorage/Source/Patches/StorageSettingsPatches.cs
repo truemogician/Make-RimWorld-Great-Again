@@ -35,6 +35,8 @@ internal static class StorageSettingsPatches {
 	internal static void StorageSettings_AllowedToAcceptThing_Postfix(StorageSettings __instance, Thing t, ref bool __result) {
 		if (!__result)
 			return;
+		if (!StorageUtility.SupportsExactStorage(__instance) || !Manager.TryGetProfile(__instance, out var profile) || !profile.Enabled)
+			return;
 		var evaluation = new StorageEvaluationCache();
 		__result = StorageUtility.Allows(__instance, t, StorageUtility.Contains(__instance, t, evaluation), null, evaluation);
 	}
@@ -61,6 +63,8 @@ internal static class StorageSettingsPatches {
 		if (!__result)
 			return;
 		var settings = __instance.GetStoreSettings();
+		if (!Manager.TryGetProfile(settings, out var profile) || !profile.Enabled)
+			return;
 		var evaluation = new StorageEvaluationCache();
 		__result = StorageUtility.Allows(settings, t, StorageUtility.Contains(settings, t, evaluation), __instance, evaluation);
 	}

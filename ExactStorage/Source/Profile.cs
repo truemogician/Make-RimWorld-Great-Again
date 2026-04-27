@@ -13,41 +13,62 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 	public bool UseStockUnits;
 
 	public bool SeparateLinkedStorages;
+
 	private StorageSettings? _settings = settings;
 
-	private List<Quota> _quotas = [];
+	private readonly Dictionary<ThingDef, Quota> _thingQuotas = new();
+
+	private readonly Dictionary<ThingCategoryDef, Quota> _categoryQuotas = new();
 
 	public void ExposeData() {
 		Scribe_Values.Look(ref Enabled, "enabled");
 		Scribe_Values.Look(ref UseStockUnits, "useStockUnits");
 		Scribe_Values.Look(ref SeparateLinkedStorages, "separateLinkedStorages");
-		Scribe_Collections.Look(ref _quotas, "quotas", LookMode.Deep);
-		_quotas ??= [];
-		if (Scribe.mode == LoadSaveMode.PostLoadInit)
+		var flat = Scribe.mode == LoadSaveMode.Saving ? FlattenQuotas() : null;
+		Scribe_Collections.Look(ref flat, "quotas", LookMode.Deep);
+		if (Scribe.mode == LoadSaveMode.PostLoadInit) {
+			RebuildIndices(flat);
 			PruneInactive();
+		}
 	}
 
-	public IReadOnlyList<Quota> Quotas => _quotas;
+	public IEnumerable<Quota> Quotas => _thingQuotas.Values.Concat(_categoryQuotas.Values);
 
-	public bool HasData => Enabled || UseStockUnits || SeparateLinkedStorages || _quotas.Any(q => q is { Active: true, IsValidKey: true });
+	public bool HasData {
+		get {
+			if (Enabled || UseStockUnits || SeparateLinkedStorages)
+				return true;
+			foreach (var quota in _thingQuotas.Values) {
+				if (quota.Active)
+					return true;
+			}
+			foreach (var quota in _categoryQuotas.Values) {
+				if (quota.Active)
+					return true;
+			}
+			return false;
+		}
+	}
 
 	public void Bind(StorageSettings settings) => _settings = settings;
 
 	public Quota? GetQuota(ThingDef def, bool create = false) {
-		var quota = _quotas.FirstOrDefault(q => q.ThingDef == def);
-		if (quota is null && create) {
-			quota = new Quota(def);
-			_quotas.Add(quota);
-		}
+		if (_thingQuotas.TryGetValue(def, out var quota))
+			return quota;
+		if (!create)
+			return null;
+		quota = new Quota(def);
+		_thingQuotas.Add(def, quota);
 		return quota;
 	}
 
 	public Quota? GetQuota(ThingCategoryDef def, bool create = false) {
-		var quota = _quotas.FirstOrDefault(q => q.CategoryDef == def);
-		if (quota is null && create) {
-			quota = new Quota(def);
-			_quotas.Add(quota);
-		}
+		if (_categoryQuotas.TryGetValue(def, out var quota))
+			return quota;
+		if (!create)
+			return null;
+		quota = new Quota(def);
+		_categoryQuotas.Add(def, quota);
 		return quota;
 	}
 
@@ -55,9 +76,11 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 
 	public List<Quota> MatchingQuotas(ThingDef def) {
 		var result = new List<Quota>();
-		foreach (var quota in _quotas) {
-			if (QuotaUsable(quota) && quota.Matches(def))
-				result.Add(quota);
+		if (_thingQuotas.TryGetValue(def, out var thingQuota) && QuotaUsable(thingQuota))
+			result.Add(thingQuota);
+		foreach (var category in DefCache.AncestorCategoriesOf(def)) {
+			if (_categoryQuotas.TryGetValue(category, out var categoryQuota) && QuotaUsable(categoryQuota))
+				result.Add(categoryQuota);
 		}
 		return result;
 	}
@@ -72,15 +95,22 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 
 	public decimal CountFor(Quota quota, ISlotGroupParent? parent = null) => CountFor(quota, parent, null);
 
-	public void PruneInactive() => _quotas.RemoveAll(q => !q.Active || !q.IsValidKey);
+	public void PruneInactive() {
+		PruneInactive(_thingQuotas);
+		PruneInactive(_categoryQuotas);
+	}
 
 	public Profile CloneFor(StorageSettings settings) {
-		return new Profile(settings) {
+		var clone = new Profile(settings) {
 			Enabled = Enabled,
 			UseStockUnits = UseStockUnits,
-			SeparateLinkedStorages = SeparateLinkedStorages,
-			_quotas = _quotas.Select(q => q.Clone()).ToList()
+			SeparateLinkedStorages = SeparateLinkedStorages
 		};
+		foreach (var (def, quota) in _thingQuotas)
+			clone._thingQuotas.Add(def, quota.Clone());
+		foreach (var (def, quota) in _categoryQuotas)
+			clone._categoryQuotas.Add(def, quota.Clone());
+		return clone;
 	}
 
 	internal decimal CountFor(Quota quota, ISlotGroupParent? parent, StorageEvaluationCache? cache) {
@@ -90,7 +120,43 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 		return CountForSlow(quota, parent);
 	}
 
+	private static void PruneInactive<TKey>(Dictionary<TKey, Quota> dict) where TKey : notnull {
+		List<TKey>? toRemove = null;
+		foreach (var (key, quota) in dict) {
+			if (quota.Active && quota.IsValidKey)
+				continue;
+			toRemove ??= [];
+			toRemove.Add(key);
+		}
+		if (toRemove is null)
+			return;
+		foreach (var key in toRemove)
+			dict.Remove(key);
+	}
+
 	private static decimal CountStock(Thing thing) => AmountUtility.RawToStock(thing.stackCount, (thing.GetInnerIfMinified() ?? thing).def);
+
+	private List<Quota> FlattenQuotas() {
+		var flat = new List<Quota>(_thingQuotas.Count + _categoryQuotas.Count);
+		foreach (var quota in _thingQuotas.Values)
+			flat.Add(quota);
+		foreach (var quota in _categoryQuotas.Values)
+			flat.Add(quota);
+		return flat;
+	}
+
+	private void RebuildIndices(List<Quota>? flat) {
+		_thingQuotas.Clear();
+		_categoryQuotas.Clear();
+		if (flat is null)
+			return;
+		foreach (var quota in flat) {
+			if (quota.ThingDef is { } thingDef)
+				_thingQuotas[thingDef] = quota;
+			else if (quota.CategoryDef is { } categoryDef)
+				_categoryQuotas[categoryDef] = quota;
+		}
+	}
 
 	private decimal CountForSlow(Quota quota, ISlotGroupParent? parent) {
 		var count = 0m;

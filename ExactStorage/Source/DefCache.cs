@@ -25,6 +25,11 @@ public static class DefCache {
 		return _descendantThingDefs.TryGetValue(def, out var thingDefs) ? thingDefs : [];
 	}
 
+	public static IReadOnlyList<ThingCategoryDef> AncestorCategoriesOf(ThingDef def) {
+		Initialize();
+		return _ancestorCategories.TryGetValue(def, out var categories) ? categories : [];
+	}
+
 	public static bool Contains(ThingCategoryDef categoryDef, ThingDef thingDef) {
 		Initialize();
 		return _ancestorCategories.TryGetValue(thingDef, out var categories) && categories.Contains(categoryDef);
