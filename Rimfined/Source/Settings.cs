@@ -67,7 +67,7 @@ public class Settings : FeatureSettings<Features> {
 					? Translate(nameof(DefaultNoTargetMarkTtl), "slider.permanent")
 					: Translate(nameof(DefaultNoTargetMarkTtl), "slider.label") is not { } fmt ? null
 						: string.Format(fmt, _defaultNoTargetMarkTtlHours);
-				using (Scoped.Text(TextAnchor.MiddleRight))
+				using (new TextBlock(TextAnchor.MiddleRight))
 					Widgets.Label(rects[1], sliderLabel);
 				_defaultNoTargetMarkTtlHours = (byte)Widgets.HorizontalSlider(
 					rects[2],

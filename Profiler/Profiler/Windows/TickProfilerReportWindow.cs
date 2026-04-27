@@ -62,12 +62,12 @@ public sealed class TickProfilerReportWindow : Window {
 		var rowIndex = 0;
 
 		if (showTitle) {
-			using (Scoped.Text(TextAnchor.MiddleCenter, GameFont.Medium))
+			using (new TextBlock(GameFont.Medium, TextAnchor.MiddleCenter))
 				Widgets.Label(rows[rowIndex], "Tick Profiler");
 			rowIndex++;
 		}
 
-		using (Scoped.Text(font: GameFont.Small)) {
+		using (new TextBlock(GameFont.Small)) {
 			DrawSummary(rows[rowIndex]);
 			rowIndex++;
 			DrawLists(rows[rowIndex]);
@@ -110,14 +110,14 @@ public sealed class TickProfilerReportWindow : Window {
 		double pct = totalTicks == 0 ? 0 : entry.Ticks * 100.0 / totalTicks;
 		double avg = entry.Count == 0 ? 0 : entry.AverageTicks * 1_000_000.0 / Stopwatch.Frequency;
 
-		using (Scoped.Text(TextAnchor.MiddleRight)) {
+		using (new TextBlock(TextAnchor.MiddleRight)) {
 			Widgets.Label(cols[0], FormatTimeInTick(entry.Ticks));
 			Widgets.Label(cols[1], $"{pct:F1}");
 			Widgets.Label(cols[2], FormatCount(entry.Count));
 			Widgets.Label(cols[3], FormatTime(avg, "µs"));
 		}
 
-		using (Scoped.Text(TextAnchor.MiddleLeft)) {
+		using (new TextBlock(TextAnchor.MiddleLeft)) {
 			var labelRect = cols[4];
 			string truncated = entry.Label.Truncate(labelRect.width);
 			Widgets.Label(labelRect, truncated);
@@ -128,13 +128,13 @@ public sealed class TickProfilerReportWindow : Window {
 
 	private static void DrawHeaderRow(Rect rect) {
 		var cols = rect.ToFlexbox(_TABLE_COLUMNS, _TABLE_COLUMN_GAP).ToList();
-		using (Scoped.Text(TextAnchor.MiddleRight)) {
+		using (new TextBlock(TextAnchor.MiddleRight)) {
 			Widgets.Label(cols[0], Bold("Time"));
 			Widgets.Label(cols[1], Bold("%"));
 			Widgets.Label(cols[2], Bold("Count"));
 			Widgets.Label(cols[3], Bold("Avg"));
 		}
-		using (Scoped.Text(TextAnchor.MiddleLeft))
+		using (new TextBlock(TextAnchor.MiddleLeft))
 			Widgets.Label(cols[4], Bold("Label"));
 	}
 
@@ -149,7 +149,7 @@ public sealed class TickProfilerReportWindow : Window {
 				continue;
 			(string label, string value) = item.Value;
 			var cols = group.ToFlexbox([55f, Flexbox.Length.Auto], 4f).ToList();
-			using (Scoped.Text(TextAnchor.MiddleLeft)) {
+			using (new TextBlock(TextAnchor.MiddleLeft)) {
 				Widgets.Label(cols[0], Bold(label + ":"));
 				Widgets.Label(cols[1], value);
 			}
@@ -169,7 +169,7 @@ public sealed class TickProfilerReportWindow : Window {
 		var inner = rect.ContractedBy(_SECTION_PADDING);
 		var rows = inner.ToFlexbox(FlexDirection.Column, 2, 2f).ToList();
 		var summary = TickPatches.Summary;
-		using (Scoped.Text(TextAnchor.UpperLeft, wordWrap: false)) {
+		using (new TextBlock(null, TextAnchor.UpperLeft, false)) {
 			DrawSummaryRow(
 				rows[0],
 				("Ticks", FormatCount(summary.TickCount)),
