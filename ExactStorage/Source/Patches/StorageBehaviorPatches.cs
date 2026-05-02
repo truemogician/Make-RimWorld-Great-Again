@@ -40,8 +40,13 @@ internal static class StorageBehaviorPatches {
 	[HarmonyPatch(typeof(HaulAIUtility), nameof(HaulAIUtility.HaulToCellStorageJob))]
 	[HarmonyPostfix]
 	internal static void HaulAIUtility_HaulToCellStorageJob_Postfix(Pawn p, Thing t, IntVec3 storeCell, ref Job? __result) {
-		if (__result is null || storeCell.GetSlotGroup(p.Map)?.Settings is not { } settings)
+		if (__result is null || storeCell.GetSlotGroup(p.Map) is not { } slotGroup)
 			return;
+		var settings = slotGroup.Settings;
+		if (t.IsCurrentStorageScope(settings, slotGroup.parent)) {
+			__result = null;
+			return;
+		}
 		var limit = NO_LIMIT;
 		if (Manager.TryGetProfile(settings, out var profile) && profile.Enabled) {
 			var preferMin = settings.ShouldPreferForMinimum(t, storeCell, p.Map);

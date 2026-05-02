@@ -21,7 +21,7 @@ public abstract class Quota : IExposable {
 		}
 		Scribe_Values.Look(ref minStock, "minStock");
 		Scribe_Values.Look(ref maxStock, "maxStock");
-		if (Scribe.mode == LoadSaveMode.PostLoadInit) {
+		if (Scribe.mode == LoadSaveMode.LoadingVars) {
 			_minStock = ParseSaved(minStock);
 			_maxStock = ParseSaved(maxStock);
 		}

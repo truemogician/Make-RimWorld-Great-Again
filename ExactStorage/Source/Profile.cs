@@ -26,7 +26,7 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 			quotas = Quotas.ToList();
 		}
 		Scribe_Collections.Look(ref quotas, "quotas", LookMode.Deep);
-		if (Scribe.mode == LoadSaveMode.PostLoadInit) {
+		if (Scribe.mode == LoadSaveMode.LoadingVars) {
 			_quotas.Clear();
 			foreach (var quota in quotas)
 				_quotas[quota.Key] = quota;
@@ -79,11 +79,28 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 
 	public bool QuotaValid(Quota quota) => QuotaLocallyUsable(quota) && CategoryTotalsValid(quota);
 
+	public bool HasActiveAncestorCategoryQuota(Quota quota, StorageSettings settings) {
+		var ancestors = quota switch {
+			ThingQuota { ThingDef: { } thingDef }               => DefCache.AncestorCategoriesOf(thingDef),
+			ThingCategoryQuota { CategoryDef: { } categoryDef } => AncestorCategoryDefsOf(categoryDef),
+			_                                                   => []
+		};
+		foreach (var category in ancestors) {
+			if (_quotas.TryGetValue(category.defName, out var ancestor) && QuotaValid(ancestor) && settings.QuotaAllowed(ancestor))
+				return true;
+		}
+		return false;
+	}
+
 	public bool CategoryTotalsValid(Quota quota) {
 		if (quota is not ThingCategoryQuota { CategoryDef: { } categoryDef })
 			return true;
-		if (quota.HasMin && quota.MinStock < CategoryChildSum(categoryDef, false))
-			return false;
+		if (quota.HasMin) {
+			if (quota.MinStock < CategoryChildSum(categoryDef, false))
+				return false;
+			if (CategoryMaxBound(categoryDef) is { } cap && quota.MinStock > cap)
+				return false;
+		}
 		return !quota.HasMax || quota.MaxStock >= CategoryChildSum(categoryDef, true);
 	}
 
@@ -112,6 +129,14 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 	}
 
 	private static decimal CountStock(Thing thing) => AmountUtility.RawToStock(thing.stackCount, (thing.GetInnerIfMinified() ?? thing).def);
+
+	private static IEnumerable<ThingCategoryDef> AncestorCategoryDefsOf(ThingCategoryDef def) {
+		var current = def.parent;
+		while (current is not null) {
+			yield return current;
+			current = current.parent;
+		}
+	}
 
 	private static decimal? ChildContribution(Quota quota, bool max) {
 		if (max) {
@@ -151,6 +176,31 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 				sum += contribution;
 			else
 				sum += CategoryChildSum(childCategory, max);
+		}
+		return sum;
+	}
+
+	private decimal? CategoryMaxBound(ThingCategoryDef categoryDef) {
+		var sum = 0m;
+		foreach (var thingDef in DefCache.DirectThingDefsOf(categoryDef)) {
+			if (
+				!_quotas.TryGetValue(thingDef.defName, out var thingQuota)
+				|| !QuotaLocallyUsable(thingQuota)
+				|| !thingQuota.HasMax
+			)
+				return null;
+			sum += thingQuota.MaxStock;
+		}
+		foreach (var childCategory in DefCache.ChildCategoriesOf(categoryDef)) {
+			if (_quotas.TryGetValue(childCategory.defName, out var categoryQuota) && QuotaLocallyUsable(categoryQuota)) {
+				if (!categoryQuota.HasMax)
+					return null;
+				sum += categoryQuota.MaxStock;
+				continue;
+			}
+			if (CategoryMaxBound(childCategory) is not { } childSum)
+				return null;
+			sum += childSum;
 		}
 		return sum;
 	}

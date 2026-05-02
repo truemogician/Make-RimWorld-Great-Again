@@ -120,7 +120,7 @@ public static class UI {
 		int min = 0, max = 0;
 		var hasMax = false;
 		foreach (var quota in profile.Quotas) {
-			if (!profile.QuotaValid(quota) || !settings.QuotaAllowed(quota))
+			if (!profile.QuotaValid(quota) || !settings.QuotaAllowed(quota) || profile.HasActiveAncestorCategoryQuota(quota, settings))
 				continue;
 			if (quota.HasMin)
 				min += AmountUtility.StockSlots(quota.MinStock);

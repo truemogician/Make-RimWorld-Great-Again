@@ -121,8 +121,7 @@ public static class StorageUtility {
 
 	private static int SourceMinimumLimit(Thing thing, IntVec3 storeCell, Map map) {
 		if (
-			!thing.Spawned
-			|| StoreUtility.CurrentHaulDestinationOf(thing)?.GetStoreSettings() is not { } sourceSettings
+			StoreUtility.CurrentHaulDestinationOf(thing)?.GetStoreSettings() is not { } sourceSettings
 			|| !Manager.TryGetProfile(sourceSettings, out var sourceProfile)
 			|| !sourceProfile.Enabled
 			|| CanDrainForHigherPriorityMinimum(sourceSettings, thing, storeCell, map)
@@ -331,7 +330,7 @@ public static class StorageUtility {
 			List<(Quota Quota, decimal Remaining)>? underMin = null;
 			var unmetSlots = 0;
 			foreach (var quota in profile.Quotas) {
-				if (!profile.QuotaValid(quota) || !quota.HasMin || !settings.QuotaAllowed(quota))
+				if (!profile.QuotaValid(quota) || !quota.HasMin || !settings.QuotaAllowed(quota) || profile.HasActiveAncestorCategoryQuota(quota, settings))
 					continue;
 				decimal count = profile.CountFor(quota, parent) + EnrouteStockFor(settings, quota, parent, ignoredJob);
 				var remaining = quota.MinStock - count;
@@ -607,12 +606,15 @@ public static class StorageUtility {
 		}
 
 		public ISlotGroupParent? ParentForStoredThing(Thing thing) {
-			if (!settings.UseSeparateLinkedStorage || !thing.Spawned)
+			if (!settings.UseSeparateLinkedStorage)
 				return null;
-			var slotGroup = thing.Position.GetSlotGroup(thing.Map);
-			if (slotGroup is null)
-				return null;
-			return settings.owner is StorageGroup group && slotGroup.StorageGroup == group ? slotGroup.parent : null;
+			if (thing.Spawned) {
+				var slotGroup = thing.Position.GetSlotGroup(thing.Map);
+				if (slotGroup is null)
+					return null;
+				return settings.owner is StorageGroup group && slotGroup.StorageGroup == group ? slotGroup.parent : null;
+			}
+			return StoreUtility.CurrentHaulDestinationOf(thing) is ISlotGroupParent parent && parent.GetStoreSettings() == settings ? parent : null;
 		}
 
 		public Map? MapFor(ISlotGroupParent? parent) {
@@ -633,8 +635,7 @@ public static class StorageUtility {
 
 		public int SourceExcessLimit() {
 			if (
-				!thing.Spawned
-				|| StoreUtility.CurrentHaulDestinationOf(thing)?.GetStoreSettings() is not { } settings
+				StoreUtility.CurrentHaulDestinationOf(thing)?.GetStoreSettings() is not { } settings
 				|| !Manager.TryGetProfile(settings, out var profile)
 				|| !profile.Enabled
 			)
@@ -661,9 +662,9 @@ public static class StorageUtility {
 		}
 
 		public bool IsCurrentStorageScope(StorageSettings settings, ISlotGroupParent parent) {
-			if (!thing.Spawned)
-				return false;
-			var sourceParent = thing.Position.GetSlotGroup(thing.Map)?.parent;
+			var sourceParent = thing.Spawned
+				? thing.Position.GetSlotGroup(thing.Map)?.parent
+				: StoreUtility.CurrentHaulDestinationOf(thing) as ISlotGroupParent;
 			if (sourceParent is null)
 				return false;
 			if (sourceParent == parent)
