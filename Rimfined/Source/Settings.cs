@@ -5,6 +5,7 @@ using CaseExtensions;
 using HarmonyLib;
 using RimWorld;
 using TrueMogician.RimWorld.Rimfined.Patches;
+using TrueMogician.RimWorld.Rimfined.Static;
 using TrueMogician.RimWorld.Utility;
 using TrueMogician.RimWorld.Utility.Attributes;
 using TrueMogician.RimWorld.Utility.Extensions;
@@ -30,7 +31,10 @@ public enum Features : ulong {
 
 	ConstructionPriority = 1 << 4,
 
-	ShipChunkAutoDeconstruct = 1 << 5
+	ShipChunkAutoDeconstruct = 1 << 5,
+
+	[Feature(ModDependencies = [ModIds.VehicleFramework])]
+	PendingPassenger = 1 << 6
 }
 
 [Translation("Rimfined.Settings")]

@@ -9,6 +9,7 @@
 	<Project Path="Rimsonable/Source/Rimsonable.csproj" Id="01788e0d-9dd5-48a2-92e4-fbd03b91a42d" />
 	<Project Path="Rimsonable/Source.CE/Rimsonable.CE.csproj" />
 	<Project Path="Rimsonable/Source.VEF/Rimsonable.VEF.csproj" />
+	<Project Path="Rimsonable/Source.VVE/Rimsonable.VVE.csproj" />
 	<Project Path="Rimsonable/Source.RimHUD/Rimsonable.RimHUD.csproj" />
 	<Project Path="Rimfined/Source/Rimfined.csproj" />
 	<Project Path="Rimfined/Source.CE/Rimfined.CE.csproj" />

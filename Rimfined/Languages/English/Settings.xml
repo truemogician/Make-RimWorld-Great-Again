@@ -29,6 +29,10 @@
 				<label>Ship chunk auto deconstruct</label>
 				<description>Automatically designates ship chunks (including gravship wreckage) for deconstruction when they appear.</description>
 			</ShipChunkAutoDeconstruct>
+			<PendingPassenger>
+				<label>Pending passenger</label>
+				<description>In the vehicle passenger tab, show pawns currently boarding (or queued to board) as pending entries with a cancel button. Requires Vehicle Framework.</description>
+			</PendingPassenger>
 		</Features>
 		<AutoNoTargetForPrisonerRelatives>
 			<label>Include prisoner relations</label>
@@ -103,4 +107,9 @@
 			<CanceledInvalid>Delayed acceptance canceled for {0}: the selected reward is no longer available.</CanceledInvalid>
 		</Messages>
 	</Rimfined.DelayedQuestAcceptance>
+	<Rimfined.VF.PendingPassenger>
+		<statusLabel>Pending</statusLabel>
+		<rowTooltip>{0} is on their way to board {1}.</rowTooltip>
+		<cancelTooltip>Cancel boarding for {0}.</cancelTooltip>
+	</Rimfined.VF.PendingPassenger>
 </LanguageData>
