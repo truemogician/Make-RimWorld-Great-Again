@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
+using TrueMogician.Extensions.Enumerable;
 using TrueMogician.RimWorld.Utility;
 using TrueMogician.RimWorld.Utility.Extensions;
 using TrueMogician.RimWorld.Utility.GUI;
@@ -13,6 +14,7 @@ using Verse;
 
 namespace TrueMogician.RimWorld.ExactStorage;
 
+using static AmountUtility;
 using static Formatter;
 
 [StaticConstructorOnStartup]
@@ -117,31 +119,17 @@ public static class UI {
 		if (!settings.ExactStorageEnabled)
 			return;
 		var profile = Manager.GetProfile(settings);
-		int min = 0, max = 0;
-		var hasMax = false;
-		foreach (var quota in profile.Quotas) {
-			if (!profile.QuotaValid(quota) || !settings.QuotaAllowed(quota) || profile.HasActiveAncestorCategoryQuota(quota, settings))
-				continue;
-			if (quota.HasMin)
-				min += AmountUtility.StockSlots(quota.MinStock);
-			if (quota.HasMax) {
-				max += AmountUtility.StockSlots(quota.MaxStock);
-				hasMax = true;
-			}
-			else if (quota.HasMin) {
-				max += AmountUtility.StockSlots(quota.MinStock);
-				hasMax = true;
-			}
-		}
+		uint min = DefCache.RootCategoryDefs.Sum(c => profile.CategoryChildrenSlots(c, false));
+		uint max = DefCache.RootCategoryDefs.Sum(c => profile.CategoryChildrenSlots(c, true));
 		var rect = new Rect(_TOGGLE_MARGIN, y, WindowWidth(settings) - _TOGGLE_MARGIN * 2, 22f);
 		bool knownCapacity = settings.TryGetCapacity(out int capacity);
-		bool warning = knownCapacity && min > capacity;
+		bool warning = knownCapacity && min > (uint)Math.Max(0, capacity);
 		float fill = knownCapacity && capacity > 0 ? Mathf.Clamp01((float)min / capacity) : 1f;
 
 		Widgets.DrawMenuSection(rect);
 		var bar = rect.ContractedBy(2f);
 		GUI.DrawTexture(bar, _unknownTex);
-		if (knownCapacity && capacity > 0 && hasMax) {
+		if (knownCapacity && capacity > 0 && max != 0u) {
 			var maxBar = bar;
 			maxBar.width *= Mathf.Clamp01((float)max / capacity);
 			GUI.DrawTexture(maxBar, _maxTex);
@@ -149,12 +137,12 @@ public static class UI {
 		var minBar = bar;
 		minBar.width *= fill;
 		GUI.DrawTexture(minBar, warning ? _warnTex : knownCapacity ? _okTex : _unknownTex);
-		DrawSummaryLabel(bar, min, hasMax, max, knownCapacity, capacity);
+		DrawSummaryLabel(bar, min, max, knownCapacity, capacity);
 		if (Mouse.IsOver(rect)) {
 			string tip = warning
 				? Translate("SummaryWarning")
 				: knownCapacity
-					? hasMax
+					? max != 0u
 						? Translate("Summary", min, max, capacity)
 						: Translate("SummaryNoMax", min, capacity)
 					: Translate("SummaryUnknownCapacityWarning");
@@ -183,14 +171,14 @@ public static class UI {
 	private static void DrawUnitToggle(StorageSettings settings, float y) {
 		var profile = Manager.GetProfile(settings);
 		var rect = new Rect(_TOGGLE_MARGIN, y, WindowWidth(settings) - 2 * _TOGGLE_MARGIN, 24f);
-		bool useStockUnits = profile.UseStockUnits;
-		Widgets.CheckboxLabeled(rect, Translate("UseStockUnits"), ref useStockUnits);
-		if (useStockUnits != profile.UseStockUnits) {
-			profile.UseStockUnits = useStockUnits;
+		bool useStackUnit = profile.UseStackUnit;
+		Widgets.CheckboxLabeled(rect, Translate("UseStackUnit"), ref useStackUnit);
+		if (useStackUnit != profile.UseStackUnit) {
+			profile.UseStackUnit = useStackUnit;
 			ClearBuffers();
 			settings.NotifyChanged();
 		}
-		TooltipHandler.TipRegion(rect, Translate("UseStockUnitsTip"));
+		TooltipHandler.TipRegion(rect, Translate("UseStackUnitTip"));
 	}
 
 	private static void DrawSeparateToggle(StorageSettings settings, float y) {
@@ -207,7 +195,7 @@ public static class UI {
 
 	private static void DrawField(Rect rect, Quota quota, bool min, StorageSettings settings, Profile profile) {
 		var key = (quota, min);
-		decimal value = min ? quota.MinStock : quota.MaxStock;
+		decimal value = min ? quota.Min : quota.Max;
 		string control = FieldControlName(quota, min);
 		string committed = DisplayValue(profile, quota, value);
 		bool wasFocused = _editState.TryGetValue(key, out var state) && state.Focused;
@@ -234,7 +222,7 @@ public static class UI {
 		GUI.SetNextControlName(control);
 		string? next = Widgets.TextField(rect, buffer);
 		GUI.color = color;
-		next = Sanitize(next, profile.UseStockUnits);
+		next = Sanitize(next, profile.UseStackUnit);
 		bool focused = GUI.GetNameOfFocusedControl() == control;
 		if (focused) {
 			_editState[key] = (next, true);
@@ -256,19 +244,19 @@ public static class UI {
 		var key = (quota, min);
 		if (!_editState.TryGetValue(key, out var state))
 			return;
-		decimal oldValue = min ? quota.MinStock : quota.MaxStock;
+		decimal oldValue = min ? quota.Min : quota.Max;
 		decimal value;
 		if (state.Buffer.NullOrEmpty())
-			value = AmountUtility.UNSET;
+			value = UNSET;
 		else if (!TryParseDisplayValue(profile, quota, state.Buffer, out value)) {
 			_editState[key] = (DisplayValue(profile, quota, oldValue), false);
 			return;
 		}
 		if (min)
-			quota.MinStock = value;
+			quota.Min = value;
 		else
-			quota.MaxStock = value;
-		decimal newValue = min ? quota.MinStock : quota.MaxStock;
+			quota.Max = value;
+		decimal newValue = min ? quota.Min : quota.Max;
 		_editState[key] = (DisplayValue(profile, quota, newValue), false);
 		if (newValue == oldValue)
 			return;
@@ -285,12 +273,12 @@ public static class UI {
 		};
 	}
 
-	private static void DrawSummaryLabel(Rect rect, int min, bool hasMax, int max, bool knownCapacity, int capacity) {
+	private static void DrawSummaryLabel(Rect rect, uint min, uint max, bool knownCapacity, int capacity) {
 		string label = knownCapacity
-			? hasMax
+			? max != 0u
 				? Translate("Summary", min, max, capacity)
 				: Translate("SummaryNoMax", min, capacity)
-			: Translate("SummaryUnknownCapacity", min, hasMax ? max.ToStringCached() : "-");
+			: Translate("SummaryUnknownCapacity", min, max != 0u ? max.ToString(CultureInfo.InvariantCulture) : "-");
 		using (new TextBlock(GameFont.Tiny, TextAnchor.MiddleLeft, false, Color.black)) {
 			float width = Text.CalcSize(label).x;
 			float x = rect.center.x - width / 2f;
@@ -301,28 +289,28 @@ public static class UI {
 		}
 	}
 
-	private static string DisplayValue(Profile profile, Quota quota, decimal stock) {
-		if (stock < 0m)
+	private static string DisplayValue(Profile profile, Quota quota, decimal stack) {
+		if (stack < 0m)
 			return string.Empty;
-		if (profile.UseStockUnits)
-			return AmountUtility.Format(stock);
+		if (profile.UseStackUnit)
+			return Format(stack);
 		if (!TryGetRawStackLimit(quota, out int stackLimit))
 			return string.Empty;
-		decimal raw = Math.Round(stock * stackLimit, 0, MidpointRounding.AwayFromZero);
+		decimal raw = Math.Round(stack * stackLimit, 0, MidpointRounding.AwayFromZero);
 		return raw.ToString(CultureInfo.InvariantCulture);
 	}
 
-	private static bool TryParseDisplayValue(Profile profile, Quota quota, string text, out decimal stock) {
-		stock = AmountUtility.UNSET;
-		if (profile.UseStockUnits) {
-			if (!AmountUtility.TryParse(text, out stock))
+	private static bool TryParseDisplayValue(Profile profile, Quota quota, string text, out decimal stack) {
+		stack = UNSET;
+		if (profile.UseStackUnit) {
+			if (!TryParse(text, out stack))
 				return false;
-			stock = AmountUtility.Normalize(stock);
+			stack = Normalize(stack);
 			return true;
 		}
 		if (!TryGetRawStackLimit(quota, out int stackLimit) || !int.TryParse(text, out int raw))
 			return false;
-		stock = AmountUtility.RawToStock(raw, stackLimit);
+		stack = RawToStack(raw, stackLimit);
 		return true;
 	}
 
@@ -338,8 +326,8 @@ public static class UI {
 		}
 	}
 
-	private static bool CategoryEditable(Profile profile, ThingCategoryDef categoryDef)
-		=> profile.UseStockUnits || DefCache.TryGetUnifiedStackLimit(categoryDef, out _);
+	private static bool CategoryEditable(Profile profile, ThingCategoryDef categoryDef) =>
+		profile.UseStackUnit || DefCache.TryGetUnifiedStackLimit(categoryDef, out _);
 
 	private static string Translate(string key, params NamedArgument[] args) => $"{nameof(ExactStorage)}.{nameof(UI)}.{key}".Translate(args);
 

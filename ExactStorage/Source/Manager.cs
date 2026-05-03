@@ -19,7 +19,7 @@ public static class Manager {
 		_profiles.Remove(settings);
 		if (profile is null || !profile.HasData)
 			return;
-		profile.Bind(settings);
+		profile.Settings = settings;
 		_profiles.Add(settings, profile);
 	}
 

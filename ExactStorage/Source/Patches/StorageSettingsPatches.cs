@@ -27,12 +27,12 @@ internal static class StorageSettingsPatches {
 
 	[HarmonyPatch(typeof(StorageSettings), nameof(StorageSettings.CopyFrom))]
 	[HarmonyPostfix]
-	internal static void StorageSettings_CopyFrom_Postfix(StorageSettings __instance, StorageSettings other)
-		=> Manager.CopyProfile(__instance, other);
+	internal static void StorageSettings_CopyFrom_Postfix(StorageSettings __instance, StorageSettings other) =>
+		Manager.CopyProfile(__instance, other);
 
 	[HarmonyPatch(typeof(StorageSettings), nameof(StorageSettings.AllowedToAccept), typeof(Thing))]
 	[HarmonyPostfix]
-	internal static void StorageSettings_AllowedToAcceptThing_Postfix(StorageSettings __instance, Thing t, ref bool __result) {
+	internal static void StorageSettings_AllowedToAccept_Postfix(StorageSettings __instance, Thing t, ref bool __result) {
 		if (!__result)
 			return;
 		if (!__instance.SupportsExactStorage || !Manager.TryGetProfile(__instance, out var profile) || !profile.Enabled)
@@ -42,13 +42,13 @@ internal static class StorageSettingsPatches {
 
 	[HarmonyPatch(typeof(StorageSettings), nameof(StorageSettings.AllowedToAccept), typeof(ThingDef))]
 	[HarmonyPostfix]
-	internal static void StorageSettings_AllowedToAcceptThingDef_Postfix(StorageSettings __instance, ThingDef t, ref bool __result) {
+	internal static void StorageSettings_AllowedToAccept_Postfix(StorageSettings __instance, ThingDef t, ref bool __result) {
 		if (!__result || !__instance.SupportsExactStorage || !Manager.TryGetProfile(__instance, out var profile))
 			return;
 		if (!profile.Enabled || __instance.UseSeparateLinkedStorage)
 			return;
 		foreach (var quota in profile.MatchingQuotas(t)) {
-			if (quota.HasMax && profile.CountFor(quota) >= quota.MaxStock) {
+			if (quota.HasMax && profile.CountFor(quota) >= quota.Max) {
 				__result = false;
 				return;
 			}

@@ -7,7 +7,7 @@ using RimWorld;
 namespace TrueMogician.RimWorld.ExactStorage.SSS.Patches;
 
 internal static class IOPatches {
-	private const string _TYPE_NAME = "SaveStorageSettings.IOUtil";
+	private const string _TYPE_NAME = $"{nameof(SaveStorageSettings)}.IOUtil";
 
 	public static bool Patch(Harmony harmony) {
 		var type = IOUtilType();
@@ -15,14 +15,12 @@ internal static class IOPatches {
 			Helper.Logger.Warning("Could not find Save Storage Settings IOUtil; exact profile import/export support is disabled");
 			return false;
 		}
-
 		var save = Target(type, "SaveStorageSettings");
 		var load = Target(type, "LoadStorageSettings");
 		if (save is null || load is null) {
 			Helper.Logger.Warning("Could not find Save Storage Settings storage methods; exact profile import/export support is disabled");
 			return false;
 		}
-
 		harmony.Patch(save, postfix: new HarmonyMethod(typeof(IOPatches), nameof(IOUtil_SaveStorageSettings_Postfix)));
 		harmony.Patch(load, postfix: new HarmonyMethod(typeof(IOPatches), nameof(IOUtil_LoadStorageSettings_Postfix)));
 		return true;
@@ -40,7 +38,7 @@ internal static class IOPatches {
 
 	private static Type? IOUtilType() {
 		foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) {
-			if (assembly.GetName().Name != "SaveStorageSettings")
+			if (assembly.GetName().Name != nameof(SaveStorageSettings))
 				continue;
 			if (assembly.GetType(_TYPE_NAME) is { } type)
 				return type;
@@ -48,6 +46,6 @@ internal static class IOPatches {
 		return AccessTools.TypeByName(_TYPE_NAME);
 	}
 
-	private static MethodInfo? Target(Type type, string name)
-		=> AccessTools.Method(type, name, [typeof(StorageSettings), typeof(FileInfo)]);
+	private static MethodInfo? Target(Type type, string name) =>
+		AccessTools.Method(type, name, [typeof(StorageSettings), typeof(FileInfo)]);
 }

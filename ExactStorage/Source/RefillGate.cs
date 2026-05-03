@@ -5,7 +5,7 @@ using RimWorld;
 namespace TrueMogician.RimWorld.ExactStorage;
 
 public static class RefillGate {
-	private static readonly List<Func<StorageSettings, bool>> _checks = new();
+	private static readonly List<Func<StorageSettings, bool>> _checks = [];
 
 	public static void Add(Func<StorageSettings, bool> check) => _checks.Add(check);
 

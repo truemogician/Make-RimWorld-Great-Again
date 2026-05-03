@@ -37,14 +37,14 @@ internal static class UnloadPatches {
 		if (countToDrop <= 0)
 			return;
 		bool preferMin = settings.ShouldPreferForMinimum(thing, target.Cell, map, job);
-		int limit = settings.DestinationCountLimit(thing, preferMin, target.Cell, map, job);
-		if (limit == StorageUtility.NO_LIMIT || limit >= countToDrop)
+		uint limit = settings.DestinationCountLimit(thing, preferMin, target.Cell, map, job);
+		if (limit == StorageUtility.NO_LIMIT || limit >= (uint)countToDrop)
 			return;
-		if (limit <= 0) {
+		if (limit == 0u) {
 			driver.EndJobWith(JobCondition.Incompletable);
 			return;
 		}
-		countToDrop = Math.Min(countToDrop, limit);
+		countToDrop = Math.Min(countToDrop, limit > int.MaxValue ? int.MaxValue : (int)limit);
 		job.count = countToDrop;
 	}
 }

@@ -8,6 +8,8 @@ using Verse.AI;
 
 namespace TrueMogician.RimWorld.ExactStorage.PUAH;
 
+using static AmountUtility;
+
 internal static class Enroute {
 	public static void Register() => StorageUtility.AddEnrouteStockProvider(CountForJob);
 
@@ -81,6 +83,6 @@ internal static class Enroute {
 
 	private static decimal StockFor(Thing thing, int count) {
 		int raw = Math.Max(0, Math.Min(count, thing.stackCount));
-		return AmountUtility.RawToStock(raw, (thing.GetInnerIfMinified() ?? thing).def);
+		return RawToStack(raw, thing.InnerDef);
 	}
 }

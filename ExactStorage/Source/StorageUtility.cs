@@ -7,8 +7,10 @@ using Verse.AI;
 
 namespace TrueMogician.RimWorld.ExactStorage;
 
+using static AmountUtility;
+
 public static class StorageUtility {
-	public const int NO_LIMIT = int.MaxValue;
+	public const uint NO_LIMIT = uint.MaxValue;
 
 	private static readonly List<EnrouteStockProvider> _enrouteStockProviders = [];
 
@@ -119,7 +121,7 @@ public static class StorageUtility {
 		return thing.SourceCountLimit(cell, map) is NO_LIMIT or > 0;
 	}
 
-	private static int SourceMinimumLimit(Thing thing, IntVec3 storeCell, Map map) {
+	private static uint SourceMinimumLimit(Thing thing, IntVec3 storeCell, Map map) {
 		if (
 			StoreUtility.CurrentHaulDestinationOf(thing)?.GetStoreSettings() is not { } sourceSettings
 			|| !Manager.TryGetProfile(sourceSettings, out var sourceProfile)
@@ -129,12 +131,12 @@ public static class StorageUtility {
 			return NO_LIMIT;
 		var parent = sourceSettings.ParentForStoredThing(thing);
 		var thingDef = thing.InnerDef;
-		int limit = NO_LIMIT;
+		uint limit = NO_LIMIT;
 		foreach (var quota in sourceProfile.MatchingQuotas(thing)) {
 			if (!quota.HasMin || !sourceSettings.QuotaAllowed(quota))
 				continue;
 			decimal count = sourceProfile.CountFor(quota, parent) + EnrouteStockFor(sourceSettings, quota, parent);
-			limit = Math.Min(limit, AmountUtility.StockToRawFloor(count - quota.MinStock, thingDef));
+			limit = Math.Min(limit, StackToRaw(count - quota.Min, thingDef, true));
 		}
 		return limit;
 	}
@@ -170,28 +172,28 @@ public static class StorageUtility {
 		return null;
 	}
 
-	private static int UsedStockSlots(StorageSettings settings, ISlotGroupParent? parent) {
-		var slots = 0;
+	private static uint UsedStackSlots(StorageSettings settings, ISlotGroupParent? parent) {
+		var slots = 0u;
 		foreach (var thing in settings.HeldThings(parent))
-			slots += thing.StockSlots;
+			slots += thing.StackSlots;
 		return slots;
 	}
 
-	private static int IncomingStockSlots(
+	private static uint IncomingStackSlots(
 		StorageSettings settings,
 		Thing thing,
-		int raw,
+		uint raw,
 		ISlotGroupParent? parent,
 		IntVec3? cell,
 		Map? map
 	) {
-		if (raw <= 0)
-			return 0;
+		if (raw == 0u)
+			return 0u;
 		var stackSpace = cell is { } c && map is not null
 			? ExistingStackSpaceInCell(thing, c, map)
 			: ExistingStackSpaceInScope(settings, thing, parent);
-		var extraRaw = Math.Max(0, raw - stackSpace);
-		return AmountUtility.StockSlots(AmountUtility.RawToStock(extraRaw, thing.InnerDef));
+		var extraRaw = raw > stackSpace ? raw - (uint)stackSpace : 0u;
+		return StackSlots(RawToStack(extraRaw, thing.InnerDef));
 	}
 
 	private static int ExistingStackSpaceInScope(StorageSettings settings, Thing thing, ISlotGroupParent? parent) {
@@ -263,7 +265,7 @@ public static class StorageUtility {
 		int raw = Math.Max(0, Math.Min(job.count, thing.stackCount));
 		if (pawn.jobs?.curJob == job && pawn.carryTracker.CarriedThing is { } carried && quota.Matches(carried))
 			raw += carried.stackCount;
-		return AmountUtility.RawToStock(raw, thing.InnerDef) + ModEnrouteStockForJob(settings, quota, parent, map, pawn, job);
+		return RawToStack(raw, thing.InnerDef) + ModEnrouteStockForJob(settings, quota, parent, map, pawn, job);
 	}
 
 	private static decimal ModEnrouteStockForJob(
@@ -300,9 +302,9 @@ public static class StorageUtility {
 
 		private readonly int _capacity;
 
-		private readonly int _usedSlots;
+		private readonly uint _usedSlots;
 
-		private readonly int _unmetSlots;
+		private readonly uint _unmetSlots;
 
 		private readonly List<(Quota Quota, decimal Remaining)>? _underMin;
 
@@ -311,8 +313,8 @@ public static class StorageUtility {
 			ISlotGroupParent? parent,
 			bool gated,
 			int capacity,
-			int usedSlots,
-			int unmetSlots,
+			uint usedSlots,
+			uint unmetSlots,
 			List<(Quota Quota, decimal Remaining)>? underMin
 		) {
 			_settings = settings;
@@ -328,37 +330,40 @@ public static class StorageUtility {
 			if (!RefillGate.AllowsRefill(settings) || !settings.TryGetCapacity(out var capacity, parent))
 				return new MinimumBalance(settings, parent, false, 0, 0, 0, null);
 			List<(Quota Quota, decimal Remaining)>? underMin = null;
-			var unmetSlots = 0;
+			var unmetSlots = 0u;
 			foreach (var quota in profile.Quotas) {
-				if (!profile.QuotaValid(quota) || !quota.HasMin || !settings.QuotaAllowed(quota) || profile.HasActiveAncestorCategoryQuota(quota, settings))
+				if (!profile.QuotaValid(quota)
+					|| !quota.HasMin
+					|| !settings.QuotaAllowed(quota)
+					|| profile.HasActiveAncestorCategoryQuota(quota, settings))
 					continue;
 				decimal count = profile.CountFor(quota, parent) + EnrouteStockFor(settings, quota, parent, ignoredJob);
-				var remaining = quota.MinStock - count;
+				var remaining = quota.Min - count;
 				if (remaining <= 0m)
 					continue;
-				unmetSlots += AmountUtility.StockSlots(remaining);
+				unmetSlots += StackSlots(remaining);
 				underMin ??= [];
 				underMin.Add((quota, remaining));
 			}
-			var usedSlots = UsedStockSlots(settings, parent);
+			var usedSlots = UsedStackSlots(settings, parent);
 			return new MinimumBalance(settings, parent, true, capacity, usedSlots, unmetSlots, underMin);
 		}
 
 		public bool CanAccept(Thing thing, IntVec3? cell, Map? map) => CountLimit(thing, cell, map) is NO_LIMIT or > 0;
 
-		public int CountLimit(Thing thing, IntVec3? cell, Map? map) {
-			if (!_gated || _unmetSlots <= 0)
+		public uint CountLimit(Thing thing, IntVec3? cell, Map? map) {
+			if (!_gated || _unmetSlots == 0u)
 				return NO_LIMIT;
-			var maxRaw = Math.Max(0, thing.stackCount);
-			if (maxRaw <= 0)
-				return 0;
-			if (ReliefFor(thing, maxRaw).Stock > 0m)
+			var maxRaw = (uint)Math.Max(0, thing.stackCount);
+			if (maxRaw == 0u)
+				return 0u;
+			if (ReliefFor(thing, maxRaw).Stack > 0m)
 				return NO_LIMIT;
-			var available = Math.Max(0, _capacity - _usedSlots);
-			var threshold = Math.Min(0, available - _unmetSlots);
+			var available = Math.Max(0L, _capacity - _usedSlots);
+			var threshold = Math.Min(0L, available - _unmetSlots);
 			if (BalanceAfterIncoming(thing, maxRaw, cell, map, available) >= threshold)
 				return NO_LIMIT;
-			var low = 0;
+			var low = 0u;
 			var high = maxRaw;
 			while (low < high) {
 				var mid = (low + high + 1) / 2;
@@ -375,14 +380,14 @@ public static class StorageUtility {
 				return false;
 			if (ContributesToUnmetMinimum(thing))
 				return false;
-			var available = Math.Max(0, _capacity - _usedSlots);
+			var available = Math.Max(0L, _capacity - _usedSlots);
 			var shortage = _unmetSlots - available;
 			if (shortage <= 0)
 				return false;
 			foreach (var heldThing in _settings.HeldThings(_parent)) {
 				if (ContributesToUnmetMinimum(heldThing))
 					continue;
-				var slots = heldThing.StockSlots;
+				var slots = heldThing.StackSlots;
 				if (heldThing == thing)
 					return true;
 				shortage -= slots;
@@ -402,25 +407,25 @@ public static class StorageUtility {
 			return false;
 		}
 
-		private (int Slots, decimal Stock) ReliefFor(Thing thing, int raw) {
+		private (uint Slots, decimal Stack) ReliefFor(Thing thing, uint raw) {
 			if (raw <= 0 || _underMin is null)
 				return (0, 0m);
-			var stock = AmountUtility.RawToStock(raw, thing.InnerDef);
-			var slots = 0;
-			var stockRelief = 0m;
+			var stack = RawToStack(raw, thing.InnerDef);
+			var slots = 0u;
+			var stackRelief = 0m;
 			foreach ((var quota, decimal remaining) in _underMin) {
 				if (!quota.Matches(thing))
 					continue;
-				slots += AmountUtility.StockSlots(remaining) - AmountUtility.StockSlots(remaining - stock);
-				stockRelief += Math.Min(remaining, stock);
+				slots += StackSlots(remaining) - StackSlots(remaining - stack);
+				stackRelief += Math.Min(remaining, stack);
 			}
-			return (slots, stockRelief);
+			return (slots, stackRelief);
 		}
 
-		private int BalanceAfterIncoming(Thing thing, int raw, IntVec3? cell, Map? map, int available) {
-			var consumed = IncomingStockSlots(_settings, thing, raw, _parent, cell, map);
-			(int relief, _) = ReliefFor(thing, raw);
-			return available - consumed - Math.Max(0, _unmetSlots - relief);
+		private long BalanceAfterIncoming(Thing thing, uint raw, IntVec3? cell, Map? map, long available) {
+			var consumed = IncomingStackSlots(_settings, thing, raw, _parent, cell, map);
+			(uint relief, _) = ReliefFor(thing, raw);
+			return available - consumed - Math.Max(0L, (long)_unmetSlots - relief);
 		}
 	}
 
@@ -496,7 +501,7 @@ public static class StorageUtility {
 				return true;
 			var quotas = profile.MatchingQuotas(thing).ToList();
 			foreach (var quota in quotas) {
-				if (settings.QuotaAllowed(quota) && quota.HasMax && profile.CountFor(quota, parent) > quota.MaxStock)
+				if (settings.QuotaAllowed(quota) && quota.HasMax && profile.CountFor(quota, parent) > quota.Max)
 					return false;
 			}
 			var balance = MinimumBalance.For(settings, profile, parent);
@@ -509,7 +514,7 @@ public static class StorageUtility {
 			if (!RefillGate.AllowsRefill(settings))
 				return false;
 			foreach (var quota in quotas) {
-				if (settings.QuotaAllowed(quota) && quota.HasMax && profile.CountFor(quota, parent) >= quota.MaxStock)
+				if (settings.QuotaAllowed(quota) && quota.HasMax && profile.CountFor(quota, parent) >= quota.Max)
 					return false;
 			}
 			return true;
@@ -525,36 +530,36 @@ public static class StorageUtility {
 			var underMin = false;
 			foreach (var quota in quotas) {
 				decimal count = profile.CountFor(quota, parent) + EnrouteStockFor(settings, quota, parent, ignoredJob);
-				if (quota.HasMax && count >= quota.MaxStock)
+				if (quota.HasMax && count >= quota.Max)
 					return false;
-				if (quota.HasMin && count < quota.MinStock)
+				if (quota.HasMin && count < quota.Min)
 					underMin = true;
 			}
 			return underMin;
 		}
 
-		public int DestinationCountLimit(Thing thing, bool preferMinimum, IntVec3 storeCell, Map map, Job? ignoredJob = null) {
+		public uint DestinationCountLimit(Thing thing, bool preferMinimum, IntVec3 storeCell, Map map, Job? ignoredJob = null) {
 			if (!Manager.TryGetProfile(settings, out var profile) || !profile.Enabled)
 				return NO_LIMIT;
 			var parent = ParentForCell(settings, storeCell, map);
 			var quotas = profile.MatchingQuotas(thing).ToList();
 			var thingDef = thing.InnerDef;
-			int limit = NO_LIMIT;
+			var limit = NO_LIMIT;
 			if (preferMinimum) {
 				foreach (var quota in quotas) {
 					if (!quota.HasMin)
 						continue;
 					decimal count = profile.CountFor(quota, parent) + EnrouteStockFor(settings, quota, parent, ignoredJob);
-					decimal remaining = quota.MinStock - count;
+					decimal remaining = quota.Min - count;
 					if (remaining > 0m)
-						limit = Math.Min(limit, AmountUtility.StockToRawCeiling(remaining, thingDef));
+						limit = Math.Min(limit, StackToRaw(remaining, thingDef));
 				}
 			}
 			foreach (var quota in quotas) {
 				if (!quota.HasMax)
 					continue;
 				decimal count = profile.CountFor(quota, parent) + EnrouteStockFor(settings, quota, parent, ignoredJob);
-				limit = Math.Min(limit, AmountUtility.StockToRawFloor(quota.MaxStock - count, thingDef));
+				limit = Math.Min(limit, StackToRaw(quota.Max - count, thingDef, true));
 			}
 			var balance = MinimumBalance.For(settings, profile, parent, ignoredJob);
 			var balanceLimit = balance.CountLimit(thing, storeCell, map);
@@ -595,7 +600,7 @@ public static class StorageUtility {
 			switch (quota) {
 				case ThingQuota { ThingDef: { } thingDef }: return settings.filter.Allows(thingDef);
 				case ThingCategoryQuota { CategoryDef: { } categoryDef }: {
-					foreach (var childDef in DefCache.DescendantThingDefsOf(categoryDef)) {
+					foreach (var childDef in DefCache.DescendantThingsOf(categoryDef)) {
 						if (settings.filter.Allows(childDef))
 							return true;
 					}
@@ -631,9 +636,9 @@ public static class StorageUtility {
 	extension(Thing thing) {
 		public ThingDef InnerDef => (thing.GetInnerIfMinified() ?? thing).def;
 
-		public int StockSlots => AmountUtility.StockSlots(AmountUtility.RawToStock(thing.stackCount, thing.InnerDef));
+		public uint StackSlots => StackSlots(RawToStack(thing.stackCount, thing.InnerDef));
 
-		public int SourceExcessLimit() {
+		public uint SourceExcessLimit() {
 			if (
 				StoreUtility.CurrentHaulDestinationOf(thing)?.GetStoreSettings() is not { } settings
 				|| !Manager.TryGetProfile(settings, out var profile)
@@ -642,18 +647,18 @@ public static class StorageUtility {
 				return NO_LIMIT;
 			var parent = settings.ParentForStoredThing(thing);
 			var thingDef = thing.InnerDef;
-			int limit = NO_LIMIT;
+			var limit = NO_LIMIT;
 			foreach (var quota in profile.MatchingQuotas(thing)) {
 				if (!quota.HasMax)
 					continue;
-				decimal excess = profile.CountFor(quota, parent) - quota.MaxStock;
+				decimal excess = profile.CountFor(quota, parent) - quota.Max;
 				if (excess > 0m)
-					limit = Math.Min(limit, AmountUtility.StockToRawCeiling(excess, thingDef));
+					limit = Math.Min(limit, StackToRaw(excess, thingDef));
 			}
 			return limit;
 		}
 
-		public int SourceCountLimit(IntVec3 storeCell, Map map) {
+		public uint SourceCountLimit(IntVec3 storeCell, Map map) {
 			var limit = thing.SourceExcessLimit();
 			var minLimit = SourceMinimumLimit(thing, storeCell, map);
 			if (minLimit != NO_LIMIT)
@@ -680,10 +685,10 @@ public static class StorageUtility {
 				return false;
 			if (thing.IsCurrentStorageScope(slotGroup.Settings, slotGroup.parent))
 				return false;
-			int limit = slotGroup.Settings.DestinationCountLimit(thing, false, cell, map);
-			if (limit <= 0)
+			var limit = slotGroup.Settings.DestinationCountLimit(thing, false, cell, map);
+			if (limit == 0u)
 				return false;
-			int sourceLimit = thing.SourceCountLimit(cell, map);
+			var sourceLimit = thing.SourceCountLimit(cell, map);
 			return sourceLimit is NO_LIMIT or > 0;
 		}
 	}

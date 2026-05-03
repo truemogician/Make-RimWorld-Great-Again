@@ -7,6 +7,8 @@ using Verse;
 
 namespace TrueMogician.RimWorld.ExactStorage.SSS;
 
+using static AmountUtility;
+
 internal sealed class ProfileFile(FileInfo file) {
 	private const string _PREFIX = "ExactStorage";
 
@@ -25,7 +27,7 @@ internal sealed class ProfileFile(FileInfo file) {
 			_sb.Clear();
 			Write("Version", _VERSION);
 			Write("Enabled", profile.Enabled.ToString());
-			Write("UseStockUnits", profile.UseStockUnits.ToString());
+			Write("UseStackUnit", profile.UseStackUnit.ToString());
 			Write("SeparateLinkedStorages", profile.SeparateLinkedStorages.ToString());
 			foreach (var quota in profile.Quotas) {
 				if (!quota.Valid || !quota.Active)
@@ -74,9 +76,9 @@ internal sealed class ProfileFile(FileInfo file) {
 				if (bool.TryParse(parts[2], out bool enabled))
 					profile.Enabled = enabled;
 				return;
-			case "UseStockUnits":
-				if (bool.TryParse(parts[2], out bool useStockUnits))
-					profile.UseStockUnits = useStockUnits;
+			case "UseStackUnit":
+				if (bool.TryParse(parts[2], out bool useStackUnit))
+					profile.UseStackUnit = useStackUnit;
 				return;
 			case "SeparateLinkedStorages":
 				if (bool.TryParse(parts[2], out bool separateLinkedStorages))
@@ -102,20 +104,16 @@ internal sealed class ProfileFile(FileInfo file) {
 		};
 		if (quota is null)
 			return;
-		quota.MinStock = ParseStock(parts[4]);
-		quota.MaxStock = ParseStock(parts[5]);
+		quota.Min = ParseStock(parts[4]);
+		quota.Max = ParseStock(parts[5]);
 	}
 
 	private static decimal ParseStock(string value) =>
-		decimal.TryParse(value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal stock)
-			? AmountUtility.Normalize(stock)
-			: AmountUtility.UNSET;
+		decimal.TryParse(value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal stock) ? Normalize(stock) : UNSET;
 
-	private void WriteQuota(string type, string defName, Quota quota) {
-		_sb.AppendLine(string.Join('|', _PREFIX, "Quota", type, defName, AmountUtility.Format(quota.MinStock), AmountUtility.Format(quota.MaxStock)));
-	}
+	private void WriteQuota(string type, string defName, Quota quota) =>
+		_sb.AppendLine(string.Join('|', _PREFIX, "Quota", type, defName, Format(quota.Min), Format(quota.Max)));
 
-	private void Write(string key, string value) {
+	private void Write(string key, string value) =>
 		_sb.AppendLine(string.Join('|', _PREFIX, key, value));
-	}
 }

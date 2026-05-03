@@ -1,115 +1,120 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using TrueMogician.Extensions.Collections.Tree;
 using Verse;
 
 namespace TrueMogician.RimWorld.ExactStorage;
 
+[StaticConstructorOnStartup]
 public static class DefCache {
-	private static readonly Dictionary<ThingDef, List<ThingCategoryDef>> _ancestorCategories = new();
+	private static readonly Dictionary<ThingCategoryDef, ValuedTreeNode<Def>> _categoryNodes = [];
 
-	private static readonly Dictionary<ThingCategoryDef, List<ThingCategoryDef>> _childCategories = new();
+	static DefCache() {
+		var categories = DefDatabase<ThingCategoryDef>.AllDefsListForReading;
+		foreach (var category in categories) {
+			if (!_categoryNodes.ContainsKey(category))
+				_categoryNodes.Add(category, new ValuedTreeNode<Def>(category));
+		}
+		var forest = TreeUtilities.BuildForest(categories, c => _categoryNodes[c], c => c.parent is { } p ? _categoryNodes[p] : null);
+		RootCategoryDefs = forest.Select(n => (ThingCategoryDef)n.Root.Value).ToList();
 
-	private static readonly Dictionary<ThingCategoryDef, List<ThingDef>> _directThingDefs = new();
-
-	private static readonly Dictionary<ThingCategoryDef, List<ThingDef>> _descendantThingDefs = new();
-
-	private static readonly Dictionary<ThingCategoryDef, int> _unifiedStackLimits = new();
-
-	private static bool _initialized;
-
-	public static IReadOnlyList<ThingDef> DescendantThingDefsOf(ThingCategoryDef def) {
-		Initialize();
-		return _descendantThingDefs.TryGetValue(def, out var thingDefs) ? thingDefs : [];
+		foreach (var thingDef in DefDatabase<ThingDef>.AllDefsListForReading) {
+			var thingCategories = new HashSet<ThingCategoryDef>(thingDef.thingCategories ?? []);
+			foreach (var category in thingCategories) {
+				if (_categoryNodes.TryGetValue(category, out var node))
+					node.Children.Add(new ValuedTreeNode<Def>(thingDef));
+			}
+		}
 	}
 
-	public static IReadOnlyList<ThingCategoryDef> AncestorCategoriesOf(ThingDef def) {
-		Initialize();
-		return _ancestorCategories.TryGetValue(def, out var categories) ? categories : [];
+	public static IReadOnlyList<ThingCategoryDef> RootCategoryDefs { get; private set; }
+
+	public static IEnumerable<ThingCategoryDef> AncestorCategoriesOf(ThingCategoryDef def) {
+		var current = def.parent;
+		while (current is not null) {
+			yield return current;
+			current = current.parent;
+		}
 	}
 
-	public static IReadOnlyList<ThingCategoryDef> ChildCategoriesOf(ThingCategoryDef def) {
-		Initialize();
-		return _childCategories.TryGetValue(def, out var categories) ? categories : [];
+	public static IEnumerable<ThingCategoryDef> AncestorCategoriesOf(ThingDef def) {
+		foreach (var category in def.thingCategories ?? []) {
+			if (!_categoryNodes.TryGetValue(category, out var node) || node.Value != category)
+				continue;
+			yield return category;
+			foreach (var ancestor in node.Ancestors)
+				yield return (ancestor.Value as ThingCategoryDef)!;
+		}
 	}
 
-	public static IReadOnlyList<ThingDef> DirectThingDefsOf(ThingCategoryDef def) {
-		Initialize();
-		return _directThingDefs.TryGetValue(def, out var thingDefs) ? thingDefs : [];
+	public static IEnumerable<Def> ChildrenOf(ThingCategoryDef def) =>
+		!_categoryNodes.TryGetValue(def, out var node) ? [] : node.Children.Select(c => c.Value);
+
+	public static IEnumerable<ThingCategoryDef> ChildCategoriesOf(ThingCategoryDef def) {
+		if (!_categoryNodes.TryGetValue(def, out var node))
+			yield break;
+		foreach (var child in node.Children) {
+			if (child.Value is ThingCategoryDef categoryDef)
+				yield return categoryDef;
+		}
+	}
+
+	public static IEnumerable<ThingDef> ChildThingsOf(ThingCategoryDef def) {
+		if (!_categoryNodes.TryGetValue(def, out var node))
+			yield break;
+		foreach (var child in node.Children) {
+			if (child.Value is ThingDef thingDef)
+				yield return thingDef;
+		}
+	}
+
+	public static IEnumerable<ThingDef> DescendantThingsOf(ThingCategoryDef def) {
+		if (!_categoryNodes.TryGetValue(def, out var node))
+			yield break;
+		foreach (var thingDef in ThingDefsUnder(node))
+			yield return thingDef;
 	}
 
 	public static bool Contains(ThingCategoryDef categoryDef, ThingDef thingDef) {
-		Initialize();
-		return _ancestorCategories.TryGetValue(thingDef, out var categories) && categories.Contains(categoryDef);
+		foreach (var category in AncestorCategoriesOf(thingDef)) {
+			if (category == categoryDef)
+				return true;
+		}
+		return false;
 	}
 
 	public static bool TryGetUnifiedStackLimit(ThingCategoryDef def, out int stackLimit) {
-		Initialize();
-		return _unifiedStackLimits.TryGetValue(def, out stackLimit);
+		if (_categoryNodes.TryGetValue(def, out var node) && TryGetUnifiedStackLimit(node, out stackLimit))
+			return true;
+		stackLimit = 0;
+		return false;
 	}
 
-	private static void Initialize() {
-		if (_initialized)
-			return;
-		_initialized = true;
-
-		foreach (var categoryDef in DefDatabase<ThingCategoryDef>.AllDefsListForReading) {
-			_childCategories[categoryDef] = [];
-			_directThingDefs[categoryDef] = [];
-			_descendantThingDefs[categoryDef] = [];
+	private static IEnumerable<ThingDef> ThingDefsUnder(ValuedTreeNode<Def> node) {
+		foreach (var descendant in node.Descendants.Distinct()) {
+			if (descendant.Value is ThingDef thingDef)
+				yield return thingDef;
 		}
+	}
 
-		foreach (var categoryDef in DefDatabase<ThingCategoryDef>.AllDefsListForReading) {
-			if (categoryDef.parent is not { } parent)
+	private static bool TryGetUnifiedStackLimit(ValuedTreeNode<Def> node, out int stackLimit) {
+		stackLimit = -1;
+		var unified = true;
+		foreach (var thingDef in ThingDefsUnder(node)) {
+			var next = Math.Max(1, thingDef.stackLimit);
+			if (stackLimit < 0) {
+				stackLimit = next;
 				continue;
-			if (!_childCategories.TryGetValue(parent, out var children)) {
-				children = [];
-				_childCategories.Add(parent, children);
 			}
-			children.Add(categoryDef);
+			if (stackLimit == next)
+				continue;
+			unified = false;
+			break;
 		}
-
-		foreach (var thingDef in DefDatabase<ThingDef>.AllDefsListForReading) {
-			var categories = new List<ThingCategoryDef>();
-			foreach (var directCategory in thingDef.thingCategories ?? []) {
-				if (!_directThingDefs.TryGetValue(directCategory, out var directThings)) {
-					directThings = [];
-					_directThingDefs.Add(directCategory, directThings);
-				}
-				if (!directThings.Contains(thingDef))
-					directThings.Add(thingDef);
-				var category = directCategory;
-				while (category is not null) {
-					if (!categories.Contains(category)) {
-						categories.Add(category);
-						if (!_descendantThingDefs.TryGetValue(category, out var descendants)) {
-							descendants = [];
-							_descendantThingDefs.Add(category, descendants);
-						}
-						descendants.Add(thingDef);
-					}
-					category = category.parent;
-				}
-			}
-			if (categories.Count > 0)
-				_ancestorCategories[thingDef] = categories;
-		}
-
-		foreach (var entry in _descendantThingDefs) {
-			var stackLimit = -1;
-			var unified = true;
-			foreach (var thingDef in entry.Value) {
-				var next = Math.Max(1, thingDef.stackLimit);
-				if (stackLimit < 0) {
-					stackLimit = next;
-					continue;
-				}
-				if (stackLimit == next)
-					continue;
-				unified = false;
-				break;
-			}
-			if (unified && stackLimit > 0)
-				_unifiedStackLimits[entry.Key] = stackLimit;
-		}
+		if (unified && stackLimit > 0)
+			return true;
+		stackLimit = 0;
+		return false;
 	}
 }

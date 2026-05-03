@@ -9,57 +9,57 @@ namespace TrueMogician.RimWorld.ExactStorage;
 using static AmountUtility;
 
 public abstract class Quota : IExposable {
-	private decimal _minStock = UNSET;
+	private decimal _min = UNSET;
 
-	private decimal _maxStock = UNSET;
+	private decimal _max = UNSET;
 
 	public virtual void ExposeData() {
-		string? minStock = null, maxStock = null;
+		string? min = null, max = null;
 		if (Scribe.mode == LoadSaveMode.Saving) {
-			minStock = Format(_minStock);
-			maxStock = Format(_maxStock);
+			min = Format(_min);
+			max = Format(_max);
 		}
-		Scribe_Values.Look(ref minStock, "minStock");
-		Scribe_Values.Look(ref maxStock, "maxStock");
+		Scribe_Values.Look(ref min, "min");
+		Scribe_Values.Look(ref max, "max");
 		if (Scribe.mode == LoadSaveMode.LoadingVars) {
-			_minStock = ParseSaved(minStock);
-			_maxStock = ParseSaved(maxStock);
+			_min = ParseSaved(min);
+			_max = ParseSaved(max);
 		}
 	}
 
 	public abstract string Key { get; }
 
-	public decimal MinStock {
-		get => _minStock;
-		set => _minStock = Normalize(value);
+	public decimal Min {
+		get => _min;
+		set => _min = Normalize(value);
 	}
 
-	public decimal MaxStock {
-		get => _maxStock;
-		set => _maxStock = Normalize(value);
+	public decimal Max {
+		get => _max;
+		set => _max = Normalize(value);
 	}
 
-	public bool HasMin => _minStock >= 0m;
+	public bool HasMin => _min >= 0m;
 
-	public bool HasMax => _maxStock >= 0m;
+	public bool HasMax => _max >= 0m;
 
 	public bool Active => HasMin || HasMax;
 
 	public abstract bool Valid { get; }
 
-	public bool ValidRange => !HasMin || !HasMax || _minStock <= _maxStock;
+	public bool ValidRange => !HasMin || !HasMax || _min <= _max;
 
 	public bool Effective => Valid && Active && ValidRange;
 
-	public bool Matches(Thing thing) => Matches((thing.GetInnerIfMinified() ?? thing).def);
+	public bool Matches(Thing thing) => Matches(thing.InnerDef);
 
 	public abstract bool Matches(ThingDef def);
 
 	public Quota Clone() => (Quota)MemberwiseClone();
 
 	private static decimal ParseSaved(string? value) {
-		if (!value.NullOrEmpty() && TryParse(value!, out var stock))
-			return Normalize(stock);
+		if (!value.NullOrEmpty() && TryParse(value!, out var stack))
+			return Normalize(stack);
 		return UNSET;
 	}
 }
@@ -106,7 +106,7 @@ public class ThingCategoryQuota : ThingGroupQuota {
 
 	public ThingCategoryQuota(ThingCategoryDef categoryDef) {
 		_categoryDef = categoryDef;
-		ThingDefs = DefCache.DescendantThingDefsOf(categoryDef);
+		ThingDefs = DefCache.DescendantThingsOf(categoryDef).ToList();
 	}
 
 	public override string Key => _categoryDef?.defName ?? throw new InvalidOperationException("ThingCategoryQuota has no valid ThingCategoryDef");
@@ -118,7 +118,7 @@ public class ThingCategoryQuota : ThingGroupQuota {
 	public override void ExposeData() {
 		Scribe_Defs.Look(ref _categoryDef, "categoryDef");
 		if (Scribe.mode == LoadSaveMode.PostLoadInit && _categoryDef is not null)
-			ThingDefs = DefCache.DescendantThingDefsOf(_categoryDef);
+			ThingDefs = DefCache.DescendantThingsOf(_categoryDef).ToList();
 		base.ExposeData();
 	}
 }

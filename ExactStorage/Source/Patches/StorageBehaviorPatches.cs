@@ -1,6 +1,6 @@
+using System;
 using HarmonyLib;
 using RimWorld;
-using UnityEngine;
 using Verse;
 using Verse.AI;
 
@@ -54,10 +54,13 @@ internal static class StorageBehaviorPatches {
 		}
 		var sourceLimit = t.SourceCountLimit(storeCell, p.Map);
 		if (sourceLimit != NO_LIMIT)
-			limit = Mathf.Min(limit, sourceLimit);
-		if (limit != NO_LIMIT && limit < __result.count) {
-			__result.count = Mathf.Min(__result.count, limit);
-			__result.haulOpportunisticDuplicates = false;
+			limit = Math.Min(limit, sourceLimit);
+		if (limit != NO_LIMIT) {
+			var cappedLimit = limit > int.MaxValue ? int.MaxValue : (int)limit;
+			if (cappedLimit < __result.count) {
+				__result.count = cappedLimit;
+				__result.haulOpportunisticDuplicates = false;
+			}
 		}
 		if (__result.count <= 0)
 			__result = null;
@@ -73,10 +76,10 @@ internal static class StorageBehaviorPatches {
 		if (storeCell.IsValid && t.MapHeld is { } map) {
 			var sourceLimit = t.SourceCountLimit(storeCell, map);
 			if (sourceLimit != NO_LIMIT)
-				limit = Mathf.Min(limit, sourceLimit);
+				limit = Math.Min(limit, sourceLimit);
 		}
 		if (limit != NO_LIMIT)
-			__result.count = Mathf.Min(__result.count, limit);
+			__result.count = Math.Min(__result.count, limit > int.MaxValue ? int.MaxValue : (int)limit);
 		if (__result.count <= 0)
 			__result = null;
 	}

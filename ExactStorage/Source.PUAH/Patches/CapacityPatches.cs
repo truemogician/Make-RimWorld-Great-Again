@@ -13,11 +13,11 @@ internal static class CapacityPatches {
 		if (__result <= 0 || storeCell.GetSlotGroup(map)?.Settings is not { } settings)
 			return;
 		bool preferMin = settings.ShouldPreferForMinimum(thing, storeCell, map);
-		int limit = settings.DestinationCountLimit(thing, preferMin, storeCell, map);
-		int sourceLimit = thing.SourceCountLimit(storeCell, map);
+		uint limit = settings.DestinationCountLimit(thing, preferMin, storeCell, map);
+		uint sourceLimit = thing.SourceCountLimit(storeCell, map);
 		if (sourceLimit != StorageUtility.NO_LIMIT)
 			limit = Math.Min(limit, sourceLimit);
 		if (limit != StorageUtility.NO_LIMIT)
-			__result = Math.Min(__result, limit);
+			__result = Math.Min(__result, limit > int.MaxValue ? int.MaxValue : (int)limit);
 	}
 }
