@@ -96,7 +96,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 	public static T GetDefaultFeatures() {
 		bool defaultEnabled = typeof(T).GetCustomAttribute<FeaturesEnumAttribute>()?.DefaultEnabled ?? true;
 		ulong result = defaultEnabled ? All : 0;
-		foreach (var (feature, attributes, _) in GetFeatureAttributes()) {
+		foreach (var (feature, attributes, _, _) in GetFeatureAttributes()) {
 			bool? enabled = attributes.OfType<FeatureAttribute>().FirstOrDefault()?.DefaultEnabled;
 			if (enabled.HasValue && enabled.Value != defaultEnabled) {
 				if (enabled.Value)
@@ -110,7 +110,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 
 	public static IEnumerable<(T Feature, TaggedString Label, TaggedString? Description)> GetSettingsMenuEntries() {
 		var modIds = ModIds.ToHashSet(StringComparer.OrdinalIgnoreCase);
-		foreach ((var feature, var attributes, string? translationKey) in GetFeatureAttributes()) {
+		foreach ((var feature, var attributes, string? transKey, string[]? transArgs) in GetFeatureAttributes()) {
 			if (attributes.Length == 0) {
 				if (!feature.IsSingleBitFlag)
 					continue;
@@ -124,13 +124,18 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 				continue;
 			TaggedString label;
 			TaggedString? description;
-			if (translationKey is null) {
+			if (transKey is null) {
 				label = attr?.Label ?? feature.ToString().ToTrainCase().Replace('-', ' ');
 				description = attr?.Description;
 			}
 			else {
-				label = $"{translationKey}.label".TryTranslate(out var l) ? l : attr?.Label ?? feature.ToString().ToTrainCase().Replace('-', ' ');
-				description = $"{translationKey}.description".TryTranslate(out var d) ? d : attr?.Description;
+				var args = TranslateArguments(transArgs);
+				label = HasTranslation($"{transKey}.label")
+					? $"{transKey}.label".Translate(args)
+					: attr?.Label ?? feature.ToString().ToTrainCase().Replace('-', ' ');
+				description = HasTranslation($"{transKey}.description")
+					? $"{transKey}.description".Translate(args)
+					: attr?.Description;
 			}
 			yield return (feature, label, description);
 		}
@@ -231,14 +236,28 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 	protected static ulong GetEffectiveFeatures(ulong @default, ulong specified, ulong mask)
 		=> (@default & ~mask) | (specified & mask);
 
-	protected static IEnumerable<(T, FeatureAttributeBase[], string?)> GetFeatureAttributes() {
+	protected static IEnumerable<(T, FeatureAttributeBase[], string? Key, string[]? Arguments)> GetFeatureAttributes() {
 		var values = Enum.GetValues(typeof(T)).Cast<T>();
+		var typeTranslation = typeof(T).GetCustomAttribute<TranslationAttribute>();
 		foreach (var value in values) {
 			var member = typeof(T).GetMember(value.ToString()).First();
 			var attributes = member.GetCustomAttributes(typeof(FeatureAttributeBase), false).Cast<FeatureAttributeBase>().ToArray();
-			yield return (value, attributes, member.GetTranslationKey());
+			var translation = member.GetCustomAttribute<TranslationAttribute>();
+			yield return (value, attributes, member.GetTranslationKey(), translation?.Arguments ?? typeTranslation?.Arguments);
 		}
 	}
+
+	private static NamedArgument[] TranslateArguments(string[]? arguments) {
+		if (arguments is not { Length: > 0 })
+			return [];
+		var result = new NamedArgument[arguments.Length];
+		for (var i = 0; i < arguments.Length; i++)
+			result[i] = arguments[i].TryTranslate(out var translation) ? translation : arguments[i];
+		return result;
+	}
+
+	private static bool HasTranslation(string key)
+		=> key.TryTranslate(out _) || LanguageDatabase.defaultLanguage?.TryGetTextFromKey(key, out _) == true;
 
 	protected static ISet<Type> GetAllPatches() {
 		var collection = new HashSet<Type>();

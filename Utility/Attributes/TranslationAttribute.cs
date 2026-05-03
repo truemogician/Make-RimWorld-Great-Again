@@ -12,5 +12,7 @@ public class TranslationAttribute : Attribute {
 
 	public string? Key { get; init; }
 
+	public string[]? Arguments { get; init; }
+
 	public bool ImplicitMembers { get; init; } = false;
 }
