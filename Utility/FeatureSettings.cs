@@ -108,7 +108,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 		return FromUlong(result);
 	}
 
-	public static IEnumerable<(T Feature, TaggedString Label, TaggedString? Description)> GetSettingsMenuEntries() {
+	public static IEnumerable<(T Feature, TaggedString Label, TaggedString? Description, string[]? MissingDependencies)> GetSettingsMenuEntries() {
 		var modIds = ModIds.ToHashSet(StringComparer.OrdinalIgnoreCase);
 		foreach ((var feature, var attributes, string? transKey, string[]? transArgs) in GetFeatureAttributes()) {
 			if (attributes.Length == 0) {
@@ -118,26 +118,30 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 			else if (attributes.OfType<FeatureIgnoreAttribute>().Any())
 				continue;
 			var attr = attributes.OfType<FeatureAttribute>().FirstOrDefault();
-			if (attr?.ModDependencies is { Length: > 0 } dependencies && !dependencies.All(modIds.Contains))
-				continue;
+			string[]? missingDeps = null;
+			if (attr?.ModDependencies is { Length: > 0 } dependencies) {
+				string[] missing = dependencies.Where(d => !modIds.Contains(d)).ToArray();
+				if (missing.Length > 0)
+					missingDeps = missing;
+			}
 			if (attr?.ModIncompatibilities is { Length: > 0 } incompatibilities && incompatibilities.Any(modIds.Contains))
 				continue;
 			TaggedString label;
-			TaggedString? description;
+			TaggedString? desc;
 			if (transKey is null) {
 				label = attr?.Label ?? feature.ToString().ToTrainCase().Replace('-', ' ');
-				description = attr?.Description;
+				desc = attr?.Description;
 			}
 			else {
 				var args = TranslateArguments(transArgs);
 				label = HasTranslation($"{transKey}.label")
 					? $"{transKey}.label".Translate(args)
 					: attr?.Label ?? feature.ToString().ToTrainCase().Replace('-', ' ');
-				description = HasTranslation($"{transKey}.description")
+				desc = HasTranslation($"{transKey}.description")
 					? $"{transKey}.description".Translate(args)
 					: attr?.Description;
 			}
-			yield return (feature, label, description);
+			yield return (feature, label, desc, missingDeps);
 		}
 	}
 
@@ -181,7 +185,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 		ulong newFeatures = _specifiedFeatures;
 		ulong curFeatures = FeaturesUlong;
 
-		foreach (var (feature, label, description) in GetSettingsMenuEntries()) {
+		foreach ((var feature, var label, var desc, string[]? missingDeps) in GetSettingsMenuEntries()) {
 			ulong featureMask = ToUlong(feature);
 
 			// Compute from locals so the UI reflects edits made earlier in this draw pass.
@@ -193,10 +197,19 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 			var rects = listing.GetRect(Mathf.Max(Text.LineHeight, config.LineHeight))
 				.ToFlexbox([Flexbox.Length.Auto, config.ResetButtonWidth], config.Gap)
 				.ToArray();
-			if (description is { } tip && !tip.NullOrEmpty())
+			var tooltip = desc;
+			if (missingDeps is { Length: > 0 }) {
+				var notice = $"Missing mods: {string.Join(", ", missingDeps)}";
+				tooltip = tooltip is null ? notice : $"{tooltip}\n\n{notice}";
+			}
+			if (tooltip is { } tip && !tip.NullOrEmpty())
 				TooltipHandler.TipRegion(rects[0], tip);
 			bool newEnabled = enabled;
-			Widgets.CheckboxLabeled(rects[0], label, ref newEnabled);
+			using (new TextBlock(UnityEngine.GUI.color)) {
+				if (missingDeps is { Length: > 0 })
+					UnityEngine.GUI.color = Color.grey;
+				Widgets.CheckboxLabeled(rects[0], label, ref newEnabled);
+			}
 			if (newEnabled != enabled) {
 				newMask |= featureMask;
 				if (newEnabled)
