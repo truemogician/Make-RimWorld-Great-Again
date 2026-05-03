@@ -46,6 +46,10 @@
 - **Description:** Automatically mark ambrosia plants for harvest when they are fully grown.
 - **Completion Date:** 2026-03-21
 
+### ~~Ship Chunk Auto Deconstruct~~
+- **Description:** Automatically mark ship chunks (including gravship wreckage) for deconstruction when they appear.
+- **Completion Date:** 2026-05-02
+
 ### ~~Delayed Quest Acceptance~~
 - **Description:** Add a button in the quest dialog to set the time to accept the quest. When clicked, it should show a list of time options (e.g. 1 day, 3 days, 1 week, right before expiration) and a "Cancel" button. The quest will be automatically accepted after the selected time has passed, or can be accepted manually before that.
 - **Completion Date:** 2026-04-24

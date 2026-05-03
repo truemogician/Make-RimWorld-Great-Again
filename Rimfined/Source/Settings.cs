@@ -28,7 +28,9 @@ public enum Features : ulong {
 
 	DelayedQuestAcceptance = 1 << 3,
 
-	ConstructionPriority = 1 << 4
+	ConstructionPriority = 1 << 4,
+
+	ShipChunkAutoDeconstruct = 1 << 5
 }
 
 [Translation("Rimfined.Settings")]
@@ -87,6 +89,7 @@ public class Settings : FeatureSettings<Features> {
 		AddFeaturePatches(Features.AmbrosiaAutoHarvest, typeof(AmbrosiaAutoHarvestPatches));
 		AddFeaturePatches(Features.DelayedQuestAcceptance, typeof(DelayedQuestAcceptancePatches));
 		AddFeaturePatches(Features.ConstructionPriority, typeof(ConstructionPriorityPatches));
+		AddFeaturePatches(Features.ShipChunkAutoDeconstruct, typeof(ShipChunkAutoDeconstructPatches));
 	}
 
 	public static Settings Default { get; internal set; } = null!;

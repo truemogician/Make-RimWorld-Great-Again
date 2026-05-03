@@ -25,6 +25,10 @@
 				<label>Construction priority</label>
 				<description>Adds a priority gizmo to player-owned construction blueprints and frames so builders and haulers prefer higher-priority construction targets.</description>
 			</ConstructionPriority>
+			<ShipChunkAutoDeconstruct>
+				<label>Ship chunk auto deconstruct</label>
+				<description>Automatically designates ship chunks (including gravship wreckage) for deconstruction when they appear.</description>
+			</ShipChunkAutoDeconstruct>
 		</Features>
 		<AutoNoTargetForPrisonerRelatives>
 			<label>Include prisoner relations</label>

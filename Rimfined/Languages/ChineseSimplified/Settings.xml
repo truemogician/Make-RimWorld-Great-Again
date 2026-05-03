@@ -25,6 +25,10 @@
 				<label>建造优先级</label>
 				<description>为玩家阵营的建造蓝图和框架添加优先级指令，让建造者和搬运者优先处理更高优先级的建造目标。</description>
 			</ConstructionPriority>
+			<ShipChunkAutoDeconstruct>
+				<label>飞船残骸自动拆解</label>
+				<description>飞船残骸（包括重力飞船坠毁残骸）出现时，自动将其标记为拆解。</description>
+			</ShipChunkAutoDeconstruct>
 		</Features>
 		<AutoNoTargetForPrisonerRelatives>
 			<label>包含囚犯关系</label>
