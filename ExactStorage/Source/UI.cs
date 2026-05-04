@@ -39,19 +39,23 @@ public static class UI {
 
 	private const float _CONTROLS_WIDTH = _FIELD_WIDTH * 2 + 20f;
 
-	private static readonly Color _okColor = new(0.35f, 0.75f, 0.45f);
+	private static readonly Color _okColor = new(0f, 1f, 0.6f);
 
-	private static readonly Color _warnColor = new(0.9f, 0.25f, 0.18f);
+	private static readonly Color _warnColor = new(1f, 0.4f, 0.3f);
 
-	private static readonly Color _pendingColor = new(0.55f, 0.55f, 0.55f);
+	private static readonly Color _pendingWarnColor = new(0.9f, 0.7f, 0.1f);
+
+	private static readonly Color _pendingColor = new(0.5f, 0.5f, 0.5f);
 
 	private static readonly Texture2D _okTex = SolidTex(_okColor);
 
 	private static readonly Texture2D _warnTex = SolidTex(_warnColor);
 
-	private static readonly Texture2D _maxTex = SolidTex(new(0.3f, 0.55f, 0.95f));
+	private static readonly Texture2D _maxTex = SolidTex(new(0.5f, 0.4f, 0.9f));
 
 	private static readonly Texture2D _unknownTex = SolidTex(new(0.6f, 0.6f, 0.6f));
+
+	private static readonly Texture2D _markerTex = SolidTex(new(0.9f, 0.9f, 0f));
 
 	private static readonly Dictionary<(Quota Quota, bool Min), (string Buffer, bool Focused)> _editState = new();
 
@@ -137,6 +141,7 @@ public static class UI {
 		var minBar = bar;
 		minBar.width *= fill;
 		GUI.DrawTexture(minBar, warning ? _warnTex : knownCapacity ? _okTex : _unknownTex);
+		DrawUsedMarker(settings, bar, knownCapacity, capacity);
 		DrawSummaryLabel(bar, min, max, knownCapacity, capacity);
 		if (Mouse.IsOver(rect)) {
 			string tip = warning
@@ -208,14 +213,15 @@ public static class UI {
 		TooltipHandler.TipRegion(
 			rect,
 			invalidRange ? Translate("InvalidRangeTip")
-			: invalidCategoryTotal ? Translate("InvalidCategoryTotalTip") : min ? Translate("MinTip")
-			: Translate("MaxTip")
+			: invalidCategoryTotal ? InvalidCategoryTip(profile, quota) : FieldTip(quota, min)
 		);
 		var color = GUI.color;
 		if (invalid)
 			GUI.color = _warnColor;
 		else if (pending)
 			GUI.color = _pendingColor;
+		else if (FulfillmentColor(profile, quota, min) is { } fulfillmentColor)
+			GUI.color = fulfillmentColor;
 		bool enter = GUI.GetNameOfFocusedControl() == control
 			&& Event.current.type == EventType.KeyDown
 			&& Event.current.keyCode is KeyCode.Return or KeyCode.KeypadEnter;
@@ -289,6 +295,16 @@ public static class UI {
 		}
 	}
 
+	private static void DrawUsedMarker(StorageSettings settings, Rect bar, bool knownCapacity, int capacity) {
+		if (!knownCapacity || capacity <= 0)
+			return;
+		var used = 0u;
+		foreach (var thing in settings.HeldThings())
+			used += thing.StackSlots;
+		float x = bar.x + bar.width * Mathf.Clamp01(used / (float)capacity);
+		GUI.DrawTexture(new Rect(x - 1f, bar.y, 2f, bar.height), _markerTex);
+	}
+
 	private static string DisplayValue(Profile profile, Quota quota, decimal stack) {
 		if (stack < 0m)
 			return string.Empty;
@@ -328,6 +344,35 @@ public static class UI {
 
 	private static bool CategoryEditable(Profile profile, ThingCategoryDef categoryDef) =>
 		profile.UseStackUnit || DefCache.TryGetUnifiedStackLimit(categoryDef, out _);
+
+	private static Color? FulfillmentColor(Profile profile, Quota quota, bool min) {
+		if (min) {
+			if (!quota.HasMin)
+				return null;
+			return profile.CountFor(quota) >= quota.Min ? _okColor : _pendingWarnColor;
+		}
+		if (!quota.HasMax)
+			return null;
+		return profile.CountFor(quota) <= quota.Max ? _okColor : _pendingWarnColor;
+	}
+
+	private static string FieldTip(Quota quota, bool min) {
+		var tip = Translate(min ? "MinTip" : "MaxTip");
+		return StackSizeNote(quota) is { } note ? $"{tip}\n{note}" : tip;
+	}
+
+	private static string InvalidCategoryTip(Profile profile, Quota quota) =>
+		profile.CategoryMinExceedsMaxBound(quota) ? Translate("InvalidCategoryMaxBoundTip") : Translate("InvalidCategoryTotalTip");
+
+	private static string? StackSizeNote(Quota quota) => quota switch {
+		ThingQuota { ThingDef: { } thingDef } => Translate("StackSizeTip", Math.Max(1, thingDef.stackLimit)),
+		ThingCategoryQuota { CategoryDef: { } categoryDef } when DefCache.TryGetUnifiedStackLimit(categoryDef, out int stackLimit) => Translate(
+			"StackSizeTip",
+			stackLimit
+		),
+		ThingCategoryQuota => Translate("MixedStackSizeTip"),
+		_                  => null
+	};
 
 	private static string Translate(string key, params NamedArgument[] args) => $"{nameof(ExactStorage)}.{nameof(UI)}.{key}".Translate(args);
 

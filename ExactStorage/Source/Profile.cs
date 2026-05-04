@@ -99,11 +99,17 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 		if (quota.HasMin) {
 			if (quota.Min < CategoryChildrenSlots(categoryDef, false))
 				return false;
-			if (CategoryMaxBound(categoryDef) is { } cap && quota.Min > cap)
+			if (CategoryMinExceedsMaxBound(quota))
 				return false;
 		}
 		return !quota.HasMax || quota.Max >= CategoryChildrenSlots(categoryDef, true);
 	}
+
+	public bool CategoryMinExceedsMaxBound(Quota quota) =>
+		quota is ThingCategoryQuota { CategoryDef: { } categoryDef }
+		&& quota.HasMin
+		&& CategoryMaxBound(categoryDef) is { } cap
+		&& quota.Min > cap;
 
 	public void PruneInactive() => _quotas.RemoveAll(pair => !pair.Value.Active || !pair.Value.Valid);
 

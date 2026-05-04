@@ -14,9 +14,12 @@
 			<MaxTip>Maximum stock. Haulers stop filling this storage at this amount and move excess elsewhere.</MaxTip>
 			<InvalidRangeTip>Minimum is greater than maximum. This row is saved but ignored until the range is valid.</InvalidRangeTip>
 			<InvalidCategoryTotalTip>Category quota is lower than the sum of configured child item and category quotas. This row is saved but ignored until the total is valid.</InvalidCategoryTotalTip>
-			<Summary>{0} minimum / {1} maximum / {2} stock capacity</Summary>
-			<SummaryNoMax>{0} minimum / no maximum / {1} stock capacity</SummaryNoMax>
-			<SummaryUnknownCapacity>{0} minimum / {1} maximum / unknown stock capacity</SummaryUnknownCapacity>
+			<InvalidCategoryMaxBoundTip>Category minimum is greater than the maximum allowed by configured child item and category quotas. This row is saved but ignored until the total is valid.</InvalidCategoryMaxBoundTip>
+			<StackSizeTip>Stack size: {0}</StackSizeTip>
+			<MixedStackSizeTip>Stack size: mixed</MixedStackSizeTip>
+			<Summary>{0} min | {1} max | {2} capacity</Summary>
+			<SummaryNoMax>{0} min | no max | {1} capacity</SummaryNoMax>
+			<SummaryUnknownCapacity>{0} min | {1} max | unknown capacity</SummaryUnknownCapacity>
 			<SummaryWarning>Configured minimums exceed the estimated stock capacity.</SummaryWarning>
 			<SummaryUnknownCapacityWarning>Exact Storage cannot estimate this storage's stock capacity. Vanilla storage checks still apply.</SummaryUnknownCapacityWarning>
 		</UI>
