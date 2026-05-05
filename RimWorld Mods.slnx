@@ -15,5 +15,6 @@
 	<Project Path="Rimfined/Source.CE/Rimfined.CE.csproj" />
 	<Project Path="Rimfined/Source.VF/Rimfined.VF.csproj" />
 	<Project Path="AnimalHaulExtended/Source/AnimalHaulExtended.csproj" />
+	<Project Path="Fixes/UsefulMarksInColonyGroups/Source/UsefulMarksInColonyGroups.csproj" />
 	<Project Path="Utility/Utility.csproj" Id="9535d14c-5dda-4c64-8651-ac260e5e792a" />
 </Solution>

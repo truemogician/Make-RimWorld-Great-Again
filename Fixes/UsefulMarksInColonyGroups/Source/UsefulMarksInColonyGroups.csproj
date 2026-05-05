@@ -1,0 +1,140 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net48</TargetFramework>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<Authors>true_mogician</Authors>
+		<Description>Compatibility fix that restores Useful Marks colonist-bar icons on Colony Groups pawn portraits.</Description>
+		<PackageId>TrueMogician.UsefulMarksInColonyGroups</PackageId>
+		<Version>0.0.1</Version>
+		<Title>Useful Marks in Colony Groups</Title>
+		<RootNamespace>TrueMogician.RimWorld.UsefulMarksInColonyGroups</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ProjectRoot>$(ProjectDir)..\</ProjectRoot>
+		<DistDir>$(ProjectRoot)Dist\</DistDir>
+		<AssemblyDistDir>$(DistDir)1.6\Assemblies\</AssemblyDistDir>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectProperty Include="PackageId" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4633" />
+		<PackageReference Include="Lib.Harmony" Version="2.4.2" />
+		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="5.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ThisAssembly.AssemblyInfo" Version="2.1.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ThisAssembly.Project" Version="2.1.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="..\References\**\*.dll" />
+		<Reference Include="CompatUtils" HintPath="..\References\ColonyGroups\CompatUtils.dll" Private="false" />
+		<Reference Include="0MultiplayerAPI" HintPath="..\References\UsefulMarks\0MultiplayerAPI.dll" Private="false" />
+		<Reference Include="FloatSubMenu" HintPath="..\References\UsefulMarks\FloatSubMenu.dll" Private="false" />
+		<Reference Include="TacticalGroups" HintPath="..\References\ColonyGroups\TacticalGroups.dll" Private="false" />
+		<Reference Include="UsefulColonistBar" HintPath="..\References\UsefulMarks\UsefulColonistBar.dll" Private="false" />
+	</ItemGroup>
+
+	<UsingTask TaskName="BuildXml" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+		<ParameterGroup />
+		<Task>
+			<Reference Include="Microsoft.Build" />
+			<Reference Include="Microsoft.Build.Framework" />
+			<Reference Include="Microsoft.Build.Utilities.Core" />
+			<Code Type="Class" Language="cs" Source="$(UtilityTasksDir)BuildXml.cs" />
+		</Task>
+	</UsingTask>
+
+	<UsingTask TaskName="CreateLink" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+		<ParameterGroup />
+		<Task>
+			<Reference Include="Microsoft.Build" />
+			<Reference Include="Microsoft.Build.Framework" />
+			<Reference Include="Microsoft.Build.Utilities.Core" />
+			<Code Type="Class" Language="cs" Source="$(UtilityTasksDir)CreateLink.cs" />
+		</Task>
+	</UsingTask>
+
+	<Target Name="Distribute" AfterTargets="Build">
+		<ItemGroup>
+			<ModAssets Include="$(ProjectRoot)Public\**\*.*" />
+			<AboutToken Include="Name" Value="$(Title)" />
+			<AboutToken Include="Author" Value="$(Authors)" />
+			<AboutToken Include="PackageId" Value="$(PackageId)" />
+			<AboutToken Include="Version" Value="$(Version)" />
+			<AboutToken Include="Description" Value="$(Description)" />
+			<Assemblies Include="$(TargetDir)*.dll" />
+			<Assemblies Remove="$(TargetDir)0Harmony.dll" />
+			<Assemblies Remove="$(TargetDir)System.*.dll" />
+		</ItemGroup>
+		<!-- 1. Copy Assets -->
+		<Copy SourceFiles="@(ModAssets)" DestinationFolder="$(DistDir)%(RecursiveDir)" SkipUnchangedFiles="true" />
+		<!-- 2. Generate About.xml -->
+		<BuildXml Template="$(ProjectRoot)Template\About.xml" Destination="$(DistDir)About\About.xml" Tokens="@(AboutToken)" />
+		<!-- 3. Copy Assemblies -->
+		<Copy SourceFiles="@(Assemblies)" DestinationFolder="$(AssemblyDistDir)" SkipUnchangedFiles="true" />
+		<Message Importance="High" Text="Distributed $(TargetPath) -&gt; $(AssemblyDistDir)" />
+	</Target>
+
+	<Target Name="PrepareLaunch" AfterTargets="Build">
+		<!-- 1. Generate ModsConfig.xml -->
+		<ItemGroup>
+			<ModsConfigToken Include="PackageId" Value="$(PackageId.ToLower())" />
+		</ItemGroup>
+		<BuildXml Template="$(ProjectRoot)Template\ModsConfig.xml" Destination="$(TargetDir)ModsConfig.xml" Tokens="@(ModsConfigToken)" />
+		<!-- 2. Generate Launch Script -->
+		<ItemGroup>
+			<LaunchCmd Include="@echo off" />
+			<LaunchCmd Include="copy /Y &quot;$(TargetDir)ModsConfig.xml&quot; &quot;$(SaveDataDir)Config\ModsConfig.xml&quot;" />
+			<LaunchCmd Include="start &quot;RimWorld Mod Test&quot; &quot;$(GameDir)\RimWorldWin64.exe&quot; -popupwindow &quot;-savedatafolder=$(SaveDataDirArg)&quot;" />
+		</ItemGroup>
+		<WriteLinesToFile File="$(TargetDir)LaunchRimWorld.bat" Lines="@(LaunchCmd)" Overwrite="true" />
+	</Target>
+
+	<Target Name="Deploy" AfterTargets="Distribute">
+		<CreateLink Source="$(DistDir)" Destination="$(GameDir)\Mods\$(AssemblyName)" Condition="Exists('$(GameDir)\Mods')" />
+	</Target>
+
+	<Target Name="CustomClean" AfterTargets="Clean">
+		<ItemGroup>
+			<DirsToDelete Include="$(DistDir)" />
+			<DirsToDelete Include="$(GameDir)\Mods\$(AssemblyName)" />
+			<FilesToDelete Include="$(SaveDataDir)Config\ModsConfig.xml" />
+			<FilesToDelete Include="$(TargetDir)ModsConfig.xml" />
+			<FilesToDelete Include="$(TargetDir)LaunchRimWorld.bat" />
+		</ItemGroup>
+		<RemoveDir Directories="@(DirsToDelete)" />
+		<Delete Files="@(FilesToDelete)" />
+		<Message Text="Custom files and directories cleaned" Importance="High" />
+	</Target>
+
+	<Target Name="DeployToSteam" Condition="'$(SteamGameDir)' != ''">
+		<CreateLink Source="$(DistDir)" Destination="$(SteamGameDir)\Mods\$(AssemblyName)" Condition="Exists('$(SteamGameDir)\Mods')" />
+		<Message Text="Linked mod $(AssemblyName) to Steam game directory" Importance="High" />
+	</Target>
+	<Target Name="RemoveFromSteam" Condition="'$(SteamGameDir)' != ''">
+		<ItemGroup>
+			<LinkedDir Include="$(SteamGameDir)\Mods\$(AssemblyName)" />
+		</ItemGroup>
+		<RemoveDir Directories="@(LinkedDir)" />
+		<Message Text="Removed mod $(AssemblyName) from Steam game directory" Importance="High" />
+	</Target>
+</Project>
