@@ -1,20 +1,28 @@
 <Solution>
 	<Project Path="EntropyOverflow/EntropyOverflow.csproj" Id="48e1ae72-d0a3-4c09-95c3-c2c4f6d45ab2" />
-	<Project Path="ExactStorage/Source/ExactStorage.csproj" />
-	<Project Path="ExactStorage/Source.PUAH/ExactStorage.PUAH.csproj" />
-	<Project Path="ExactStorage/Source.SRH/ExactStorage.SRH.csproj" />
-	<Project Path="ExactStorage/Source.SSS/ExactStorage.SSS.csproj" />
+	<Folder Name="/ExactStorage/">
+		<Project Path="ExactStorage/Source/ExactStorage.csproj" />
+		<Project Path="ExactStorage/Source.PUAH/ExactStorage.PUAH.csproj" />
+		<Project Path="ExactStorage/Source.SRH/ExactStorage.SRH.csproj" />
+		<Project Path="ExactStorage/Source.SSS/ExactStorage.SSS.csproj" />
+	</Folder>
 	<Project Path="Profiler/Profiler.csproj" Id="fa15e426-6d12-41e0-88ea-761a050ed5c1" />
 	<Project Path="RemedialAlgorithms/RemedialAlgorithms.csproj" />
-	<Project Path="Rimsonable/Source/Rimsonable.csproj" Id="01788e0d-9dd5-48a2-92e4-fbd03b91a42d" />
-	<Project Path="Rimsonable/Source.CE/Rimsonable.CE.csproj" />
-	<Project Path="Rimsonable/Source.VEF/Rimsonable.VEF.csproj" />
-	<Project Path="Rimsonable/Source.VVE/Rimsonable.VVE.csproj" />
-	<Project Path="Rimsonable/Source.RimHUD/Rimsonable.RimHUD.csproj" />
-	<Project Path="Rimfined/Source/Rimfined.csproj" />
-	<Project Path="Rimfined/Source.CE/Rimfined.CE.csproj" />
-	<Project Path="Rimfined/Source.VF/Rimfined.VF.csproj" />
+	<Folder Name="/Rimsonable/">
+		<Project Path="Rimsonable/Source/Rimsonable.csproj" Id="01788e0d-9dd5-48a2-92e4-fbd03b91a42d" />
+		<Project Path="Rimsonable/Source.CE/Rimsonable.CE.csproj" />
+		<Project Path="Rimsonable/Source.VEF/Rimsonable.VEF.csproj" />
+		<Project Path="Rimsonable/Source.VVE/Rimsonable.VVE.csproj" />
+		<Project Path="Rimsonable/Source.RimHUD/Rimsonable.RimHUD.csproj" />
+	</Folder>
+	<Folder Name="/Rimfined/">
+		<Project Path="Rimfined/Source/Rimfined.csproj" />
+		<Project Path="Rimfined/Source.CE/Rimfined.CE.csproj" />
+		<Project Path="Rimfined/Source.VF/Rimfined.VF.csproj" />
+	</Folder>
 	<Project Path="AnimalHaulExtended/Source/AnimalHaulExtended.csproj" />
-	<Project Path="Fixes/UsefulMarksInColonyGroups/Source/UsefulMarksInColonyGroups.csproj" />
+	<Folder Name="/Fixes/">
+		<Project Path="Fixes/UsefulMarksInColonyGroups/Source/UsefulMarksInColonyGroups.csproj" />
+	</Folder>
 	<Project Path="Utility/Utility.csproj" Id="9535d14c-5dda-4c64-8651-ac260e5e792a" />
 </Solution>
