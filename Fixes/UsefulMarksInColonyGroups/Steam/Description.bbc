@@ -1,0 +1,20 @@
+[h1]Useful Marks in Colony Groups[/h1]
+
+[b]Makes Useful Marks show up in the Colony Groups colonist bar.[/b]
+
+That is the whole mod. If you use both [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3506573327][i]Useful Marks[/i][/url] and [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2345493945][i]Colony Groups[/i][/url], this patch makes the marks render properly on the Colony Groups pawn bar instead of only on the vanilla one.
+
+I wrote this because [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3506573327][i]Useful Marks[/i][/url] is not open-source, and [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2345493945][i]Colony Groups[/i][/url] is not actively maintained, so waiting for an official patch did not seem productive.
+
+If either mod author wants to fold this into their own mod, feel free to take the code. Just add my name to the contributor list (you know, that's all the MIT license asks for).
+
+[h2]Other mods by me[/h2]
+
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3692918983][b]Rimsonable[/b][/url] - a collection of toggleable tweaks to make RimWorld more reasonable.
+
+[h2]Requirements[/h2]
+[list]
+[*]Harmony
+[*]Useful Marks
+[*]Colony Groups
+[/list]
