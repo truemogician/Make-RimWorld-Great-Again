@@ -97,15 +97,13 @@ internal static class DelayedQuestAcceptancePatches {
 			}
 			if (!stackElements.Any())
 				continue;
-			if (
-				totalValue > 0f
+			if (totalValue > 0f
 				&& (
 					choicePart.choices[j].rewards.Count != 1
 					|| choicePart.choices[j].rewards[0] is not Reward_Items { items: not null } rewardItems
 					|| rewardItems.items.Count != 1
 					|| rewardItems.items[0].StyleSourcePrecept is not Precept_Relic
-				)
-			) {
+				)) {
 				string totalValueStr = "TotalValue".Translate(totalValue.ToStringMoney("F0"));
 				stackElements.Add(
 					new GenUI.AnonymousStackElement {
@@ -206,22 +204,12 @@ internal static class DelayedQuestAcceptancePatches {
 		string tip = GetScheduledTooltip(schedule.FireTick);
 		if (quest is { State: QuestState.NotYetAccepted, TicksUntilExpiry: > 0 }) {
 			text = $"{"QuestExpiresIn".Translate(quest.TicksUntilExpiry.ToStringTicksToPeriod())} ({countdown})";
-			tip = string.Join(
-				"\n",
-				"QuestExpiresOn".Translate(
-					GenDate.DateFullStringWithHourAt(Find.TickManager.TicksAbs + quest.TicksUntilExpiry, QuestUtility.GetLocForDates())
-				),
-				tip
-			);
+			var expText = GenDate.DateFullStringWithHourAt(Find.TickManager.TicksAbs + quest.TicksUntilExpiry, QuestUtility.GetLocForDates());
+			tip = $"{"QuestExpiresOn".Translate(expText)}\n{tip}";
 		}
 		num += Text.LineHeight;
-
-		var anchor = Text.Anchor;
-		GUI.color = _timeInfoColor;
-		Text.Anchor = TextAnchor.MiddleRight;
-		Widgets.Label(rect, text);
-		GUI.color = Color.white;
-		Text.Anchor = anchor;
+		using (new TextBlock(_timeInfoColor, TextAnchor.MiddleRight, false))
+			Widgets.Label(rect, text);
 		rect.xMin = rect.xMax - Text.CalcSize(text).x;
 		if (Mouse.IsOver(rect))
 			TooltipHandler.TipRegion(rect, tip);
@@ -308,14 +296,14 @@ internal static class DelayedQuestAcceptancePatches {
 		Widgets.Dropdown(
 			rects[3],
 			quest,
-			_ => draft.Unit,
+			_ => draft.IsDay,
 			_ => GenerateUnitOptions(quest, draft),
-			GetUnitLabel(draft.Unit)
+			GetUnitLabel(draft.IsDay)
 		);
 		if (quest.acceptanceExpireTick < 0) {
 			Widgets.ButtonText(
 				rects[4],
-				GetDirectionLabel(DelayedQuestAcceptanceDirection.SinceNow),
+				GetDirectionLabel(false),
 				true,
 				false,
 				false
@@ -325,9 +313,9 @@ internal static class DelayedQuestAcceptancePatches {
 			Widgets.Dropdown(
 				rects[4],
 				quest,
-				_ => draft.Direction,
+				_ => draft.BeforeExpiration,
 				_ => GenerateDirectionOptions(quest, draft),
-				GetDirectionLabel(draft.Direction)
+				GetDirectionLabel(draft.BeforeExpiration)
 			);
 		}
 	}
@@ -361,54 +349,65 @@ internal static class DelayedQuestAcceptancePatches {
 
 	private static IEnumerable<Widgets.DropdownMenuElement<T>> GenerateEnumOptions<T>(Func<T, string> label, Func<T, Action?> onChoose)
 		where T : struct, Enum {
-		foreach (T value in Enum.GetValues(typeof(T)))
+		foreach (T value in Enum.GetValues(typeof(T))) {
 			yield return new Widgets.DropdownMenuElement<T> {
 				payload = value,
 				option = new FloatMenuOption(label(value), onChoose(value))
 			};
+		}
 	}
 
-	private static IEnumerable<Widgets.DropdownMenuElement<DelayedQuestAcceptancePreset>> GeneratePresetOptions(Quest quest, DelayedQuestAcceptanceDraft draft)
-		=> GenerateEnumOptions<DelayedQuestAcceptancePreset>(
-			GetPresetLabel,
-			preset => quest.acceptanceExpireTick >= 0 || preset is not (DelayedQuestAcceptancePreset.OneDayBeforeExpiration or DelayedQuestAcceptancePreset.RightBeforeExpiration)
+	private static IEnumerable<Widgets.DropdownMenuElement<DelayedQuestAcceptancePreset>> GeneratePresetOptions(
+		Quest quest,
+		DelayedQuestAcceptanceDraft draft
+	) => GenerateEnumOptions<DelayedQuestAcceptancePreset>(
+		GetPresetLabel,
+		preset => quest.acceptanceExpireTick >= 0
+			|| preset is not (DelayedQuestAcceptancePreset.OneDayBeforeExpiration or DelayedQuestAcceptancePreset.RightBeforeExpiration)
 				? () => {
 					draft.ApplyPreset(preset, quest);
 					Manager.SetDraft(quest, draft);
 				}
 				: null
-		);
+	);
 
-	private static IEnumerable<Widgets.DropdownMenuElement<DelayedQuestAcceptanceUnit>> GenerateUnitOptions(Quest quest, DelayedQuestAcceptanceDraft draft)
-		=> GenerateEnumOptions<DelayedQuestAcceptanceUnit>(
-			GetUnitLabel,
-			unit => () => {
-				draft.Unit = unit;
-				Manager.SetDraft(quest, draft);
-			}
-		);
+	private static IEnumerable<Widgets.DropdownMenuElement<bool>> GenerateUnitOptions(Quest quest, DelayedQuestAcceptanceDraft draft) {
+		foreach (bool value in new[] { false, true }) {
+			yield return new Widgets.DropdownMenuElement<bool> {
+				payload = value,
+				option = new FloatMenuOption(
+					GetUnitLabel(value),
+					() => {
+						draft.IsDay = value;
+						Manager.SetDraft(quest, draft);
+					}
+				)
+			};
+		}
+	}
 
-	private static IEnumerable<Widgets.DropdownMenuElement<DelayedQuestAcceptanceDirection>> GenerateDirectionOptions(Quest quest, DelayedQuestAcceptanceDraft draft)
-		=> GenerateEnumOptions<DelayedQuestAcceptanceDirection>(
-			GetDirectionLabel,
-			direction => quest.acceptanceExpireTick >= 0 || direction != DelayedQuestAcceptanceDirection.BeforeExpiration
-				? () => {
-					draft.Direction = direction;
-					draft.NormalizeFor(quest);
-					Manager.SetDraft(quest, draft);
-				}
-				: null
-		);
+	private static IEnumerable<Widgets.DropdownMenuElement<bool>> GenerateDirectionOptions(Quest quest, DelayedQuestAcceptanceDraft draft) {
+		foreach (bool value in new[] { false, true }) {
+			yield return new Widgets.DropdownMenuElement<bool> {
+				payload = value,
+				option = new FloatMenuOption(
+					GetDirectionLabel(value),
+					() => {
+						draft.BeforeExpiration = value;
+						draft.NormalizeFor(quest);
+						Manager.SetDraft(quest, draft);
+					}
+				)
+			};
+		}
+	}
 
-	private static void AcceptNow(MainTabWindow_Quests window, Quest quest, int? choiceIndex, Pawn? accepterPawn = null) {
-		bool requiresAccepter = choiceIndex is { } idx0 ? RequiresAccepter(quest, idx0) : quest.RequiresAccepter;
-		if (
-			requiresAccepter
-			&& accepterPawn is not null
+	private static void AcceptNow(MainTabWindow_Quests window, Quest quest, int? choiceIndex, Pawn? accepter = null) {
+		if ((choiceIndex is { } idx0 ? RequiresAccepter(quest, idx0) : quest.RequiresAccepter)
+			&& accepter is not null
 			&& QuestUtility.CanAcceptQuest(quest).Accepted
-			&& QuestUtility.CanPawnAcceptQuest(accepterPawn, quest)
-		) {
-			AcceptWithAccepter(window, quest, choiceIndex, accepterPawn);
+			&& QuestUtility.CanPawnAcceptQuest(accepter, quest)) {
+			AcceptWithAccepter(window, quest, choiceIndex, accepter);
 			return;
 		}
 		if (choiceIndex is not { } idx) {
@@ -450,10 +449,10 @@ internal static class DelayedQuestAcceptancePatches {
 	private static void InvokeAcceptQuestByInterface(MainTabWindow_Quests window, Action? preAcceptAction, bool requiresAccepter)
 		=> _acceptQuestByInterfaceMethod.Invoke(window, [preAcceptAction, requiresAccepter]);
 
-	private static void ScheduleAcceptanceByInterface(Quest quest, int? choiceIndex, DelayedQuestAcceptanceDraft draft) {
-		bool requiresAccepter = choiceIndex is { } idx ? RequiresAccepter(quest, idx) : quest.RequiresAccepter;
+	private static void ScheduleAcceptanceByInterface(Quest quest, int? index, DelayedQuestAcceptanceDraft draft) {
+		bool requiresAccepter = index is { } idx ? RequiresAccepter(quest, idx) : quest.RequiresAccepter;
 		if (!requiresAccepter) {
-			ScheduleAcceptance(quest, choiceIndex, null, draft);
+			ScheduleAcceptance(quest, index, null, draft);
 			return;
 		}
 		var list = new List<FloatMenuOption>();
@@ -470,7 +469,7 @@ internal static class DelayedQuestAcceptancePatches {
 					() => {
 						if (!QuestUtility.CanPawnAcceptQuest(pawnLocal, quest))
 							return;
-						void ScheduleAction() => ScheduleAcceptance(quest, choiceIndex, pawnLocal, draft);
+						void ScheduleAction() => ScheduleAcceptance(quest, index, pawnLocal, draft);
 						if (TryGetRoyalFavorAccepterWarning(quest, pawnLocal, out string warning))
 							Find.WindowStack.Add(new Dialog_MessageBox(warning, "Confirm".Translate(), ScheduleAction, "GoBack".Translate()));
 						else
@@ -502,18 +501,20 @@ internal static class DelayedQuestAcceptancePatches {
 		if (socialDisabled)
 			text += "\n\n" + "RoyalIncapableOfSocial".Translate(pawnArg, factionArg);
 		if (conceitedTraits.Count > 0) {
-			text += "\n\n" + "RoyalWithConceitedTrait".Translate(
-				pawnArg,
-				factionArg,
-				conceitedTraits.Select(trait => trait.Label).ToCommaList(true)
-			);
+			text += "\n\n"
+				+ "RoyalWithConceitedTrait".Translate(
+					pawnArg,
+					factionArg,
+					conceitedTraits.Select(trait => trait.Label).ToCommaList(true)
+				);
 		}
 		if (hasNegativePsylinkTraits) {
-			text += "\n\n" + "RoyalWithTraitAffectingPsylinkNegatively".Translate(
-				pawnArg,
-				factionArg,
-				negativePsylinkTraits.Select(trait => trait.Label).ToCommaList(true)
-			);
+			text += "\n\n"
+				+ "RoyalWithTraitAffectingPsylinkNegatively".Translate(
+					pawnArg,
+					factionArg,
+					negativePsylinkTraits.Select(trait => trait.Label).ToCommaList(true)
+				);
 		}
 		warning = text + "\n\n" + "WantToContinue".Translate();
 		return true;
@@ -549,7 +550,9 @@ internal static class DelayedQuestAcceptancePatches {
 				: (scheduleError ?? string.Empty).Colorize(ColorLibrary.RedReadable);
 			return $"{tip}\n\n{extra}";
 		}
-		return !acceptanceReport.Reason.NullOrEmpty() ? $"{tip}\n\n{acceptanceReport.Reason.Colorize(rewardChoice ? ColorLibrary.RedReadable : ColoredText.WarningColor)}" : tip;
+		return !acceptanceReport.Reason.NullOrEmpty()
+			? $"{tip}\n\n{acceptanceReport.Reason.Colorize(rewardChoice ? ColorLibrary.RedReadable : ColoredText.WarningColor)}"
+			: tip;
 	}
 
 	private static void GetScheduledActionRects(Rect innerRect, out Rect cancelRect, out Rect acceptNowRect) {

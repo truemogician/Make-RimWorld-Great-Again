@@ -17,35 +17,26 @@ public enum DelayedQuestAcceptancePreset : byte {
 	RightBeforeExpiration
 }
 
-public enum DelayedQuestAcceptanceUnit : byte {
-	Hour,
-	Day
-}
-
-public enum DelayedQuestAcceptanceDirection : byte {
-	SinceNow,
-	BeforeExpiration
-}
-
 public enum DelayedQuestAcceptanceScheduleResult : byte {
 	Invalid,
 	Created,
 	Replaced
 }
 
-public readonly record struct DelayedQuestAcceptanceSpec(int Hours, DelayedQuestAcceptanceDirection Direction) {
+public readonly record struct DelayedQuestAcceptanceSpec(int Hours, bool BeforeExpiration) {
 	public static readonly IReadOnlyDictionary<DelayedQuestAcceptancePreset, DelayedQuestAcceptanceSpec> PresetSpecs =
 		new Dictionary<DelayedQuestAcceptancePreset, DelayedQuestAcceptanceSpec> {
-			[DelayedQuestAcceptancePreset.OneDayAfter] = new(24, DelayedQuestAcceptanceDirection.SinceNow),
-			[DelayedQuestAcceptancePreset.OneDayBeforeExpiration] = new(24, DelayedQuestAcceptanceDirection.BeforeExpiration),
-			[DelayedQuestAcceptancePreset.RightBeforeExpiration] = new(1, DelayedQuestAcceptanceDirection.BeforeExpiration)
+			[DelayedQuestAcceptancePreset.OneDayAfter] = new(24, false),
+			[DelayedQuestAcceptancePreset.OneDayBeforeExpiration] = new(24, true),
+			[DelayedQuestAcceptancePreset.RightBeforeExpiration] = new(1, true)
 		};
 
 	public DelayedQuestAcceptancePreset Preset {
 		get {
-			foreach (var kv in PresetSpecs)
+			foreach (var kv in PresetSpecs) {
 				if (kv.Value == this)
 					return kv.Key;
+			}
 			return DelayedQuestAcceptancePreset.Custom;
 		}
 	}
@@ -96,7 +87,7 @@ public sealed class DelayedQuestAcceptanceManager : GameComponent {
 		schedule.ChoiceIndex = choiceIndex ?? -1;
 		schedule.Accepter = accepter;
 		schedule.Hours = draft.Hours;
-		schedule.Direction = draft.Direction;
+		schedule.BeforeExpiration = draft.BeforeExpiration;
 		schedule.ReminderSent = false;
 		TryNotifyReminder(schedule, Find.TickManager.TicksGame);
 		_drafts[quest.id] = DelayedQuestAcceptanceDraft.FromSchedule(schedule);
@@ -160,9 +151,10 @@ public sealed class DelayedQuestAcceptanceManager : GameComponent {
 			_schedules ??= [];
 			_schedules.RemoveAll(schedule => schedule?.Quest is null);
 			int now = Find.TickManager?.TicksGame ?? 0;
-			foreach (var schedule in _schedules)
+			foreach (var schedule in _schedules) {
 				if (schedule is not null && GetReminderTick(schedule.FireTick) < now)
 					schedule.ReminderSent = true;
+			}
 			_drafts.Clear();
 		}
 	}
@@ -181,23 +173,23 @@ public sealed class DelayedQuestAcceptanceSchedule(Quest quest) : IExposable {
 
 	public int Hours = 24;
 
-	public DelayedQuestAcceptanceDirection Direction;
-
-	public DelayedQuestAcceptanceSpec Spec => new(Hours, Direction);
-
-	public DelayedQuestAcceptancePreset Preset => Spec.Preset;
-
-	public bool IsStale => Quest.State != QuestState.NotYetAccepted || FireTick <= 0;
+	public bool BeforeExpiration;
 
 	public void ExposeData() {
 		Scribe_References.Look(ref Quest, "quest");
 		Scribe_Values.Look(ref FireTick, "fireTick");
 		Scribe_Values.Look(ref ChoiceIndex, "choiceIndex", -1);
-		Scribe_References.Look(ref Accepter, "accepterPawn");
+		Scribe_References.Look(ref Accepter, "accepter");
 		Scribe_Values.Look(ref ReminderSent, "reminderSent");
 		Scribe_Values.Look(ref Hours, "hours", 24);
-		Scribe_Values.Look(ref Direction, "direction");
+		Scribe_Values.Look(ref BeforeExpiration, "beforeExpiration");
 	}
+
+	public DelayedQuestAcceptanceSpec Spec => new(Hours, BeforeExpiration);
+
+	public DelayedQuestAcceptancePreset Preset => Spec.Preset;
+
+	public bool IsStale => Quest.State != QuestState.NotYetAccepted || FireTick <= 0;
 }
 
 public sealed class DelayedQuestAcceptanceDraft {
@@ -209,30 +201,15 @@ public sealed class DelayedQuestAcceptanceDraft {
 
 	public string? AmountBuffer = "1";
 
-	public DelayedQuestAcceptanceUnit Unit = DelayedQuestAcceptanceUnit.Day;
+	public bool IsDay = true;
 
-	public DelayedQuestAcceptanceDirection Direction;
+	public bool BeforeExpiration;
 
-	public int Hours => Amount * (Unit == DelayedQuestAcceptanceUnit.Day ? 24 : 1);
+	public int Hours => Amount * (IsDay ? 24 : 1);
 
-	public DelayedQuestAcceptanceSpec Spec => new(Hours, Direction);
+	public DelayedQuestAcceptanceSpec Spec => new(Hours, BeforeExpiration);
 
 	public DelayedQuestAcceptancePreset Preset => Spec.Preset;
-
-	public void ApplyPreset(DelayedQuestAcceptancePreset preset, Quest quest) {
-		if (!DelayedQuestAcceptanceSpec.PresetSpecs.TryGetValue(preset, out var spec))
-			return;
-		(Amount, Unit) = DecomposeHours(spec.Hours);
-		Direction = spec.Direction;
-		NormalizeFor(quest);
-	}
-
-	public void NormalizeFor(Quest quest) {
-		Amount = Math.Clamp(Amount, 1, _MAX_AMOUNT);
-		AmountBuffer ??= Amount.ToString();
-		if (quest.acceptanceExpireTick < 0)
-			Direction = DelayedQuestAcceptanceDirection.SinceNow;
-	}
 
 	public static DelayedQuestAcceptanceDraft DefaultFor(Quest quest) {
 		var draft = new DelayedQuestAcceptanceDraft();
@@ -241,28 +218,43 @@ public sealed class DelayedQuestAcceptanceDraft {
 	}
 
 	public static DelayedQuestAcceptanceDraft FromSchedule(DelayedQuestAcceptanceSchedule schedule) {
-		var (amount, unit) = DecomposeHours(schedule.Hours);
+		(int amount, bool isDay) = DecomposeHours(schedule.Hours);
 		return new DelayedQuestAcceptanceDraft {
 			Enabled = true,
 			Amount = amount,
 			AmountBuffer = amount.ToString(),
-			Unit = unit,
-			Direction = schedule.Direction
+			IsDay = isDay,
+			BeforeExpiration = schedule.BeforeExpiration
 		};
 	}
 
-	private static (int Amount, DelayedQuestAcceptanceUnit Unit) DecomposeHours(int hours) => 
+	public void ApplyPreset(DelayedQuestAcceptancePreset preset, Quest quest) {
+		if (!DelayedQuestAcceptanceSpec.PresetSpecs.TryGetValue(preset, out var spec))
+			return;
+		(Amount, IsDay) = DecomposeHours(spec.Hours);
+		BeforeExpiration = spec.BeforeExpiration;
+		NormalizeFor(quest);
+	}
+
+	public void NormalizeFor(Quest quest) {
+		Amount = Math.Clamp(Amount, 1, _MAX_AMOUNT);
+		AmountBuffer ??= Amount.ToString();
+		if (quest.acceptanceExpireTick < 0)
+			BeforeExpiration = false;
+	}
+
+	private static (int Amount, bool IsDay) DecomposeHours(int hours) =>
 		hours % 24 == 0
-			? (hours / 24, DelayedQuestAcceptanceUnit.Day)
-			: (hours, DelayedQuestAcceptanceUnit.Hour);
+			? (hours / 24, true)
+			: (hours, false);
 }
 
 internal static class DelayedQuestAcceptanceUtility {
 	private const string _TRANSLATION_KEY_PREFIX = "Rimfined.DelayedQuestAcceptance";
 
-	internal static DelayedQuestAcceptanceManager Manager => CachedGameComponent<DelayedQuestAcceptanceManager>.Component;
-
 	internal static string? LastFailureMessage { get; private set; }
+
+	internal static DelayedQuestAcceptanceManager Manager => CachedGameComponent<DelayedQuestAcceptanceManager>.Component;
 
 	internal static string Translate(string suffix) => $"{_TRANSLATION_KEY_PREFIX}.{suffix}".Translate().Resolve();
 
@@ -306,9 +298,10 @@ internal static class DelayedQuestAcceptanceUtility {
 
 	internal static string GetPresetLabel(DelayedQuestAcceptancePreset preset) => Translate($"Preset.{preset}");
 
-	internal static string GetUnitLabel(DelayedQuestAcceptanceUnit unit) => Translate($"Unit.{unit}");
+	internal static string GetUnitLabel(bool isDay) => Translate(isDay ? "Unit.Day" : "Unit.Hour");
 
-	internal static string GetDirectionLabel(DelayedQuestAcceptanceDirection direction) => Translate($"Direction.{direction}");
+	internal static string GetDirectionLabel(bool beforeExpiration)
+		=> Translate(beforeExpiration ? "Direction.BeforeExpiration" : "Direction.SinceNow");
 
 	internal static int RoundUpToHour(int tick) {
 		if (tick <= 0)
@@ -324,16 +317,14 @@ internal static class DelayedQuestAcceptanceUtility {
 		int now = Find.TickManager.TicksGame;
 		int delta = checked(draft.Hours * GenDate.TicksPerHour);
 		int targetTick;
-		switch (draft.Direction) {
-			case DelayedQuestAcceptanceDirection.SinceNow: targetTick = now + delta; break;
-			case DelayedQuestAcceptanceDirection.BeforeExpiration:
-				if (quest.acceptanceExpireTick < 0) {
-					error = Translate("Errors.NeedsExpiration");
-					return false;
-				}
-				targetTick = quest.acceptanceExpireTick - delta;
-				break;
-			default: throw new ArgumentOutOfRangeException(nameof(draft.Direction), draft.Direction, null);
+		if (!draft.BeforeExpiration)
+			targetTick = now + delta;
+		else {
+			if (quest.acceptanceExpireTick < 0) {
+				error = Translate("Errors.NeedsExpiration");
+				return false;
+			}
+			targetTick = quest.acceptanceExpireTick - delta;
 		}
 		if (targetTick <= now) {
 			error = Translate("Errors.TimePassed");
