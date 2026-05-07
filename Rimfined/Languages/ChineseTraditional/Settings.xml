@@ -104,6 +104,7 @@
 			<Accepted>已自動接受任務：{0}。</Accepted>
 			<CanceledFailed>已取消 {0} 的延遲接受：{1}</CanceledFailed>
 			<CanceledRequiresAccepter>已取消 {0} 的延遲接受：該任務必須由殖民者手動接受。</CanceledRequiresAccepter>
+			<CanceledAccepterUnavailable>已取消 {0} 的延遲接受：{1} 已無法接受此任務。</CanceledAccepterUnavailable>
 			<CanceledInvalid>已取消 {0} 的延遲接受：所選獎勵已不可用。</CanceledInvalid>
 		</Messages>
 	</Rimfined.DelayedQuestAcceptance>

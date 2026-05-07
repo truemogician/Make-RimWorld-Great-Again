@@ -81,6 +81,7 @@ public sealed class DelayedQuestAcceptanceManager : GameComponent {
 	public DelayedQuestAcceptanceScheduleResult Schedule(
 		Quest quest,
 		int? choiceIndex,
+		Pawn? accepter,
 		DelayedQuestAcceptanceDraft draft,
 		out DelayedQuestAcceptanceSchedule? schedule,
 		out string? error
@@ -93,6 +94,7 @@ public sealed class DelayedQuestAcceptanceManager : GameComponent {
 		schedule ??= new DelayedQuestAcceptanceSchedule(quest);
 		schedule.FireTick = fireTick;
 		schedule.ChoiceIndex = choiceIndex ?? -1;
+		schedule.Accepter = accepter;
 		schedule.Hours = draft.Hours;
 		schedule.Direction = draft.Direction;
 		schedule.ReminderSent = false;
@@ -173,6 +175,8 @@ public sealed class DelayedQuestAcceptanceSchedule(Quest quest) : IExposable {
 
 	public int ChoiceIndex = -1;
 
+	public Pawn? Accepter;
+
 	public bool ReminderSent;
 
 	public int Hours = 24;
@@ -189,6 +193,7 @@ public sealed class DelayedQuestAcceptanceSchedule(Quest quest) : IExposable {
 		Scribe_References.Look(ref Quest, "quest");
 		Scribe_Values.Look(ref FireTick, "fireTick");
 		Scribe_Values.Look(ref ChoiceIndex, "choiceIndex", -1);
+		Scribe_References.Look(ref Accepter, "accepterPawn");
 		Scribe_Values.Look(ref ReminderSent, "reminderSent");
 		Scribe_Values.Look(ref Hours, "hours", 24);
 		Scribe_Values.Look(ref Direction, "direction");
@@ -246,8 +251,8 @@ public sealed class DelayedQuestAcceptanceDraft {
 		};
 	}
 
-	private static (int Amount, DelayedQuestAcceptanceUnit Unit) DecomposeHours(int hours)
-		=> hours % 24 == 0
+	private static (int Amount, DelayedQuestAcceptanceUnit Unit) DecomposeHours(int hours) => 
+		hours % 24 == 0
 			? (hours / 24, DelayedQuestAcceptanceUnit.Day)
 			: (hours, DelayedQuestAcceptanceUnit.Hour);
 }
@@ -270,7 +275,7 @@ internal static class DelayedQuestAcceptanceUtility {
 
 	internal static bool TryResolveChoice(
 		Quest quest,
-		int choiceIndex,
+		int index,
 		[NotNullWhen(true)] out QuestPart_Choice? choicePart,
 		[NotNullWhen(true)] out QuestPart_Choice.Choice? choice
 	) {
@@ -278,14 +283,14 @@ internal static class DelayedQuestAcceptanceUtility {
 		choice = null;
 		if (choicePart?.choices is not { Count: > 0 } choices)
 			return false;
-		if (choiceIndex < 0 || choiceIndex >= choices.Count)
+		if (index < 0 || index >= choices.Count)
 			return false;
-		choice = choices[choiceIndex];
+		choice = choices[index];
 		return true;
 	}
 
-	internal static bool RequiresAccepter(Quest quest, int? choiceIndex = null) {
-		if (choiceIndex is not { } idx || !TryResolveChoice(quest, idx, out var choicePart, out var selectedChoice))
+	internal static bool RequiresAccepter(Quest quest, int? index = null) {
+		if (index is not { } idx || !TryResolveChoice(quest, idx, out var choicePart, out var selectedChoice))
 			return quest.RequiresAccepter;
 		var remainingParts = quest.PartsListForReading.ToList();
 		for (var i = 0; i < choicePart.choices.Count; i++) {
@@ -382,18 +387,27 @@ internal static class DelayedQuestAcceptanceUtility {
 			LastFailureMessage = Translate("Messages.CanceledInvalid", quest.name);
 			return false;
 		}
-		var acceptanceReport = QuestUtility.CanAcceptQuest(quest);
-		if (!acceptanceReport.Accepted) {
-			LastFailureMessage = Translate("Messages.CanceledFailed", quest.name, acceptanceReport.Reason);
+		var report = QuestUtility.CanAcceptQuest(quest);
+		if (!report.Accepted) {
+			LastFailureMessage = Translate("Messages.CanceledFailed", quest.name, report.Reason);
 			return false;
 		}
-		if (RequiresAccepter(quest, schedule.ChoiceIndex >= 0 ? schedule.ChoiceIndex : null)) {
-			LastFailureMessage = Translate("Messages.CanceledRequiresAccepter", quest.name);
-			return false;
+		bool requiresAccepter = RequiresAccepter(quest, schedule.ChoiceIndex >= 0 ? schedule.ChoiceIndex : null);
+		Pawn? accepter = null;
+		if (requiresAccepter) {
+			accepter = schedule.Accepter;
+			if (accepter is null) {
+				LastFailureMessage = Translate("Messages.CanceledRequiresAccepter", quest.name);
+				return false;
+			}
+			if (!QuestUtility.CanPawnAcceptQuest(accepter, quest)) {
+				LastFailureMessage = Translate("Messages.CanceledAccepterUnavailable", quest.name, accepter.LabelShortCap);
+				return false;
+			}
 		}
 		if (schedule.ChoiceIndex >= 0 && TryResolveChoice(quest, schedule.ChoiceIndex, out var choicePart, out var choice))
 			choicePart.Choose(choice);
-		quest.Accept(null);
+		quest.Accept(accepter);
 		return true;
 	}
 }

@@ -169,7 +169,7 @@ internal static class DelayedQuestAcceptancePatches {
 				Messages.Message(Translate("Messages.ScheduledCanceled"), MessageTypeDefOf.TaskCompletion, false);
 		}
 		if (Widgets.ButtonImage(acceptNowRect, _acceptNowIcon, true, Translate("Buttons.AcceptNow")))
-			AcceptNow(__instance, quest, schedule.ChoiceIndex >= 0 ? schedule.ChoiceIndex : null);
+			AcceptNow(__instance, quest, schedule.ChoiceIndex >= 0 ? schedule.ChoiceIndex : null, schedule.Accepter);
 	}
 
 	[HarmonyPatch(typeof(MainTabWindow_Quests), "DoCharityIcon")]
@@ -272,7 +272,7 @@ internal static class DelayedQuestAcceptancePatches {
 			if (!delayed)
 				AcceptNow(window, quest, choiceIndex);
 			else
-				ScheduleAcceptance(quest, choiceIndex, draft);
+				ScheduleAcceptanceByInterface(quest, choiceIndex, draft);
 		}
 		TooltipHandler.TipRegion(buttonRect, GetActionTooltip(acceptanceReport, delayed, validSchedule, fireTick, scheduleError, rewardChoice));
 		GUI.color = Color.white;
@@ -400,7 +400,17 @@ internal static class DelayedQuestAcceptancePatches {
 				: null
 		);
 
-	private static void AcceptNow(MainTabWindow_Quests window, Quest quest, int? choiceIndex) {
+	private static void AcceptNow(MainTabWindow_Quests window, Quest quest, int? choiceIndex, Pawn? accepterPawn = null) {
+		bool requiresAccepter = choiceIndex is { } idx0 ? RequiresAccepter(quest, idx0) : quest.RequiresAccepter;
+		if (
+			requiresAccepter
+			&& accepterPawn is not null
+			&& QuestUtility.CanAcceptQuest(quest).Accepted
+			&& QuestUtility.CanPawnAcceptQuest(accepterPawn, quest)
+		) {
+			AcceptWithAccepter(window, quest, choiceIndex, accepterPawn);
+			return;
+		}
 		if (choiceIndex is not { } idx) {
 			InvokeAcceptQuestByInterface(window, null, quest.RequiresAccepter);
 			return;
@@ -413,11 +423,104 @@ internal static class DelayedQuestAcceptancePatches {
 		InvokeAcceptQuestByInterface(window, () => choicePart.Choose(choice), RequiresAccepter(quest, idx));
 	}
 
+	private static void AcceptWithAccepter(MainTabWindow_Quests window, Quest quest, int? choiceIndex, Pawn accepterPawn) {
+		var acceptanceReport = QuestUtility.CanAcceptQuest(quest);
+		if (!acceptanceReport.Accepted) {
+			Messages.Message("MessageCannotAcceptQuest".Translate(), MessageTypeDefOf.RejectInput, false);
+			return;
+		}
+		if (!QuestUtility.CanPawnAcceptQuest(accepterPawn, quest)) {
+			Messages.Message("MessageNoColonistCanAcceptQuest".Translate(Faction.OfPlayer.def.pawnsPlural), MessageTypeDefOf.RejectInput, false);
+			return;
+		}
+		if (choiceIndex is { } idx) {
+			if (!TryResolveChoice(quest, idx, out var choicePart, out var choice)) {
+				Manager.CancelSchedule(quest);
+				Messages.Message(Translate("Messages.CanceledInvalid", quest.name), MessageTypeDefOf.RejectInput, false);
+				return;
+			}
+			choicePart.Choose(choice);
+		}
+		SoundDefOf.Quest_Accepted.PlayOneShotOnCamera();
+		quest.Accept(accepterPawn);
+		window.Select(quest);
+		Messages.Message("MessageQuestAccepted".Translate(accepterPawn, quest.name), accepterPawn, MessageTypeDefOf.TaskCompletion, false);
+	}
+
 	private static void InvokeAcceptQuestByInterface(MainTabWindow_Quests window, Action? preAcceptAction, bool requiresAccepter)
 		=> _acceptQuestByInterfaceMethod.Invoke(window, [preAcceptAction, requiresAccepter]);
 
-	private static void ScheduleAcceptance(Quest quest, int? choiceIndex, DelayedQuestAcceptanceDraft draft) {
-		var result = Manager.Schedule(quest, choiceIndex, draft, out var schedule, out string? error);
+	private static void ScheduleAcceptanceByInterface(Quest quest, int? choiceIndex, DelayedQuestAcceptanceDraft draft) {
+		bool requiresAccepter = choiceIndex is { } idx ? RequiresAccepter(quest, idx) : quest.RequiresAccepter;
+		if (!requiresAccepter) {
+			ScheduleAcceptance(quest, choiceIndex, null, draft);
+			return;
+		}
+		var list = new List<FloatMenuOption>();
+		foreach (var pawn in PawnsFinder.AllMapsCaravansAndTravellingTransporters_Alive_FreeColonists_NoSuspended) {
+			if (!QuestUtility.CanPawnAcceptQuest(pawn, quest))
+				continue;
+			var pawnLocal = pawn;
+			string text = "AcceptWith".Translate(pawn);
+			if (pawn.royalty != null && pawn.royalty.AllTitlesInEffectForReading.Any())
+				text += " (" + pawn.royalty.MostSeniorTitle.def.GetLabelFor(pawnLocal) + ")";
+			list.Add(
+				new FloatMenuOption(
+					text,
+					() => {
+						if (!QuestUtility.CanPawnAcceptQuest(pawnLocal, quest))
+							return;
+						void ScheduleAction() => ScheduleAcceptance(quest, choiceIndex, pawnLocal, draft);
+						if (TryGetRoyalFavorAccepterWarning(quest, pawnLocal, out string warning))
+							Find.WindowStack.Add(new Dialog_MessageBox(warning, "Confirm".Translate(), ScheduleAction, "GoBack".Translate()));
+						else
+							ScheduleAction();
+					}
+				)
+			);
+		}
+		if (list.Count > 0)
+			Find.WindowStack.Add(new FloatMenu(list));
+		else
+			Messages.Message("MessageNoColonistCanAcceptQuest".Translate(Faction.OfPlayer.def.pawnsPlural), MessageTypeDefOf.RejectInput, false);
+	}
+
+	private static bool TryGetRoyalFavorAccepterWarning(Quest quest, Pawn pawn, out string warning) {
+		warning = string.Empty;
+		var royalFavorPart = quest.PartsListForReading.OfType<QuestPart_GiveRoyalFavor>().FirstOrDefault();
+		if (royalFavorPart is not { giveToAccepter: true })
+			return false;
+		var conceitedTraits = RoyalTitleUtility.GetConceitedTraits(pawn).ToList();
+		var negativePsylinkTraits = RoyalTitleUtility.GetTraitsAffectingPsylinkNegatively(pawn).ToList();
+		bool socialDisabled = pawn.skills.GetSkill(SkillDefOf.Social).TotallyDisabled;
+		bool hasNegativePsylinkTraits = !pawn.HasPsylink && negativePsylinkTraits.Count > 0;
+		if (!socialDisabled && conceitedTraits.Count == 0 && !hasNegativePsylinkTraits)
+			return false;
+		var pawnArg = pawn.Named("PAWN");
+		var factionArg = royalFavorPart.faction.Named("FACTION");
+		string text = "QuestGivesRoyalFavor".Translate(pawnArg, factionArg);
+		if (socialDisabled)
+			text += "\n\n" + "RoyalIncapableOfSocial".Translate(pawnArg, factionArg);
+		if (conceitedTraits.Count > 0) {
+			text += "\n\n" + "RoyalWithConceitedTrait".Translate(
+				pawnArg,
+				factionArg,
+				conceitedTraits.Select(trait => trait.Label).ToCommaList(true)
+			);
+		}
+		if (hasNegativePsylinkTraits) {
+			text += "\n\n" + "RoyalWithTraitAffectingPsylinkNegatively".Translate(
+				pawnArg,
+				factionArg,
+				negativePsylinkTraits.Select(trait => trait.Label).ToCommaList(true)
+			);
+		}
+		warning = text + "\n\n" + "WantToContinue".Translate();
+		return true;
+	}
+
+	private static void ScheduleAcceptance(Quest quest, int? choiceIndex, Pawn? accepterPawn, DelayedQuestAcceptanceDraft draft) {
+		var result = Manager.Schedule(quest, choiceIndex, accepterPawn, draft, out var schedule, out string? error);
 		if (result != DelayedQuestAcceptanceScheduleResult.Invalid && schedule is not null)
 			ShowScheduledMessage(result, schedule.FireTick);
 		else if (!error.NullOrEmpty())
@@ -446,9 +549,7 @@ internal static class DelayedQuestAcceptancePatches {
 				: (scheduleError ?? string.Empty).Colorize(ColorLibrary.RedReadable);
 			return $"{tip}\n\n{extra}";
 		}
-		if (!acceptanceReport.Reason.NullOrEmpty())
-			return $"{tip}\n\n{acceptanceReport.Reason.Colorize(rewardChoice ? ColorLibrary.RedReadable : ColoredText.WarningColor)}";
-		return tip;
+		return !acceptanceReport.Reason.NullOrEmpty() ? $"{tip}\n\n{acceptanceReport.Reason.Colorize(rewardChoice ? ColorLibrary.RedReadable : ColoredText.WarningColor)}" : tip;
 	}
 
 	private static void GetScheduledActionRects(Rect innerRect, out Rect cancelRect, out Rect acceptNowRect) {

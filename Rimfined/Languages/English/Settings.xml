@@ -104,6 +104,7 @@
 			<Accepted>Automatically accepted quest: {0}.</Accepted>
 			<CanceledFailed>Delayed acceptance canceled for {0}: {1}</CanceledFailed>
 			<CanceledRequiresAccepter>Delayed acceptance canceled for {0}: this quest must be accepted manually by a colonist.</CanceledRequiresAccepter>
+			<CanceledAccepterUnavailable>Delayed acceptance canceled for {0}: {1} can no longer accept this quest.</CanceledAccepterUnavailable>
 			<CanceledInvalid>Delayed acceptance canceled for {0}: the selected reward is no longer available.</CanceledInvalid>
 		</Messages>
 	</Rimfined.DelayedQuestAcceptance>
