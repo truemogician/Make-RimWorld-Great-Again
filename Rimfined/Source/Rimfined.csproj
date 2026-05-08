@@ -140,10 +140,9 @@
 			<DirsToDelete Include="$(DistDir)About" />
 			<DirsToDelete Include="$(DistDir)Shared" />
 			<DirsToDelete Include="$(GameDir)\Mods\$(AssemblyName)" />
+			<FilesToDelete Include="$(TargetDir)*" />
 			<FilesToDelete Include="$(DistDir)*" />
 			<FilesToDelete Include="$(SaveDataDir)Config\ModsConfig.xml" />
-			<FilesToDelete Include="$(TargetDir)ModsConfig.xml" />
-			<FilesToDelete Include="$(TargetDir)LaunchRimWorld.bat" />
 		</ItemGroup>
 		<RemoveDir Directories="@(DirsToDelete)" />
 		<Delete Files="@(FilesToDelete)" />
