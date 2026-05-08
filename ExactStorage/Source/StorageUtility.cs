@@ -547,7 +547,7 @@ public static class StorageUtility {
 			var limit = NO_LIMIT;
 			if (preferMinimum) {
 				foreach (var quota in quotas) {
-					if (!quota.HasMin)
+					if (!quota.HasMin || !quota.HasMax)
 						continue;
 					decimal count = profile.CountFor(quota, parent) + EnrouteStockFor(settings, quota, parent, ignoredJob);
 					decimal remaining = quota.Min - count;

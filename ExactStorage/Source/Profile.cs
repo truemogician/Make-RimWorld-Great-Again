@@ -138,6 +138,7 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 		foreach (var def in DefCache.ChildrenOf(categoryDef)) {
 			if (_quotas.TryGetValue(def.defName, out var quota)
 				&& QuotaUsable(quota)
+				&& Settings.QuotaAllowed(quota)
 				&& ChildContrib(quota, max, def is ThingCategoryDef) is { } contrib)
 				sum += (uint)Math.Ceiling(contrib); // Different items can't stack together
 			else if (def is ThingCategoryDef catDef)
