@@ -8,7 +8,7 @@
 		<Authors>true_mogician</Authors>
 		<Description>Compatibility fix that restores Useful Marks colonist-bar icons on Colony Groups pawn portraits.</Description>
 		<PackageId>TrueMogician.UsefulMarksInColonyGroups</PackageId>
-		<Version>1.0.0</Version>
+		<Version>1.0.1</Version>
 		<Title>Useful Marks in Colony Groups</Title>
 		<RootNamespace>TrueMogician.RimWorld.UsefulMarksInColonyGroups</RootNamespace>
 	</PropertyGroup>
