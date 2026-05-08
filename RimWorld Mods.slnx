@@ -21,6 +21,7 @@
 		<Project Path="Rimfined/Source.VF/Rimfined.VF.csproj" />
 	</Folder>
 	<Project Path="AnimalHaulExtended/Source/AnimalHaulExtended.csproj" />
+	<Project Path="WorkMemory/Source/WorkMemory.csproj" />
 	<Folder Name="/Fixes/">
 		<Project Path="Fixes/UsefulMarksInColonyGroups/Source/UsefulMarksInColonyGroups.csproj" />
 	</Folder>

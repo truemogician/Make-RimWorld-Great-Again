@@ -1,33 +1,35 @@
 using System.Linq;
+using RimWorld;
 using TrueMogician.Extensions.Collections.Dictionary;
 using UnityEngine;
 using Verse;
 
-namespace TrueMogician.RimWorld.Rimsonable.Components;
+namespace TrueMogician.RimWorld.WorkMemory.Components;
 
-using WorkMemoryTuple = (int PawnId, string RecipeDefName, WorkMemoryRecord Record);
+using WorkMemoryTuple = (int PawnId, string MemoryKey, WorkMemoryRecord Record);
 
 public sealed class WorkMemoryComponent : GameComponent {
-	private readonly TupleDictionary3D<int, string, WorkMemoryRecord> _records = new();
+	private readonly TupleDictionary3D<int, string, WorkMemoryRecord> _records = [];
 
 	public WorkMemoryComponent(Game game) { }
 
-	public float GetMultiplier(Pawn pawn, RecipeDef recipe, int delta) {
-		return !_records.TryGetValue(pawn.thingIDNumber, recipe.defName, out var record)
-			? WorkMemoryCurve.MIN_MULTIPLIER
+	public float GetMultiplier(Pawn pawn, string memoryKey, RecipeDef recipe, int delta) {
+		return !_records.TryGetValue(pawn.thingIDNumber, memoryKey, out var record)
+			? WorkMemoryCurve.MinMultiplier
 			: WorkMemoryCurve.GetMultiplier(record.GetMomentum(Find.TickManager.TicksGame, delta), recipe);
 	}
 
-	public void RecordWork(Pawn pawn, RecipeDef recipe, int delta) {
+	public void RecordWork(Pawn pawn, string memoryKey, RecipeDef recipe, int delta) {
 		delta = Mathf.Max(delta, 1);
 		int pawnId = pawn.thingIDNumber;
-		string recipeDefName = recipe.defName;
-		if (!_records.TryGetValue(pawnId, recipeDefName, out var record)) {
+		if (!_records.TryGetValue(pawnId, memoryKey, out var record)) {
 			record = new WorkMemoryRecord();
-			_records[pawnId, recipeDefName] = record;
+			_records[pawnId, memoryKey] = record;
 		}
 		record.RecordWork(Find.TickManager.TicksGame, delta, WorkMemoryCurve.GetMomentumCap(recipe));
 	}
+
+	public void ClearRecords() => _records.Clear();
 
 	public override void ExposeData() {
 		if (Scribe.mode == LoadSaveMode.Saving)
@@ -39,13 +41,14 @@ public sealed class WorkMemoryComponent : GameComponent {
 			if (entries == null)
 				return;
 			foreach (var entry in entries) {
-				if (entry is not { PawnId: > 0, RecipeDefName: not null, Record: not null })
+				if (entry is not { PawnId: > 0, MemoryKey: not null, Record: not null })
 					continue;
 				_records.Add(entry);
 			}
 		}
-		else if (Scribe.mode == LoadSaveMode.PostLoadInit)
+		else if (Scribe.mode == LoadSaveMode.PostLoadInit) {
 			PruneExpired();
+		}
 	}
 
 	private void PruneExpired() {
@@ -56,32 +59,31 @@ public sealed class WorkMemoryComponent : GameComponent {
 			.Where(tuple => tuple.Item3 == null || tuple.Item3.IsExpired(now))
 			.Select(tuple => (tuple.Item1, tuple.Item2))
 			.ToArray();
-		foreach (var (pawnId, recipeDefName) in staleKeys)
-			_records.Remove(pawnId, recipeDefName);
+		foreach ((int pawnId, string? memoryKey) in staleKeys)
+			_records.Remove(pawnId, memoryKey);
 	}
 }
 
 public sealed class WorkMemoryEntry : IExposable {
 	public int PawnId;
 
-	public string? RecipeDefName;
+	public string? MemoryKey;
 
 	public WorkMemoryRecord? Record;
 
 	public void ExposeData() {
 		Scribe_Values.Look(ref PawnId, "pawnId");
-		Scribe_Values.Look(ref RecipeDefName, "recipeDefName");
+		Scribe_Values.Look(ref MemoryKey, "memoryKey");
 		Scribe_Deep.Look(ref Record, "record");
 	}
 
-	public static implicit operator WorkMemoryTuple(WorkMemoryEntry entry) => (entry.PawnId, entry.RecipeDefName ?? string.Empty, entry.Record ?? new());
+	public static implicit operator WorkMemoryTuple(WorkMemoryEntry entry) => (entry.PawnId, entry.MemoryKey ?? string.Empty, entry.Record ?? new());
 
 	public static implicit operator WorkMemoryEntry(WorkMemoryTuple tuple) => new() {
 		PawnId = tuple.PawnId,
-		RecipeDefName = tuple.RecipeDefName,
+		MemoryKey = tuple.MemoryKey,
 		Record = tuple.Record
 	};
-
 }
 
 public sealed class WorkMemoryRecord : IExposable {
@@ -91,14 +93,14 @@ public sealed class WorkMemoryRecord : IExposable {
 
 	public void ExposeData() {
 		Scribe_Values.Look(ref _lastWorkedTick, "lastWorkedTick", -1);
-		Scribe_Values.Look(ref _momentum, "momentum", 0f);
+		Scribe_Values.Look(ref _momentum, "momentum");
 	}
 
 	public float GetMomentum(int now, int delta) {
 		int gap = _lastWorkedTick < 0
 			? int.MaxValue
-			: Mathf.Max(0, now - _lastWorkedTick - delta - WorkMemoryCurve.DECAY_DELAY_TICKS);
-		return Mathf.Max(0f, _momentum - gap * WorkMemoryCurve.DECAY_PER_TICK);
+			: Mathf.Max(0, now - _lastWorkedTick - delta - WorkMemoryCurve.DecayDelay);
+		return Mathf.Max(0f, _momentum - gap * WorkMemoryCurve.DecayPerTick);
 	}
 
 	public bool IsExpired(int now) {
@@ -107,28 +109,38 @@ public sealed class WorkMemoryRecord : IExposable {
 		return GetMomentum(now, 0) <= 0f;
 	}
 
-	public void RecordWork(int now, int delta, float momentumCap) {
-		_momentum = Mathf.Min(momentumCap, GetMomentum(now, delta) + delta);
+	public void RecordWork(int now, int deltaTicks, float momentumCap) {
+		_momentum = Mathf.Min(momentumCap, GetMomentum(now, deltaTicks) + deltaTicks);
 		_lastWorkedTick = now;
 	}
 }
 
-internal static class WorkMemoryCurve {
-	public const float MIN_MULTIPLIER = 0.5f;
+public static class WorkMemoryCurve {
+	public const float DEFAULT_PENALTY = 0.3f;
 
-	public const float MAX_MULTIPLIER = 1.25f;
+	public const float DEFAULT_WARMUP_SPEED = 1f;
 
-	public const float MIN_REFERENCE_WORK_AMOUNT = 400f;
+	public const float MIN_REFERENCE_WORK_AMOUNT = 200f;
 
 	public const float MIDPOINT_FACTOR = 1f;
 
 	public const float SLOPE_FACTOR = 0.2f;
 
-	public const float MOMENTUM_CAP_FACTOR = 2.0f;
+	public const float MOMENTUM_CAP_FACTOR = 2f;
 
-	public const int DECAY_DELAY_TICKS = 800;
+	public const int DEFAULT_DECAY_DELAY = 1 * GenDate.TicksPerDay;
 
-	public const float DECAY_PER_TICK = 0.4f;
+	public const float DEFAULT_DECAY_SPEED = 0.25f;
+
+	public static float MinMultiplier => Settings.Default is { } settings ? settings.MinMultiplier : 1f - DEFAULT_PENALTY;
+
+	public static float MaxMultiplier => Settings.Default is { } settings ? settings.MaxMultiplier : 1f + DEFAULT_PENALTY * 0.5f;
+
+	public static float WarmupSpeed => Settings.Default is { } settings ? settings.WarmupSpeed : DEFAULT_WARMUP_SPEED;
+
+	public static int DecayDelay => Settings.Default is { } settings ? settings.DecayDelay : DEFAULT_DECAY_DELAY;
+
+	public static float DecayPerTick => Mathf.Max(0f, Settings.Default is { } settings ? settings.DecaySpeed : DEFAULT_DECAY_SPEED);
 
 	public static float GetMomentumCap(RecipeDef recipe) => GetReferenceWorkAmount(recipe) * MOMENTUM_CAP_FACTOR;
 
@@ -140,10 +152,13 @@ internal static class WorkMemoryCurve {
 		float lowerBound = RawSigmoid(0f, midpoint, slope);
 		float upperBound = RawSigmoid(momentumCap, midpoint, slope);
 		float normalized = Mathf.InverseLerp(lowerBound, upperBound, RawSigmoid(Mathf.Clamp(momentum, 0f, momentumCap), midpoint, slope));
-		return Mathf.Lerp(MIN_MULTIPLIER, MAX_MULTIPLIER, normalized);
+		return Mathf.Lerp(MinMultiplier, MaxMultiplier, normalized);
 	}
 
-	private static float GetReferenceWorkAmount(RecipeDef recipe) => Mathf.Max(recipe.WorkAmountTotal(null), MIN_REFERENCE_WORK_AMOUNT);
+	private static float GetReferenceWorkAmount(RecipeDef recipe) {
+		float amount = Mathf.Max(recipe.WorkAmountTotal(null), MIN_REFERENCE_WORK_AMOUNT);
+		return amount / Mathf.Max(WarmupSpeed, 0.01f);
+	}
 
 	private static float RawSigmoid(float momentum, float midpoint, float slope) => 1f / (1f + Mathf.Exp(-(momentum - midpoint) / slope));
 }

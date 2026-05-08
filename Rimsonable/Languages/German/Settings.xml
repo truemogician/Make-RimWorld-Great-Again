@@ -18,10 +18,6 @@
 				<label>Näherungsaktivatoren automatisch meiden</label>
 				<description>Personen und Tiere meiden bei der Wegfindung automatisch Näherungsaktivatoren von Mech-Clustern, ähnlich wie Feuer. So werden schlafende Mech-Cluster nicht versehentlich ausgelöst.</description>
 			</AutoAvoidProximityActivators>
-			<WorkMemory>
-				<label>Arbeitsgedächtnis</label>
-				<description>Die Arbeitsgeschwindigkeit beim Herstellen von Gegenständen mit Qualität steigt, wenn sich jemand auf denselben Auftrag konzentriert, und fällt nach längerer Unterbrechung wieder ab. Das belohnt wiederholte Arbeit am selben Auftrag.</description>
-			</WorkMemory>
 			<BuildAtCorners>
 				<label>Bau an Wandecken</label>
 				<description>Erlaubt Personen, Baupläne und Rahmen an Wandecken (dem Mittelpunkt einer +-Form) zu errichten. Im Vanilla-Spiel lassen sich solche Baupläne zwar mit Material beliefern, aber nie fertigstellen, weil niemand diagonal an sie herankommt.</description>
@@ -31,13 +27,5 @@
 			<label>Artilleriemarkierungen auf nicht feindlichen Zielen automatisch anvisieren</label>
 			<description>Ob Artillerie und Mörser Artilleriemarkierungen auf nicht feindlichen Zielen wie neutralen Tieren oder Besuchern automatisch als Ziel wählen sollen.</description>
 		</AutoTargetMarksOnNonHostile>
-		<WorkMemoryNonQualityRecipes>
-			<label>Auch bei Rezepten ohne Qualitätsstufe</label>
-			<description>Das Arbeitsgedächtnis greift dann auch bei Aufträgen ohne Qualitätsstufe, etwa beim Kochen oder Verarbeiten.</description>
-		</WorkMemoryNonQualityRecipes>
 	</Rimsonable.Settings>
-	<Rimsonable.WorkMemory>
-		<InspectLine>Arbeitsgedaechtnis: {0} Geschwindigkeit</InspectLine>
-		<InspectPostfix> ({0} Geschwindigkeit)</InspectPostfix>
-	</Rimsonable.WorkMemory>
 </LanguageData>

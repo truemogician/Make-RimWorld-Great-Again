@@ -4,14 +4,14 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
-using TrueMogician.RimWorld.Rimsonable.Components;
-using TrueMogician.RimWorld.Rimsonable.Static;
 using TrueMogician.RimWorld.Utility;
 using TrueMogician.RimWorld.Utility.Attributes;
+using TrueMogician.RimWorld.WorkMemory.Components;
+using TrueMogician.RimWorld.WorkMemory.Static;
 using Verse;
 using Verse.AI;
 
-namespace TrueMogician.RimWorld.Rimsonable.Patches;
+namespace TrueMogician.RimWorld.WorkMemory.Patches;
 
 public static class WorkMemory {
 	private static readonly AssignmentClosureFinder _finder = new(typeof(Toil), nameof(Toil.tickIntervalAction));
@@ -28,10 +28,11 @@ public static class WorkMemory {
 
 	public static bool TryGetDisplay(Pawn? pawn, string key, out string text) {
 		text = string.Empty;
-		var recipe = pawn?.CurJob?.RecipeDef;
+		var job = pawn?.CurJob;
+		var recipe = job?.RecipeDef;
 		if (recipe is null || !IsTrackedRecipe(recipe))
 			return false;
-		var multiplier = Component.GetMultiplier(pawn!, recipe, 0);
+		var multiplier = Component.GetMultiplier(pawn!, GetMemoryKey(job!, recipe), recipe, 0);
 		text = key.Translate(multiplier.ToStringPercent());
 		return true;
 	}
@@ -44,7 +45,7 @@ public static class WorkMemory {
 	[HarmonyPatch(typeof(Pawn), nameof(Pawn.GetInspectString))]
 	[HarmonyPostfix]
 	internal static void Inspect(Pawn __instance, ref string __result) {
-		if (!TryGetDisplay(__instance, "Rimsonable.WorkMemory.InspectLine", out string line))
+		if (!TryGetDisplay(__instance, "WorkMemory.InspectLine", out string line))
 			return;
 		__result = __result.NullOrEmpty() ? line : $"{__result}\n{line}";
 	}
@@ -79,7 +80,7 @@ public static class WorkMemory {
 	}
 
 	private static bool IsTrackedRecipe(RecipeDef recipe) {
-		if (Settings.Default.WorkMemoryNonQualityRecipes)
+		if (Settings.Default.NonQualityRecipes)
 			return true;
 		return recipe.products?.Any(product => product.thingDef.HasComp(typeof(CompQuality))) == true;
 	}
@@ -88,11 +89,13 @@ public static class WorkMemory {
 		if (workDone <= 0f || delta <= 0)
 			return workDone;
 		var pawn = driver?.pawn;
-		var recipe = driver?.job?.RecipeDef;
+		var job = driver?.job;
+		var recipe = job?.RecipeDef;
 		if (pawn is null || recipe is null || !IsTrackedRecipe(recipe))
 			return workDone;
-		float adjusted = workDone * Component.GetMultiplier(pawn, recipe, delta);
-		Component.RecordWork(pawn, recipe, delta);
+		string memoryKey = GetMemoryKey(job!, recipe);
+		float adjusted = workDone * Component.GetMultiplier(pawn, memoryKey, recipe, delta);
+		Component.RecordWork(pawn, memoryKey, recipe, delta);
 		return adjusted;
 	}
 
@@ -145,5 +148,18 @@ public static class WorkMemory {
 			break;
 		}
 		return null;
+	}
+
+	private static string GetMemoryKey(Job job, RecipeDef recipe) {
+		Def? def;
+		if (Settings.Default.KeyMode == KeyMode.Workbench)
+			def = job.GetTarget(TargetIndex.A).Thing?.def;
+		else {
+			var primaryProduct = recipe.products?.Select(product => product.thingDef).FirstOrDefault(d => d != null);
+			def = Settings.Default.KeyMode == KeyMode.Item
+				? primaryProduct
+				: primaryProduct?.FirstThingCategory ?? primaryProduct?.thingCategories?.FirstOrDefault();
+		}
+		return (def ?? recipe).defName;
 	}
 }

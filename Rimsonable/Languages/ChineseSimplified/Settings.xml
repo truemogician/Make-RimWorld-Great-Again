@@ -19,10 +19,6 @@
 				<label>自动避开探测激活器</label>
 				<description>人和动物在寻路时会像躲避火焰一样，自动绕开机械集群的探测激活器，避免误触休眠中的机械集群。</description>
 			</AutoAvoidProximityActivators>
-			<WorkMemory>
-				<label>工作记忆</label>
-				<description>制作带品质的物品时，如果持续专注于同一项清单，速度会逐步提升；离开太久后则会回落，鼓励持续而专注的工作方式。</description>
-			</WorkMemory>
 			<BuildAtCorners>
 				<label>墙角施工</label>
 				<description>允许人员施工放置在墙角（十字形中心）的蓝图和框架。原版中，这类蓝图可以被运送资源，却因为没有人能从斜角接触到而永远无法完工。</description>
@@ -32,13 +28,5 @@
 			<label>自动瞄准非敌对目标上的火炮标记</label>
 			<description>是否允许火炮和迫击炮自动攻击带有火炮标记的非敌对目标，例如中立动物或访客。</description>
 		</AutoTargetMarksOnNonHostile>
-		<WorkMemoryNonQualityRecipes>
-			<label>对非品质配方也生效</label>
-			<description>让工作记忆也会影响烹饪、精炼等不会产出品质物品的工作单。</description>
-		</WorkMemoryNonQualityRecipes>
 	</Rimsonable.Settings>
-	<Rimsonable.WorkMemory>
-		<InspectLine>工作记忆：速度 {0}</InspectLine>
-		<InspectPostfix>（速度 {0}）</InspectPostfix>
-	</Rimsonable.WorkMemory>
 </LanguageData>

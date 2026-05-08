@@ -7,12 +7,13 @@ using TrueMogician.RimWorld.Rimsonable.Static;
 using TrueMogician.RimWorld.Utility;
 using TrueMogician.RimWorld.Utility.Attributes;
 using TrueMogician.RimWorld.Utility.Extensions;
+using UnityEngine;
 using Verse;
 
 namespace TrueMogician.RimWorld.Rimsonable;
 
 [Flags]
-[FeaturesEnum(true)]
+[FeaturesEnum()]
 [Translation("Rimsonable.Settings.Features", ImplicitMembers = true)]
 public enum Features : ulong {
 	None = 0,
@@ -26,6 +27,7 @@ public enum Features : ulong {
 
 	AutoAvoidProximityActivators = 1 << 3,
 
+	[FeatureIgnore]
 	WorkMemory = 1 << 4,
 
 	BuildAtCorners = 1 << 5
@@ -37,15 +39,11 @@ public class Settings : FeatureSettings<Features> {
 
 	private bool _autoTargetMarksOnNonHostile;
 
-	private bool _workMemoryNonQualityRecipes;
-
 	public Settings() : base(Helper.Logger) {
 		AfterDrawFeatureRow += (_, args) => {
 			var conf = args.Config;
 			if (args is { Feature: Features.EnhanceArtilleryMarkers, Enabled: true })
 				DrawSubSetting(args, conf, nameof(AutoTargetMarksOnNonHostile), ref _autoTargetMarksOnNonHostile);
-			if (args is { Feature: Features.WorkMemory, Enabled: true })
-				DrawSubSetting(args, conf, nameof(WorkMemoryNonQualityRecipes), ref _workMemoryNonQualityRecipes);
 		};
 	}
 
@@ -53,7 +51,6 @@ public class Settings : FeatureSettings<Features> {
 		AddFeaturePatches(Features.AllowGrenadesThroughShields, typeof(AllowGrenadesThroughShields));
 		AddFeaturePatches(Features.SafeRestLocation, typeof(SafeRestLocation));
 		AddFeaturePatches(Features.AutoAvoidProximityActivators, typeof(AutoAvoidProximityActivators));
-		AddFeaturePatches(Features.WorkMemory, typeof(WorkMemory));
 		AddFeaturePatches(Features.BuildAtCorners, typeof(BuildAtCorners));
 	}
 
@@ -64,8 +61,10 @@ public class Settings : FeatureSettings<Features> {
 	[Translation]
 	public bool AutoTargetMarksOnNonHostile => _autoTargetMarksOnNonHostile;
 
-	[Translation]
-	public bool WorkMemoryNonQualityRecipes => _workMemoryNonQualityRecipes;
+	public override void ExposeData() {
+		base.ExposeData();
+		Scribe_Values.Look(ref _autoTargetMarksOnNonHostile, nameof(AutoTargetMarksOnNonHostile).ToCamelCase());
+	}
 
 	private static void DrawSubSetting(DrawFeatureRowEventArgs args, SettingsMenuConfig conf, string memberName, ref bool value) {
 		var rect = args.NewLine().Padding(0, conf.ResetButtonWidth + conf.Gap, 0, _ADDITIONAL_SETTINGS_INDENT);
@@ -77,10 +76,4 @@ public class Settings : FeatureSettings<Features> {
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static string? Translate(string memberName, string? subField = null)
 		=> typeof(Settings).TranslateMember(memberName, subField);
-
-	public override void ExposeData() {
-		base.ExposeData();
-		Scribe_Values.Look(ref _autoTargetMarksOnNonHostile, nameof(AutoTargetMarksOnNonHostile).ToCamelCase());
-		Scribe_Values.Look(ref _workMemoryNonQualityRecipes, nameof(WorkMemoryNonQualityRecipes).ToCamelCase());
-	}
 }

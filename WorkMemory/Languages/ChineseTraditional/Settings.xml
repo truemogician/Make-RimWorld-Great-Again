@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<WorkMemory.Title>工作手感</WorkMemory.Title>
+	<WorkMemory.Settings>
+		<NonQualityRecipes>
+			<label>對非品質配方也生效</label>
+			<description>讓工作手感也會套用到烹飪、精煉等不會產生品質物品的工作單。</description>
+		</NonQualityRecipes>
+		<KeyMode>
+			<label>記憶範圍</label>
+			<description>控制工作手感的作用範圍：基於製作的物品、物品類別還是工作台。更改此設定將清除現有的工作手感。</description>
+			<Item>基於物品</Item>
+			<Category>基於類別</Category>
+			<Workbench>基於工作台</Workbench>
+		</KeyMode>
+		<Penalty>
+			<label>初始降速懲罰</label>
+			<description>設定初始的速度減值。最高速度加成始終為該減值的一半。</description>
+			<slider.label>-{0} / +{1}</slider.label>
+		</Penalty>
+		<WarmupSpeed>
+			<label>暖身速度</label>
+			<description>控制重複進行某項工作時獲得速度加成的快慢。</description>
+			<slider.label>{0}x</slider.label>
+		</WarmupSpeed>
+		<DecayDelay>
+			<label>記憶衰退延遲</label>
+			<description>停止某項工作後，工作手感開始衰退所需的時間。</description>
+			<slider.label>{0} h</slider.label>
+		</DecayDelay>
+		<DecaySpeed>
+			<label>記憶衰退速度</label>
+			<description>在上述延遲過後工作手感衰退的速度（相對於暖身速度的比例）。</description>
+			<slider.label>{0}x</slider.label>
+		</DecaySpeed>
+	</WorkMemory.Settings>
+	<WorkMemory.InspectLine>工作手感：速度 {0}</WorkMemory.InspectLine>
+</LanguageData>

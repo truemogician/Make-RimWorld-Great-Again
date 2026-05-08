@@ -19,10 +19,6 @@
 				<label>Auto Avoid Proximity Activators</label>
 				<description>Pawns automatically avoid mechanoid proximity activators during pathfinding, similar to how they avoid fire. Prevents accidental triggering of dormant mechanoid clusters.</description>
 			</AutoAvoidProximityActivators>
-			<WorkMemory>
-				<label>Work Memory</label>
-				<description>Quality crafting speed ramps up when a pawn stays focused on making the same thing and falls off after time away, encouraging repeated work on the same bill.</description>
-			</WorkMemory>
 			<BuildAtCorners>
 				<label>Build at Corners</label>
 				<description>Allow colonists to construct blueprints and frames placed at wall corners (the center of a + shape). In vanilla, such blueprints can be delivered to but never finished because no pawn can reach them through the diagonal.</description>
@@ -32,13 +28,5 @@
 			<label>Auto Target Artillery Markers on Non-Hostile Entities</label>
 			<description>Whether artillery and mortars should automatically target artillery markers on non-hostile entities (e.g., neutral animals or visitors).</description>
 		</AutoTargetMarksOnNonHostile>
-		<WorkMemoryNonQualityRecipes>
-			<label>Apply to Non-Quality Recipes</label>
-			<description>Extends work memory to recipes that do not produce quality items, such as cooking or refining bills.</description>
-		</WorkMemoryNonQualityRecipes>
 	</Rimsonable.Settings>
-	<Rimsonable.WorkMemory>
-		<InspectLine>Work memory: {0} speed</InspectLine>
-		<InspectPostfix> ({0} speed)</InspectPostfix>
-	</Rimsonable.WorkMemory>
 </LanguageData>

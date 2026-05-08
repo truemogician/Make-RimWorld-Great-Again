@@ -19,10 +19,6 @@
 				<label>自動避開探測啟動器</label>
 				<description>人員與動物在尋路時，會像避開火焰那樣自動繞開機械要塞的探測啟動器，避免不小心驚動休眠中的機械要塞。</description>
 			</AutoAvoidProximityActivators>
-			<WorkMemory>
-				<label>工作手感</label>
-				<description>製作品質物品時，若持續專注於同一份工作，工作速度會逐步提升；中斷太久後又會慢慢退回，鼓勵持續處理同一份工作。</description>
-			</WorkMemory>
 			<BuildAtCorners>
 				<label>牆角施工</label>
 				<description>允許人員施工放置在牆角（十字形中心）的藍圖與框架。原版中，這類藍圖可以運送資源，卻因為沒有人能從斜角接觸而永遠無法完工。</description>
@@ -32,13 +28,5 @@
 			<label>非敵對目標的火砲標記也納入自動瞄準</label>
 			<description>是否讓火砲與迫擊砲也會自動鎖定帶有火砲標記的非敵對目標，例如中立動物或訪客。</description>
 		</AutoTargetMarksOnNonHostile>
-		<WorkMemoryNonQualityRecipes>
-			<label>對非品質配方也生效</label>
-			<description>讓工作手感也會套用到烹飪、精煉等不會產生品質物品的工作單。</description>
-		</WorkMemoryNonQualityRecipes>
 	</Rimsonable.Settings>
-	<Rimsonable.WorkMemory>
-		<InspectLine>工作手感：速度 {0}</InspectLine>
-		<InspectPostfix>（速度 {0}）</InspectPostfix>
-	</Rimsonable.WorkMemory>
 </LanguageData>

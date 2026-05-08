@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<WorkMemory.Title>Work Memory</WorkMemory.Title>
+	<WorkMemory.Settings>
+		<NonQualityRecipes>
+			<label>Apply to Non-Quality Recipes</label>
+			<description>Extends work memory to recipes that do not produce quality items, such as cooking or refining bills.</description>
+		</NonQualityRecipes>
+		<KeyMode>
+			<label>Memory Scope</label>
+			<description>Controls whether work memory is shared per crafted item, per item category, or per workbench. Changing this clears existing work memories.</description>
+			<Item>Per Item</Item>
+			<Category>Per Category</Category>
+			<Workbench>Per Workbench</Workbench>
+		</KeyMode>
+		<Penalty>
+			<label>Cold Start Penalty</label>
+			<description>Sets the initial speed penalty. The maximum speed bonus is always half of this penalty.</description>
+			<slider.label>-{0} / +{1}</slider.label>
+		</Penalty>
+		<WarmupSpeed>
+			<label>Warm-Up Speed</label>
+			<description>Controls how quickly repeated work builds momentum.</description>
+			<slider.label>{0}x</slider.label>
+		</WarmupSpeed>
+		<DecayDelay>
+			<label>Decay Delay</label>
+			<description>How long a pawn can stop working before work memory starts to decay.</description>
+			<slider.label>{0} h</slider.label>
+		</DecayDelay>
+		<DecaySpeed>
+			<label>Decay Speed</label>
+			<description>Controls how quickly work memory decays after the delay expires, relative to warm-up speed.</description>
+			<slider.label>{0}x</slider.label>
+		</DecaySpeed>
+	</WorkMemory.Settings>
+	<WorkMemory.InspectLine>Work memory: {0} speed</WorkMemory.InspectLine>
+</LanguageData>
