@@ -34,26 +34,12 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 
 	protected event EventHandler<DrawFeatureRowEventArgs>? BeforeDrawFeatureRow;
 
-	protected class DrawFeatureRowEventArgs(T feature, bool enabled, Listing_Standard listing, SettingsMenuConfig config) : EventArgs {
-		public T Feature { get; init; } = feature;
-
-		public bool Enabled { get; init; } = enabled;
-
-		public Listing_Standard Listing { get; init; } = listing;
-
-		public SettingsMenuConfig Config { get; init; } = config;
-
-		public Rect NewLine(float? height = null) {
-			float lineHeight = MathF.Max(Text.LineHeight, height ?? Config.LineHeight);
-			return Listing.GetRect(lineHeight);
-		}
-	}
-
 	public record SettingsMenuConfig(
-		string ResetButtonText = "Reset",
-		float ResetButtonWidth = 80f,
+		float WindowPadding = 20f,
 		float LineHeight = 24f,
-		float Gap = 10f
+		float Gap = 10f,
+		string ResetButtonText = "Reset",
+		float ResetButtonWidth = 80f
 	);
 
 	public virtual T DefaultFeatures { get; } = GetDefaultFeatures();
@@ -179,8 +165,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 		AppliedPatches = newPatches;
 	}
 
-	public virtual void DrawContents(Listing_Standard listing, SettingsMenuConfig? config = null) {
-		config ??= new SettingsMenuConfig();
+	public virtual void DrawContents(Listing_Standard listing, SettingsMenuConfig config) {
 		ulong newMask = _specifiedMask;
 		ulong newFeatures = _specifiedFeatures;
 		ulong curFeatures = FeaturesUlong;
@@ -236,8 +221,9 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 	}
 
 	public void DrawContents(Rect inRect, SettingsMenuConfig? config = null) {
+		config ??= new SettingsMenuConfig();
 		var listing = new Listing_Standard();
-		listing.Begin(inRect);
+		listing.Begin(inRect.Padding(config.WindowPadding));
 		DrawContents(listing, config);
 		listing.End();
 	}
@@ -260,18 +246,6 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 		}
 	}
 
-	private static NamedArgument[] TranslateArguments(string[]? arguments) {
-		if (arguments is not { Length: > 0 })
-			return [];
-		var result = new NamedArgument[arguments.Length];
-		for (var i = 0; i < arguments.Length; i++)
-			result[i] = arguments[i].TryTranslate(out var translation) ? translation : arguments[i];
-		return result;
-	}
-
-	private static bool HasTranslation(string key)
-		=> key.TryTranslate(out _) || LanguageDatabase.defaultLanguage?.TryGetTextFromKey(key, out _) == true;
-
 	protected static ISet<Type> GetAllPatches() {
 		var collection = new HashSet<Type>();
 		foreach (var types in FeaturePatches.Values)
@@ -286,5 +260,32 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 				collection.UnionWith(types);
 		}
 		return collection;
+	}
+
+	private static NamedArgument[] TranslateArguments(string[]? arguments) {
+		if (arguments is not { Length: > 0 })
+			return [];
+		var result = new NamedArgument[arguments.Length];
+		for (var i = 0; i < arguments.Length; i++)
+			result[i] = arguments[i].TryTranslate(out var translation) ? translation : arguments[i];
+		return result;
+	}
+
+	private static bool HasTranslation(string key)
+		=> key.TryTranslate(out _) || LanguageDatabase.defaultLanguage?.TryGetTextFromKey(key, out _) == true;
+
+	protected class DrawFeatureRowEventArgs(T feature, bool enabled, Listing_Standard listing, SettingsMenuConfig config) : EventArgs {
+		public T Feature { get; init; } = feature;
+
+		public bool Enabled { get; init; } = enabled;
+
+		public Listing_Standard Listing { get; init; } = listing;
+
+		public SettingsMenuConfig Config { get; init; } = config;
+
+		public Rect NewLine(float? height = null) {
+			float lineHeight = MathF.Max(Text.LineHeight, height ?? Config.LineHeight);
+			return Listing.GetRect(lineHeight);
+		}
 	}
 }
