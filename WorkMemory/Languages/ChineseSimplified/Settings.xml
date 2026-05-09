@@ -1,48 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
-	<WorkMemory.Title>工作记忆</WorkMemory.Title>
-	<WorkMemory.Settings>
-		<NonQualityRecipes>
-			<label>对非品质配方也生效</label>
-			<description>让工作记忆也会影响烹饪、精炼等不会产出品质物品的工作单。</description>
-		</NonQualityRecipes>
-		<KeyMode>
-			<label>记忆范围</label>
-			<description>控制工作记忆的作用范围：基于制作的物品、物品类别还是工作台。更改此设置将清除现有的工作记忆。</description>
-			<Item>基于物品</Item>
-			<Category>基于类别</Category>
-			<Workbench>基于工作台</Workbench>
-		</KeyMode>
-		<Penalty>
-			<label>初始减速惩罚</label>
-			<description>设置初始的速度减值。最高速度加成始终为该减值的一半。</description>
-			<slider.label>-{0} / +{1}</slider.label>
-		</Penalty>
-		<WarmupSpeed>
-			<label>预热速度</label>
-			<description>控制重复进行某项工作时获得速度加成的快慢。</description>
-			<slider.label>{0}x</slider.label>
-		</WarmupSpeed>
-		<DecayDelay>
-			<label>记忆衰退延迟</label>
-			<description>停止某项工作后，工作记忆开始衰退所需的时间。</description>
-			<slider.label>{0} h</slider.label>
-		</DecayDelay>
-		<DecaySpeed>
-			<label>记忆衰退速度</label>
-			<description>在上述延迟过后工作记忆衰退的速度（相对于预热速度的比例）。</description>
-			<slider.label>{0}x</slider.label>
-		</DecaySpeed>
-		<Illustration>
-			<title>曲线预览</title>
-			<workAmount>配方工作量</workAmount>
-			<ticksTo100>达到 100% 速度：{0}</ticksTo100>
-			<ticksToMaximum>达到最高速度：{0}</ticksToMaximum>
-			<ticksToFadeStart>开始衰退：{0}</ticksToFadeStart>
-			<ticksToFadeEnd>完全衰退：{0}</ticksToFadeEnd>
-			<tickFormat>{0} 刻（{1}）</tickFormat>
-			<axisTickFormat>{0} 刻</axisTickFormat>
-		</Illustration>
-	</WorkMemory.Settings>
-	<WorkMemory.InspectLine>工作记忆：速度 {0}</WorkMemory.InspectLine>
+	<WorkMemory>
+		<Title>工作记忆</Title>
+		<Settings>
+			<NonQualityRecipes>
+				<label>对非品质配方也生效</label>
+				<description>让工作记忆也会影响烹饪、精炼等不会产出品质物品的工作单。</description>
+			</NonQualityRecipes>
+			<KeyMode>
+				<label>记忆范围</label>
+				<description>控制工作记忆的作用范围：基于制作的物品、物品类别还是工作台。更改此设置将清除现有的工作记忆。</description>
+				<Item>基于物品</Item>
+				<Category>基于类别</Category>
+				<Workbench>基于工作台</Workbench>
+			</KeyMode>
+			<Penalty>
+				<label>初始减速惩罚</label>
+				<description>设置初始的速度减值。最高速度加成始终为该减值的一半。</description>
+				<slider.label>-{0} / +{1}</slider.label>
+			</Penalty>
+			<WarmupSpeed>
+				<label>预热速度</label>
+				<description>控制重复进行某项工作时获得速度加成的快慢。</description>
+				<slider.label>{0}x</slider.label>
+			</WarmupSpeed>
+			<DecayDelay>
+				<label>记忆衰退延迟</label>
+				<description>停止某项工作后，工作记忆开始衰退所需的时间。</description>
+				<slider.label>{0} h</slider.label>
+			</DecayDelay>
+			<DecaySpeed>
+				<label>记忆衰退速度</label>
+				<description>在上述延迟过后工作记忆衰退的速度（相对于预热速度的比例）。</description>
+				<slider.label>{0}x</slider.label>
+			</DecaySpeed>
+			<Illustration>
+				<title>曲线预览</title>
+				<workAmount>配方工作量</workAmount>
+				<ticksTo100>达到 100% 速度：{0}</ticksTo100>
+				<ticksToMaximum>达到最高速度：{0}</ticksToMaximum>
+				<ticksToFadeStart>开始衰退：{0}</ticksToFadeStart>
+				<ticksToFadeEnd>完全衰退：{0}</ticksToFadeEnd>
+				<tickFormat>{0} 刻（{1}）</tickFormat>
+				<axisTickFormat>{0} 刻</axisTickFormat>
+			</Illustration>
+		</Settings>
+		<InspectLine>工作记忆：速度 {0}</InspectLine>
+		<InspectPostfix>（速度 {0}）</InspectPostfix>
+	</WorkMemory>
 </LanguageData>

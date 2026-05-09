@@ -6,10 +6,10 @@
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
 		<Authors>true_mogician</Authors>
-		<PackageId>TrueMogician.Rimsonable.RimHUD</PackageId>
-		<Version>1.0.0</Version>
-		<Title>Rimsonable for RimHUD</Title>
-		<RootNamespace>TrueMogician.RimWorld.Rimsonable.RimHUD</RootNamespace>
+		<PackageId>TrueMogician.WorkMemory.RimHUD</PackageId>
+		<Version>0.0.1</Version>
+		<Title>Work Memory for RimHUD</Title>
+		<RootNamespace>TrueMogician.RimWorld.WorkMemory.RimHUD</RootNamespace>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -21,6 +21,10 @@
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 		<DebugType>embedded</DebugType>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectProperty Include="PackageId" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="5.0.0">
@@ -35,7 +39,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<ProjectReference Include="..\Source\Rimsonable.csproj" />
+		<ProjectReference Include="..\Source\WorkMemory.csproj" />
 		<ProjectReference Include="$(UtilityProjectPath)" />
 	</ItemGroup>
 

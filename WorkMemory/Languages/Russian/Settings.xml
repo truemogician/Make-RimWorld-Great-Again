@@ -1,48 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
-	<WorkMemory.Title>Рабочая память</WorkMemory.Title>
-	<WorkMemory.Settings>
-		<NonQualityRecipes>
-			<label>Работает и для рецептов без качества</label>
-			<description>Рабочая память будет действовать и на задания без качества результата, например на готовку или переработку.</description>
-		</NonQualityRecipes>
-		<KeyMode>
-			<label>Область памяти</label>
-			<description>Определяет, к чему привязывается рабочая память: к конкретному предмету, категории предметов или к рабочему месту. Изменение этого параметра очистит существующую рабочую память.</description>
-			<Item>Для предмета</Item>
-			<Category>Для категории</Category>
-			<Workbench>Для рабочего места</Workbench>
-		</KeyMode>
-		<Penalty>
-			<label>Штраф за холодный старт</label>
-			<description>Устанавливает начальный штраф к скорости. Максимальный бонус к скорости всегда равен половине этого штрафа.</description>
-			<slider.label>-{0} / +{1}</slider.label>
-		</Penalty>
-		<WarmupSpeed>
-			<label>Скорость разминки</label>
-			<description>Определяет, как быстро повторяющаяся работа дает бонус к скорости.</description>
-			<slider.label>{0}x</slider.label>
-		</WarmupSpeed>
-		<DecayDelay>
-			<label>Задержка забывания</label>
-			<description>Как долго поселенец может не выполнять работу, прежде чем рабочая память начнет забываться.</description>
-			<slider.label>{0} h</slider.label>
-		</DecayDelay>
-		<DecaySpeed>
-			<label>Скорость забывания</label>
-			<description>Определяет, как быстро забывается рабочая память после задержки (относительно скорости разминки).</description>
-			<slider.label>{0}x</slider.label>
-		</DecaySpeed>
-		<Illustration>
-			<title>Предпросмотр кривой</title>
-			<workAmount>Объем работы рецепта</workAmount>
-			<ticksTo100>Скорость 100%: {0}</ticksTo100>
-			<ticksToMaximum>Максимальная скорость: {0}</ticksToMaximum>
-			<ticksToFadeStart>Начало затухания: {0}</ticksToFadeStart>
-			<ticksToFadeEnd>Полное затухание: {0}</ticksToFadeEnd>
-			<tickFormat>{0} тиков ({1})</tickFormat>
-			<axisTickFormat>{0} тиков</axisTickFormat>
-		</Illustration>
-	</WorkMemory.Settings>
-	<WorkMemory.InspectLine>Рабочая память: скорость {0}</WorkMemory.InspectLine>
+	<WorkMemory>
+		<Title>Рабочая память</Title>
+		<Settings>
+			<NonQualityRecipes>
+				<label>Работает и для рецептов без качества</label>
+				<description>Рабочая память будет действовать и на задания без качества результата, например на готовку или переработку.</description>
+			</NonQualityRecipes>
+			<KeyMode>
+				<label>Область памяти</label>
+				<description>Определяет, к чему привязывается рабочая память: к конкретному предмету, категории предметов или к рабочему месту. Изменение этого параметра очистит существующую рабочую память.</description>
+				<Item>Для предмета</Item>
+				<Category>Для категории</Category>
+				<Workbench>Для рабочего места</Workbench>
+			</KeyMode>
+			<Penalty>
+				<label>Штраф за холодный старт</label>
+				<description>Устанавливает начальный штраф к скорости. Максимальный бонус к скорости всегда равен половине этого штрафа.</description>
+				<slider.label>-{0} / +{1}</slider.label>
+			</Penalty>
+			<WarmupSpeed>
+				<label>Скорость разминки</label>
+				<description>Определяет, как быстро повторяющаяся работа дает бонус к скорости.</description>
+				<slider.label>{0}x</slider.label>
+			</WarmupSpeed>
+			<DecayDelay>
+				<label>Задержка забывания</label>
+				<description>Как долго поселенец может не выполнять работу, прежде чем рабочая память начнет забываться.</description>
+				<slider.label>{0} h</slider.label>
+			</DecayDelay>
+			<DecaySpeed>
+				<label>Скорость забывания</label>
+				<description>Определяет, как быстро забывается рабочая память после задержки (относительно скорости разминки).</description>
+				<slider.label>{0}x</slider.label>
+			</DecaySpeed>
+			<Illustration>
+				<title>Предпросмотр кривой</title>
+				<workAmount>Объем работы рецепта</workAmount>
+				<ticksTo100>Скорость 100%: {0}</ticksTo100>
+				<ticksToMaximum>Максимальная скорость: {0}</ticksToMaximum>
+				<ticksToFadeStart>Начало затухания: {0}</ticksToFadeStart>
+				<ticksToFadeEnd>Полное затухание: {0}</ticksToFadeEnd>
+				<tickFormat>{0} тиков ({1})</tickFormat>
+				<axisTickFormat>{0} тиков</axisTickFormat>
+			</Illustration>
+		</Settings>
+		<InspectLine>Рабочая память: скорость {0}</InspectLine>
+		<InspectPostfix> (скорость {0})</InspectPostfix>
+	</WorkMemory>
 </LanguageData>

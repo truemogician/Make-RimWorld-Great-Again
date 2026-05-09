@@ -18,5 +18,6 @@
 	</modDependencies>
 	<loadAfter>
 		<li>brrainz.harmony</li>
+		<li>Jaxe.RimHUD</li>
 	</loadAfter>
 </ModMetaData>

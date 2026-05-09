@@ -13,7 +13,6 @@
 		<Project Path="Rimsonable/Source.CE/Rimsonable.CE.csproj" />
 		<Project Path="Rimsonable/Source.VEF/Rimsonable.VEF.csproj" />
 		<Project Path="Rimsonable/Source.VVE/Rimsonable.VVE.csproj" />
-		<Project Path="Rimsonable/Source.RimHUD/Rimsonable.RimHUD.csproj" />
 	</Folder>
 	<Folder Name="/Rimfined/">
 		<Project Path="Rimfined/Source/Rimfined.csproj" />
@@ -21,7 +20,10 @@
 		<Project Path="Rimfined/Source.VF/Rimfined.VF.csproj" />
 	</Folder>
 	<Project Path="AnimalHaulExtended/Source/AnimalHaulExtended.csproj" />
-	<Project Path="WorkMemory/Source/WorkMemory.csproj" />
+	<Folder Name="/WorkMemory/">
+		<Project Path="WorkMemory/Source/WorkMemory.csproj" />
+		<Project Path="WorkMemory/Source.RimHUD/WorkMemory.RimHUD.csproj" />
+	</Folder>
 	<Folder Name="/Fixes/">
 		<Project Path="Fixes/UsefulMarksInColonyGroups/Source/UsefulMarksInColonyGroups.csproj" />
 	</Folder>
