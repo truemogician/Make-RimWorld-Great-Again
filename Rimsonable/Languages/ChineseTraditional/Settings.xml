@@ -29,4 +29,21 @@
 			<description>是否讓火砲與迫擊砲也會自動鎖定帶有火砲標記的非敵對目標，例如中立動物或訪客。</description>
 		</AutoTargetMarksOnNonHostile>
 	</Rimsonable.Settings>
+	<Rimsonable.WorkMemoryMigration>
+		<Title>工作記憶已拆分為獨立模組</Title>
+		<Body>
+			Rimsonable 以前提供的「工作記憶」功能現在已經遷移到獨立模組 Work Memory 中。
+			這個獨立模組已擴展出更多可調參數和專屬設定。
+			創意工坊頁面：{0}
+			你可以先打開工坊頁面查看，也可以讓 RimWorld 直接為你訂閱並啟用這個新模組。
+		</Body>
+		<WorkshopPage>工坊頁面</WorkshopPage>
+		<SubscribeAndEnable>訂閱並啟用</SubscribeAndEnable>
+		<SubscribeQueued>已訂閱 Work Memory。下載完成後，RimWorld 會自動啟用它。</SubscribeQueued>
+		<SubscribeNoSteam>只有透過 Steam 執行 RimWorld 時，才能直接訂閱創意工坊模組。現在將為你打開工坊頁面。</SubscribeNoSteam>
+		<SubscribeUnavailable>Work Memory 的創意工坊項目尚未配置。現在將為你打開工坊頁面。</SubscribeUnavailable>
+		<SubscribeFailed>RimWorld 無法自動訂閱 Work Memory。現在將為你打開工坊頁面。</SubscribeFailed>
+		<EnableFailed>Work Memory 已下載完成，但 RimWorld 暫時還沒有在已安裝模組清單中找到它。請在下載完成後打開模組選單手動啟用。</EnableFailed>
+		<AlreadyEnabled>Work Memory 已經啟用。</AlreadyEnabled>
+	</Rimsonable.WorkMemoryMigration>
 </LanguageData>

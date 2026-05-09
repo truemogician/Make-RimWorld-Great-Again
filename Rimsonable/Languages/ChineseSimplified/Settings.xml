@@ -29,4 +29,21 @@
 			<description>是否允许火炮和迫击炮自动攻击带有火炮标记的非敌对目标，例如中立动物或访客。</description>
 		</AutoTargetMarksOnNonHostile>
 	</Rimsonable.Settings>
+	<Rimsonable.WorkMemoryMigration>
+		<Title>工作记忆已拆分为独立模组</Title>
+		<Body>
+			Rimsonable 以前提供的“工作记忆”功能现在已经迁移到独立模组 Work Memory 中。
+			这个独立模组已经扩展出更多可调参数和专属设置。
+			创意工坊页面：{0}
+			你可以先打开工坊页面查看，也可以让 RimWorld 直接为你订阅并启用这个新模组。
+		</Body>
+		<WorkshopPage>工坊页面</WorkshopPage>
+		<SubscribeAndEnable>订阅并启用</SubscribeAndEnable>
+		<SubscribeQueued>已订阅 Work Memory。下载完成后，RimWorld 会自动启用它。</SubscribeQueued>
+		<SubscribeNoSteam>只有通过 Steam 运行 RimWorld 时，才能直接订阅创意工坊模组。现在将为你打开工坊页面。</SubscribeNoSteam>
+		<SubscribeUnavailable>Work Memory 的创意工坊条目尚未配置。现在将为你打开工坊页面。</SubscribeUnavailable>
+		<SubscribeFailed>RimWorld 无法自动订阅 Work Memory。现在将为你打开工坊页面。</SubscribeFailed>
+		<EnableFailed>Work Memory 已下载完成，但 RimWorld 暂时还没有在已安装模组列表中找到它。请在下载完成后打开模组菜单手动启用。</EnableFailed>
+		<AlreadyEnabled>Work Memory 已经启用。</AlreadyEnabled>
+	</Rimsonable.WorkMemoryMigration>
 </LanguageData>

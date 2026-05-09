@@ -7,13 +7,13 @@ using TrueMogician.RimWorld.Rimsonable.Static;
 using TrueMogician.RimWorld.Utility;
 using TrueMogician.RimWorld.Utility.Attributes;
 using TrueMogician.RimWorld.Utility.Extensions;
-using UnityEngine;
 using Verse;
+using RimsonableNoticeManager = TrueMogician.RimWorld.Rimsonable.NoticeManager;
 
 namespace TrueMogician.RimWorld.Rimsonable;
 
 [Flags]
-[FeaturesEnum()]
+[FeaturesEnum]
 [Translation("Rimsonable.Settings.Features", ImplicitMembers = true)]
 public enum Features : ulong {
 	None = 0,
@@ -64,6 +64,7 @@ public class Settings : FeatureSettings<Features> {
 	public override void ExposeData() {
 		base.ExposeData();
 		Scribe_Values.Look(ref _autoTargetMarksOnNonHostile, nameof(AutoTargetMarksOnNonHostile).ToCamelCase());
+		RimsonableNoticeManager.Instance.ExposeData();
 	}
 
 	private static void DrawSubSetting(DrawFeatureRowEventArgs args, SettingsMenuConfig conf, string memberName, ref bool value) {

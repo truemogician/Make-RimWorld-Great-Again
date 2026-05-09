@@ -28,4 +28,21 @@
 			<description>포병과 박격포가 중립 동물이나 방문객처럼 비적대 대상에 찍힌 포격 표식을 자동으로 조준할지 설정합니다.</description>
 		</AutoTargetMarksOnNonHostile>
 	</Rimsonable.Settings>
+	<Rimsonable.WorkMemoryMigration>
+		<Title>Work Memory Moved to Its Own Mod</Title>
+		<Body>
+			Rimsonable's former Work Memory feature now lives in a separate mod: Work Memory.
+			The standalone mod has been expanded with its own settings and tuning options.
+			Workshop page: {0}
+			You can open the workshop page, or let RimWorld subscribe to and enable the new mod for you.
+		</Body>
+		<WorkshopPage>Workshop Page</WorkshopPage>
+		<SubscribeAndEnable>Subscribe and Enable</SubscribeAndEnable>
+		<SubscribeQueued>Subscribed to Work Memory. RimWorld will enable it automatically after the download finishes.</SubscribeQueued>
+		<SubscribeNoSteam>Direct workshop subscription is only available when RimWorld is running through Steam. Opening the workshop page instead.</SubscribeNoSteam>
+		<SubscribeUnavailable>Work Memory's workshop item is not configured yet. Opening the workshop page instead.</SubscribeUnavailable>
+		<SubscribeFailed>RimWorld could not subscribe to Work Memory automatically. Opening the workshop page instead.</SubscribeFailed>
+		<EnableFailed>Work Memory finished downloading, but RimWorld could not find it in the installed mod list yet. Open the Mods menu after the download finishes and enable it manually.</EnableFailed>
+		<AlreadyEnabled>Work Memory is already enabled.</AlreadyEnabled>
+	</Rimsonable.WorkMemoryMigration>
 </LanguageData>
