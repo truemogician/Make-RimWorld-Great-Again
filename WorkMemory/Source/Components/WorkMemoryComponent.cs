@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Runtime.CompilerServices;
 using RimWorld;
 using TrueMogician.Extensions.Collections.Dictionary;
 using UnityEngine;
@@ -142,23 +143,46 @@ public static class WorkMemoryCurve {
 
 	public static float DecayPerTick => Mathf.Max(0f, Settings.Default is { } settings ? settings.DecaySpeed : DEFAULT_DECAY_SPEED);
 
-	public static float GetMomentumCap(RecipeDef recipe) => GetReferenceWorkAmount(recipe) * MOMENTUM_CAP_FACTOR;
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static float GetMultiplier(float momentum, RecipeDef recipe) =>
+		GetMultiplier(momentum, GetReferenceWorkAmount(recipe), MinMultiplier, MaxMultiplier);
 
-	public static float GetMultiplier(float momentum, RecipeDef recipe) {
-		var workAmount = GetReferenceWorkAmount(recipe);
-		float midpoint = workAmount * MIDPOINT_FACTOR;
-		float slope = workAmount * SLOPE_FACTOR;
-		float momentumCap = workAmount * MOMENTUM_CAP_FACTOR;
+	public static float GetMultiplier(float momentum, float referenceWorkAmount, float minMultiplier, float maxMultiplier) {
+		float midpoint = referenceWorkAmount * MIDPOINT_FACTOR;
+		float slope = referenceWorkAmount * SLOPE_FACTOR;
+		float momentumCap = GetMomentumCap(referenceWorkAmount);
 		float lowerBound = RawSigmoid(0f, midpoint, slope);
 		float upperBound = RawSigmoid(momentumCap, midpoint, slope);
 		float normalized = Mathf.InverseLerp(lowerBound, upperBound, RawSigmoid(Mathf.Clamp(momentum, 0f, momentumCap), midpoint, slope));
-		return Mathf.Lerp(MinMultiplier, MaxMultiplier, normalized);
+		return Mathf.Lerp(minMultiplier, maxMultiplier, normalized);
 	}
 
-	private static float GetReferenceWorkAmount(RecipeDef recipe) {
-		float amount = Mathf.Max(recipe.WorkAmountTotal(null), MIN_REFERENCE_WORK_AMOUNT);
-		return amount / Mathf.Max(WarmupSpeed, 0.01f);
+	public static float GetMomentumForMultiplier(float multiplier, float referenceWorkAmount, float minMultiplier, float maxMultiplier) {
+		float momentumCap = GetMomentumCap(referenceWorkAmount);
+		float midpoint = referenceWorkAmount * MIDPOINT_FACTOR;
+		float slope = referenceWorkAmount * SLOPE_FACTOR;
+		float lowerBound = RawSigmoid(0f, midpoint, slope);
+		float upperBound = RawSigmoid(momentumCap, midpoint, slope);
+		float normalized = Mathf.InverseLerp(minMultiplier, maxMultiplier, multiplier);
+		float raw = Mathf.Lerp(lowerBound, upperBound, normalized);
+		raw = Mathf.Clamp(raw, 0.0001f, 0.9999f);
+		return Mathf.Clamp(midpoint + slope * Mathf.Log(raw / (1f - raw)), 0f, momentumCap);
 	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static float GetMomentumCap(RecipeDef recipe) => GetMomentumCap(GetReferenceWorkAmount(recipe));
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static float GetMomentumCap(float referenceWorkAmount) => referenceWorkAmount * MOMENTUM_CAP_FACTOR;
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static float GetReferenceWorkAmount(float recipeWorkAmount, float warmupSpeed) {
+		float amount = Mathf.Max(recipeWorkAmount, MIN_REFERENCE_WORK_AMOUNT);
+		return amount / Mathf.Max(warmupSpeed, 0.01f);
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static float GetReferenceWorkAmount(RecipeDef recipe) => GetReferenceWorkAmount(recipe.WorkAmountTotal(null), WarmupSpeed);
 
 	private static float RawSigmoid(float momentum, float midpoint, float slope) => 1f / (1f + Mathf.Exp(-(momentum - midpoint) / slope));
 }

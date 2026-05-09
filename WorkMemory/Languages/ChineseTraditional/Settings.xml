@@ -33,6 +33,16 @@
 			<description>在上述延遲過後工作手感衰退的速度（相對於暖身速度的比例）。</description>
 			<slider.label>{0}x</slider.label>
 		</DecaySpeed>
+		<Illustration>
+			<title>曲線預覽</title>
+			<workAmount>配方工作量</workAmount>
+			<ticksTo100>達到 100% 速度：{0}</ticksTo100>
+			<ticksToMaximum>達到最高速度：{0}</ticksToMaximum>
+			<ticksToFadeStart>開始衰退：{0}</ticksToFadeStart>
+			<ticksToFadeEnd>完全衰退：{0}</ticksToFadeEnd>
+			<tickFormat>{0} 刻（{1}）</tickFormat>
+			<axisTickFormat>{0} 刻</axisTickFormat>
+		</Illustration>
 	</WorkMemory.Settings>
 	<WorkMemory.InspectLine>工作手感：速度 {0}</WorkMemory.InspectLine>
 </LanguageData>
