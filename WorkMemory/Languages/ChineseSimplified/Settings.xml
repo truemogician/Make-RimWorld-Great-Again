@@ -7,13 +7,6 @@
 				<label>对非品质配方也生效</label>
 				<description>让工作记忆也会影响烹饪、精炼等不会产出品质物品的工作单。</description>
 			</NonQualityRecipes>
-			<KeyMode>
-				<label>记忆范围</label>
-				<description>控制工作记忆的作用范围：基于制作的物品、物品类别还是工作台。更改此设置将清除现有的工作记忆。</description>
-				<Item>基于物品</Item>
-				<Category>基于类别</Category>
-				<Workbench>基于工作台</Workbench>
-			</KeyMode>
 			<Penalty>
 				<label>初始减速惩罚</label>
 				<description>设置初始的速度减值。最高速度加成始终为该减值的一半。</description>

@@ -28,19 +28,16 @@ public static class WorkMemory {
 
 	public static bool TryGetDisplay(Pawn? pawn, string key, out string text) {
 		text = string.Empty;
-		var job = pawn?.CurJob;
-		var recipe = job?.RecipeDef;
-		if (recipe is null || !IsTrackedRecipe(recipe))
+		if (pawn is not { CurJob: { RecipeDef: { } recipe } job } || !IsTrackedRecipe(recipe))
 			return false;
-		var multiplier = Component.GetMultiplier(pawn!, GetMemoryKey(job!, recipe), recipe, 0);
+		var multiplier = Component.GetMultiplier(pawn, new WorkMemoryContext(job, recipe), 0);
 		text = key.Translate(multiplier.ToStringPercent());
 		return true;
 	}
 
 	[HarmonyPatch(typeof(Toils_Recipe), nameof(Toils_Recipe.DoRecipeWork))]
 	[HarmonyTranspiler]
-	internal static IEnumerable<CodeInstruction> Inspect(IEnumerable<CodeInstruction> insts)
-		=> _finder.Transpile(insts);
+	internal static IEnumerable<CodeInstruction> Inspect(IEnumerable<CodeInstruction> insts) => _finder.Transpile(insts);
 
 	[HarmonyPatch(typeof(Pawn), nameof(Pawn.GetInspectString))]
 	[HarmonyPostfix]
@@ -86,16 +83,14 @@ public static class WorkMemory {
 	}
 
 	private static float ApplyWorkMemoryMultiplier(float workDone, JobDriver_DoBill? driver, int delta) {
-		if (workDone <= 0f || delta <= 0)
+		if (workDone <= 0f || delta <= 0 || driver is not { pawn: { } pawn, job: { } job })
 			return workDone;
-		var pawn = driver?.pawn;
-		var job = driver?.job;
-		var recipe = job?.RecipeDef;
-		if (pawn is null || recipe is null || !IsTrackedRecipe(recipe))
+		var recipe = job.RecipeDef;
+		if (!IsTrackedRecipe(recipe))
 			return workDone;
-		string memoryKey = GetMemoryKey(job!, recipe);
-		float adjusted = workDone * Component.GetMultiplier(pawn, memoryKey, recipe, delta);
-		Component.RecordWork(pawn, memoryKey, recipe, delta);
+		var context = new WorkMemoryContext(job, recipe);
+		float adjusted = workDone * Component.GetMultiplier(pawn, context, delta);
+		Component.RecordWork(pawn, context, delta);
 		return adjusted;
 	}
 
@@ -148,18 +143,5 @@ public static class WorkMemory {
 			break;
 		}
 		return null;
-	}
-
-	private static string GetMemoryKey(Job job, RecipeDef recipe) {
-		Def? def;
-		if (Settings.Default.KeyMode == KeyMode.Workbench)
-			def = job.GetTarget(TargetIndex.A).Thing?.def;
-		else {
-			var primaryProduct = recipe.products?.Select(product => product.thingDef).FirstOrDefault(d => d != null);
-			def = Settings.Default.KeyMode == KeyMode.Item
-				? primaryProduct
-				: primaryProduct?.FirstThingCategory ?? primaryProduct?.thingCategories?.FirstOrDefault();
-		}
-		return (def ?? recipe).defName;
 	}
 }

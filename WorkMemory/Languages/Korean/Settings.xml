@@ -7,13 +7,6 @@
 				<label>품질이 없는 작업에도 적용</label>
 				<description>요리나 정제처럼 결과물에 품질이 붙지 않는 작업에도 작업 기억이 적용됩니다.</description>
 			</NonQualityRecipes>
-			<KeyMode>
-				<label>기억 범위</label>
-				<description>작업 기억이 제작 아이템별, 아이템 카테고리별 또는 작업대별로 공유될지 설정합니다. 설정을 변경하면 기존 작업 기억이 초기화됩니다.</description>
-				<Item>아이템별</Item>
-				<Category>카테고리별</Category>
-				<Workbench>작업대별</Workbench>
-			</KeyMode>
 			<Penalty>
 				<label>초기 속도 감소</label>
 				<description>초기 속도 페널티를 설정합니다. 최대 속도 보너스는 항상 이 페널티의 절반입니다.</description>

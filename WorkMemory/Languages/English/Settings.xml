@@ -7,13 +7,6 @@
 				<label>Apply to Non-Quality Recipes</label>
 				<description>Extends work memory to recipes that do not produce quality items, such as cooking or refining bills.</description>
 			</NonQualityRecipes>
-			<KeyMode>
-				<label>Memory Scope</label>
-				<description>Controls whether work memory is shared per crafted item, per item category, or per workbench. Changing this clears existing work memories.</description>
-				<Item>Per Item</Item>
-				<Category>Per Category</Category>
-				<Workbench>Per Workbench</Workbench>
-			</KeyMode>
 			<Penalty>
 				<label>Cold Start Penalty</label>
 				<description>Sets the initial speed penalty. The maximum speed bonus is always half of this penalty.</description>

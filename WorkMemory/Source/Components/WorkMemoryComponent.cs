@@ -1,42 +1,62 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using RimWorld;
 using TrueMogician.Extensions.Collections.Dictionary;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 
 namespace TrueMogician.RimWorld.WorkMemory.Components;
 
 using WorkMemoryTuple = (int PawnId, string MemoryKey, WorkMemoryRecord Record);
 
 public sealed class WorkMemoryComponent : GameComponent {
+	private const float _RECIPE_WEIGHT = 0.7f;
+
+	private const float _CATEGORY_WEIGHT = 0.2f;
+
+	private const float _WORKBENCH_WEIGHT = 0.1f;
+
 	private readonly TupleDictionary3D<int, string, WorkMemoryRecord> _records = [];
 
 	public WorkMemoryComponent(Game game) { }
 
-	public float GetMultiplier(Pawn pawn, string memoryKey, RecipeDef recipe, int delta) {
-		return !_records.TryGetValue(pawn.thingIDNumber, memoryKey, out var record)
-			? WorkMemoryCurve.MinMultiplier
-			: WorkMemoryCurve.GetMultiplier(record.GetMomentum(Find.TickManager.TicksGame, delta), recipe);
+	public float GetMultiplier(Pawn pawn, WorkMemoryContext context, int delta) {
+		int now = Find.TickManager.TicksGame;
+		int pawnId = pawn.thingIDNumber;
+		float recipeMomentum = GetMomentum(pawnId, context.Recipe.defName, now, delta);
+		float referenceWorkAmount = WorkMemoryCurve.GetReferenceWorkAmount(context.Recipe);
+		float categoryMomentum = context.Categories.Count == 0
+			? 0f
+			: context.Categories.Average(category => GetMomentum(pawnId, category.defName, now, delta));
+		categoryMomentum = Mathf.Min(categoryMomentum, referenceWorkAmount);
+		float workbenchMomentum = context.Workbench is null
+			? 0f
+			: Mathf.Min(GetMomentum(pawnId, context.Workbench.defName, now, delta), referenceWorkAmount);
+		float momentum = recipeMomentum * _RECIPE_WEIGHT + categoryMomentum * _CATEGORY_WEIGHT + workbenchMomentum * _WORKBENCH_WEIGHT;
+		return WorkMemoryCurve.GetMultiplier(momentum, context.Recipe);
 	}
 
-	public void RecordWork(Pawn pawn, string memoryKey, RecipeDef recipe, int delta) {
+	public void RecordWork(Pawn pawn, WorkMemoryContext context, int delta) {
 		delta = Mathf.Max(delta, 1);
 		int pawnId = pawn.thingIDNumber;
-		if (!_records.TryGetValue(pawnId, memoryKey, out var record)) {
-			record = new WorkMemoryRecord();
-			_records[pawnId, memoryKey] = record;
+		int now = Find.TickManager.TicksGame;
+		RecordWork(pawnId, context.Recipe.defName, now, delta, delta, WorkMemoryCurve.GetMomentumCap(context.Recipe));
+		if (context.Categories.Count > 0) {
+			float categoryDelta = (float)delta / context.Categories.Count;
+			foreach (var category in context.Categories)
+				RecordWork(pawnId, category.defName, now, delta, categoryDelta, null);
 		}
-		record.RecordWork(Find.TickManager.TicksGame, delta, WorkMemoryCurve.GetMomentumCap(recipe));
+		if (context.Workbench is { } workbench)
+			RecordWork(pawnId, workbench.defName, now, delta, delta, null);
 	}
-
-	public void ClearRecords() => _records.Clear();
 
 	public override void ExposeData() {
 		if (Scribe.mode == LoadSaveMode.Saving)
 			PruneExpired();
 		var entries = Scribe.mode == LoadSaveMode.Saving ? _records.Select(tuple => (WorkMemoryEntry)tuple).ToList() : [];
-		Scribe_Collections.Look(ref entries, "entries", LookMode.Deep);
+		Scribe_Collections.Look(ref entries, "records", LookMode.Deep);
 		if (Scribe.mode == LoadSaveMode.LoadingVars) {
 			_records.Clear();
 			if (entries == null)
@@ -47,9 +67,8 @@ public sealed class WorkMemoryComponent : GameComponent {
 				_records.Add(entry);
 			}
 		}
-		else if (Scribe.mode == LoadSaveMode.PostLoadInit) {
+		else if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			PruneExpired();
-		}
 	}
 
 	private void PruneExpired() {
@@ -60,9 +79,38 @@ public sealed class WorkMemoryComponent : GameComponent {
 			.Where(tuple => tuple.Item3 == null || tuple.Item3.IsExpired(now))
 			.Select(tuple => (tuple.Item1, tuple.Item2))
 			.ToArray();
-		foreach ((int pawnId, string? memoryKey) in staleKeys)
-			_records.Remove(pawnId, memoryKey);
+		foreach ((int pawnId, string? key) in staleKeys)
+			_records.Remove(pawnId, key);
 	}
+
+	private float GetMomentum(int pawnId, string key, int now, int delta) =>
+		_records.TryGetValue(pawnId, key, out var record) ? record.GetMomentum(now, delta) : 0f;
+
+	private void RecordWork(int pawnId, string key, int now, int elapsedTicks, float momentumDelta, float? momentumCap) {
+		if (!_records.TryGetValue(pawnId, key, out var record)) {
+			record = new WorkMemoryRecord();
+			_records[pawnId, key] = record;
+		}
+		record.RecordWork(now, elapsedTicks, momentumDelta, momentumCap);
+	}
+}
+
+public readonly record struct WorkMemoryContext(
+	RecipeDef Recipe,
+	IReadOnlyList<ThingCategoryDef> Categories,
+	ThingDef? Workbench
+) {
+	public WorkMemoryContext(Job job, RecipeDef recipe) : this(
+		recipe,
+		recipe.products?
+			.Select(product => product.thingDef)
+			.Where(def => def?.thingCategories != null)
+			.SelectMany(def => def.thingCategories)
+			.Distinct()
+			.ToList()
+		?? [],
+		job.GetTarget(TargetIndex.A).Thing?.def
+	) { }
 }
 
 public sealed class WorkMemoryEntry : IExposable {
@@ -104,14 +152,12 @@ public sealed class WorkMemoryRecord : IExposable {
 		return Mathf.Max(0f, _momentum - gap * WorkMemoryCurve.DecayPerTick);
 	}
 
-	public bool IsExpired(int now) {
-		if (_lastWorkedTick < 0)
-			return true;
-		return GetMomentum(now, 0) <= 0f;
-	}
+	public bool IsExpired(int now) => _lastWorkedTick < 0 || GetMomentum(now, 0) <= 0f;
 
-	public void RecordWork(int now, int deltaTicks, float momentumCap) {
-		_momentum = Mathf.Min(momentumCap, GetMomentum(now, deltaTicks) + deltaTicks);
+	public void RecordWork(int now, int elapsedTicks, float momentumDelta, float? momentumCap) {
+		_momentum = GetMomentum(now, elapsedTicks) + momentumDelta;
+		if (momentumCap is { } cap)
+			_momentum = Mathf.Min(cap, _momentum);
 		_lastWorkedTick = now;
 	}
 }
@@ -182,7 +228,7 @@ public static class WorkMemoryCurve {
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static float GetReferenceWorkAmount(RecipeDef recipe) => GetReferenceWorkAmount(recipe.WorkAmountTotal(null), WarmupSpeed);
+	public static float GetReferenceWorkAmount(RecipeDef recipe) => GetReferenceWorkAmount(recipe.WorkAmountTotal(null), WarmupSpeed);
 
 	private static float RawSigmoid(float momentum, float midpoint, float slope) => 1f / (1f + Mathf.Exp(-(momentum - midpoint) / slope));
 }

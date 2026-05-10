@@ -7,13 +7,6 @@
 				<label>Auch bei Rezepten ohne Qualitätsstufe</label>
 				<description>Das Arbeitsgedächtnis greift dann auch bei Aufträgen ohne Qualitätsstufe, etwa beim Kochen oder Verarbeiten.</description>
 			</NonQualityRecipes>
-			<KeyMode>
-				<label>Gedächtnisbereich</label>
-				<description>Steuert, ob das Arbeitsgedächtnis pro hergestelltem Gegenstand, pro Kategorie oder pro Arbeitstisch geteilt wird. Eine Änderung löscht bestehende Arbeitsgedächtnisse.</description>
-				<Item>Pro Gegenstand</Item>
-				<Category>Pro Kategorie</Category>
-				<Workbench>Pro Arbeitstisch</Workbench>
-			</KeyMode>
 			<Penalty>
 				<label>Kaltstart-Malus</label>
 				<description>Legt den anfänglichen Geschwindigkeitsmalus fest. Der maximale Geschwindigkeitsbonus beträgt immer die Hälfte dieses Malus.</description>

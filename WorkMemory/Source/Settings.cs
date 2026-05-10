@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using CaseExtensions;
 using RimWorld;
 using TrueMogician.Extensions.List;
-using TrueMogician.RimWorld.Utility;
 using TrueMogician.RimWorld.Utility.Attributes;
 using TrueMogician.RimWorld.Utility.Extensions;
 using TrueMogician.RimWorld.Utility.GUI;
@@ -17,15 +16,6 @@ using Verse;
 namespace TrueMogician.RimWorld.WorkMemory;
 
 [Translation("WorkMemory.Settings")]
-public enum KeyMode : byte {
-	Item,
-
-	Category,
-
-	Workbench
-}
-
-[Translation("WorkMemory.Settings")]
 public class Settings : ModSettings {
 	private const float _WINDOW_PADDING = 20f;
 
@@ -35,7 +25,7 @@ public class Settings : ModSettings {
 
 	private const float _SLIDER_WIDTH = 250f;
 
-	private const float _PREVIEW_HEIGHT = 350f;
+	private const float _PREVIEW_HEIGHT = 370f;
 
 	private const int _CHART_SEGMENTS = 160;
 
@@ -48,10 +38,6 @@ public class Settings : ModSettings {
 	private static readonly Color _chartLine = new(0.42f, 0.72f, 1f, 1f);
 
 	private static readonly Color _chartMarker = new(1f, 0.82f, 0.36f, 0.7f);
-
-	private KeyMode _keyMode = KeyMode.Category;
-
-	private KeyMode _savedKeyMode = KeyMode.Category;
 
 	private bool _nonQualityRecipes;
 
@@ -105,9 +91,6 @@ public class Settings : ModSettings {
 	[Translation]
 	public float DecaySpeed => _decaySpeed;
 
-	[Translation]
-	public KeyMode KeyMode => _keyMode;
-
 	public float MinMultiplier => 1f - _penalty;
 
 	public float MaxMultiplier => 1f + _penalty * 0.5f;
@@ -118,7 +101,6 @@ public class Settings : ModSettings {
 		Widgets.BeginScrollView(outerRect, ref _scrollPosition, viewRect);
 		var listing = new Listing_Standard { maxOneColumn = true };
 		listing.Begin(viewRect);
-		DrawEnum(listing, nameof(KeyMode), () => _keyMode, mode => _keyMode = mode);
 		DrawCheckbox(listing, nameof(NonQualityRecipes), ref _nonQualityRecipes);
 		DrawSlider(
 			listing,
@@ -136,7 +118,7 @@ public class Settings : ModSettings {
 			v => [((float)v / GenDate.TicksPerHour).ToString("0.##")]
 		);
 		DrawSlider(listing, nameof(DecaySpeed), ref _decaySpeed, _decaySpeedChoices, v => [v.ToString("0.##")]);
-		listing.Gap(8f);
+		listing.Gap(16f);
 		DrawCurvePreview(listing);
 		_contentHeight = listing.CurHeight + 8f;
 		listing.End();
@@ -145,18 +127,11 @@ public class Settings : ModSettings {
 
 	public override void ExposeData() {
 		base.ExposeData();
-		Scribe_Values.Look(ref _keyMode, nameof(KeyMode).ToCamelCase());
 		Scribe_Values.Look(ref _nonQualityRecipes, nameof(NonQualityRecipes).ToCamelCase());
 		Scribe_Values.Look(ref _penalty, nameof(Penalty).ToCamelCase(), WorkMemoryCurve.DEFAULT_PENALTY);
 		Scribe_Values.Look(ref _warmupSpeed, nameof(WarmupSpeed).ToCamelCase(), WorkMemoryCurve.DEFAULT_WARMUP_SPEED);
 		Scribe_Values.Look(ref _decayDelay, nameof(DecayDelay).ToCamelCase(), WorkMemoryCurve.DEFAULT_DECAY_DELAY);
 		Scribe_Values.Look(ref _decaySpeed, nameof(DecaySpeed).ToCamelCase(), WorkMemoryCurve.DEFAULT_DECAY_SPEED);
-		if (Scribe.mode == LoadSaveMode.LoadingVars)
-			_savedKeyMode = _keyMode;
-		else if (Scribe.mode == LoadSaveMode.Saving && _savedKeyMode != _keyMode) {
-			CachedGameComponent<WorkMemoryComponent>.TryGet()?.ClearRecords();
-			_savedKeyMode = _keyMode;
-		}
 	}
 
 	private static void DrawCheckbox(Listing_Standard listing, string memberName, ref bool value) {
@@ -164,31 +139,6 @@ public class Settings : ModSettings {
 		if (Translate(memberName, "description") is { } tip && !tip.NullOrEmpty())
 			TooltipHandler.TipRegion(rect, tip);
 		Widgets.CheckboxLabeled(rect, Translate(memberName, "label"), ref value);
-	}
-
-	private static void DrawEnum<T>(
-		Listing_Standard listing,
-		string memberName,
-		Func<T> getValue,
-		Action<T> setValue
-	) where T : struct {
-		var value = getValue();
-		var rects = GetRowRects(listing);
-		if (Translate(memberName, "description") is { } tip && !tip.NullOrEmpty())
-			TooltipHandler.TipRegion(rects[0], tip);
-		using (new TextBlock(TextAnchor.MiddleLeft))
-			Widgets.Label(rects[0], Translate(memberName, "label"));
-		if (Widgets.ButtonText(rects[2], Translate(memberName, value.ToString()) ?? value.ToString())) {
-			var options = Enum.GetValues(typeof(T))
-				.Cast<T>()
-				.Select(mode => new FloatMenuOption(
-						Translate(memberName, mode.ToString()) ?? mode.ToString(),
-						() => setValue(mode)
-					)
-				)
-				.ToList();
-			Find.WindowStack.Add(new FloatMenu(options));
-		}
 	}
 
 	private static void DrawSlider<T>(
