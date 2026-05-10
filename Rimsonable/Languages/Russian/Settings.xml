@@ -28,21 +28,29 @@
 			<description>Должны ли артиллерия и миномёты автоматически наводиться на артиллерийские метки на невраждебных целях, например на нейтральных животных или гостях.</description>
 		</AutoTargetMarksOnNonHostile>
 	</Rimsonable.Settings>
-	<Rimsonable.WorkMemoryMigration>
-		<Title>Work Memory Moved to Its Own Mod</Title>
-		<Body>
-			Rimsonable's former Work Memory feature now lives in a separate mod: Work Memory.
-			The standalone mod has been expanded with its own settings and tuning options.
-			Workshop page: {0}
-			You can open the workshop page, or let RimWorld subscribe to and enable the new mod for you.
-		</Body>
-		<WorkshopPage>Workshop Page</WorkshopPage>
-		<SubscribeAndEnable>Subscribe and Enable</SubscribeAndEnable>
-		<SubscribeQueued>Subscribed to Work Memory. RimWorld will enable it automatically after the download finishes.</SubscribeQueued>
-		<SubscribeNoSteam>Direct workshop subscription is only available when RimWorld is running through Steam. Opening the workshop page instead.</SubscribeNoSteam>
-		<SubscribeUnavailable>Work Memory's workshop item is not configured yet. Opening the workshop page instead.</SubscribeUnavailable>
-		<SubscribeFailed>RimWorld could not subscribe to Work Memory automatically. Opening the workshop page instead.</SubscribeFailed>
-		<EnableFailed>Work Memory finished downloading, but RimWorld could not find it in the installed mod list yet. Open the Mods menu after the download finishes and enable it manually.</EnableFailed>
-		<AlreadyEnabled>Work Memory is already enabled.</AlreadyEnabled>
-	</Rimsonable.WorkMemoryMigration>
+	<Rimsonable.Migration>
+		<WindowTitle>Уведомления о переносе функций Rimsonable</WindowTitle>
+		<WorkMemory>
+			<Title>«Рабочая память» выделена в отдельный мод</Title>
+			<Body.Enabled>
+				Прежняя функция «Рабочая память» из Rimsonable была переработана с нуля. Ввиду возросшей сложности, оставлять её и дальше в роли второстепенной функции было бы неправильно. Поэтому я доработал её и выпустил в виде отдельного мода: Рабочая память.
+				Изменения включают в себя более сбалансированные стандартные значения, полную настройку параметров математической модели (теперь в меню настроек можно наглядно увидеть, как именно разные цифры повлияют на игру), а также многоуровневую систему памяти.
+				Нажмите кнопку ниже, чтобы перейти на страницу нового мода в Мастерской.
+				Поскольку ранее функция рабочей памяти была у вас включена, вы можете просто нажать «Подписаться и включить», чтобы сэкономить время (в случае успеха игра автоматически перезапустится).
+			</Body.Enabled>
+			<Body.Disabled>
+				Прежняя функция «Рабочая память» из Rimsonable была переработана с нуля. Ввиду возросшей сложности, оставлять её и дальше в роли второстепенной функции было бы неправильно. Поэтому я доработал её и выпустил в виде отдельного мода: Рабочая память.
+				Изменения включают в себя более сбалансированные стандартные значения, полную настройку параметров математической модели (теперь в меню настроек можно наглядно увидеть, как именно разные цифры повлияют на игру), а также многоуровневую систему памяти.
+				Возможно, ранее вы отключили эту функцию из-за того, что старые значения баланса были слишком агрессивными и портили игру. Тем не менее, я крайне рекомендую взглянуть на обновлённую версию мода в Мастерской — возможно, теперь она придётся вам по душе!
+			</Body.Disabled>
+			<WorkshopPage>Страница в Мастерской</WorkshopPage>
+			<SubscribeAndEnable>Подписаться и включить</SubscribeAndEnable>
+			<SubscribeQueued>Вы подписались на мод Рабочая память. Как только загрузка завершится, RimWorld включит его автоматически.</SubscribeQueued>
+			<SubscribeNoSteam>Прямая подписка из игры доступна, только если RimWorld запущен через Steam. Вместо этого будет открыта страница в Мастерской.</SubscribeNoSteam>
+			<SubscribeUnavailable>Страница мода в Мастерской пока не настроена. Открываю страницу в браузере.</SubscribeUnavailable>
+			<SubscribeFailed>RimWorld не удалось автоматически подписаться на Рабочая память. Вместо этого будет открыта страница в Мастерской.</SubscribeFailed>
+			<EnableFailed>Мод загружен, однако RimWorld пока не обнаружил его в списке установленных. Пожалуйста, откройте меню модов и включите его вручную.</EnableFailed>
+			<AlreadyEnabled>Мод Рабочая память уже включен.</AlreadyEnabled>
+		</WorkMemory>
+	</Rimsonable.Migration>
 </LanguageData>

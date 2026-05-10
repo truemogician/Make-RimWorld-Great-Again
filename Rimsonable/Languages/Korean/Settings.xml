@@ -28,21 +28,29 @@
 			<description>포병과 박격포가 중립 동물이나 방문객처럼 비적대 대상에 찍힌 포격 표식을 자동으로 조준할지 설정합니다.</description>
 		</AutoTargetMarksOnNonHostile>
 	</Rimsonable.Settings>
-	<Rimsonable.WorkMemoryMigration>
-		<Title>Work Memory Moved to Its Own Mod</Title>
-		<Body>
-			Rimsonable's former Work Memory feature now lives in a separate mod: Work Memory.
-			The standalone mod has been expanded with its own settings and tuning options.
-			Workshop page: {0}
-			You can open the workshop page, or let RimWorld subscribe to and enable the new mod for you.
-		</Body>
-		<WorkshopPage>Workshop Page</WorkshopPage>
-		<SubscribeAndEnable>Subscribe and Enable</SubscribeAndEnable>
-		<SubscribeQueued>Subscribed to Work Memory. RimWorld will enable it automatically after the download finishes.</SubscribeQueued>
-		<SubscribeNoSteam>Direct workshop subscription is only available when RimWorld is running through Steam. Opening the workshop page instead.</SubscribeNoSteam>
-		<SubscribeUnavailable>Work Memory's workshop item is not configured yet. Opening the workshop page instead.</SubscribeUnavailable>
-		<SubscribeFailed>RimWorld could not subscribe to Work Memory automatically. Opening the workshop page instead.</SubscribeFailed>
-		<EnableFailed>Work Memory finished downloading, but RimWorld could not find it in the installed mod list yet. Open the Mods menu after the download finishes and enable it manually.</EnableFailed>
-		<AlreadyEnabled>Work Memory is already enabled.</AlreadyEnabled>
-	</Rimsonable.WorkMemoryMigration>
+	<Rimsonable.Migration>
+		<WindowTitle>Rimsonable 마이그레이션 알림</WindowTitle>
+		<WorkMemory>
+			<Title>작업 기억 단독 모드로 분리</Title>
+			<Body.Enabled>
+				Rimsonable에 포함되어 있던 '작업 기억' 기능이 완전히 개편되었습니다. 시스템이 복잡해지면서 더 이상 하위 기능으로 두기엔 아깝다는 생각이 들어서, 아예 '작업 기억'이라는 독립적인 모드로 분리하기로 결정했습니다.
+				이번 업데이트에서는 기본값을 더 합리적으로 조정했고, 수학적 모델의 매개변 준수를 자유롭게 설정할 수 있도록 변경했습니다 (설정 메뉴에서 값을 바꿀 때마다 게임에 어떤 영향을 주는지 미리 볼 수 있습니다). 또한 다단계 작업 기억 시스템도 추가되었습니다.
+				아래 버튼을 눌러 새 모드의 창작마당 페이지를 확인해 보세요.
+				이전에 Rimsonable에서 이 기능을 켜두셨기 때문에, 번거로움을 덜기 위해 '구독 및 활성화' 버튼을 바로 누르셔도 좋습니다 (구독과 활성화가 정상적으로 완료되면 게임이 자동으로 재시작됩니다).
+			</Body.Enabled>
+			<Body.Disabled>
+				Rimsonable에 포함되어 있던 '작업 기억' 기능이 완전히 개편되었습니다. 시스템이 복잡해지면서 더 이상 하위 기능으로 두기엔 아깝다는 생각이 들어서, 아예 '작업 기억'이라는 독립적인 모드로 분리하기로 결정했습니다.
+				이번 업데이트에서는 기본값을 더 합리적으로 조정했고, 수학적 모델의 매개변수를 자유롭게 설정할 수 있도록 변경했습니다 (설정 메뉴에서 값을 바꿀 때마다 게임에 어떤 영향을 주는지 미리 볼 수 있습니다). 또한 다단계 작업 기억 시스템도 추가되었습니다.
+				비록 이전 버전에서는 설정값이 너무 과격해서 게임 플레이에 방해가 된다고 느껴 이 기능을 직접 끄셨을 수도 있지만, 새롭게 단장한 '작업 기억'을 창작마당에서 한 번 살펴보시길 권해드립니다. 어쩌면 마음이 바뀌실지도 몰라요!
+			</Body.Disabled>
+			<WorkshopPage>창작마당 페이지</WorkshopPage>
+			<SubscribeAndEnable>구독 및 활성화</SubscribeAndEnable>
+			<SubscribeQueued>작업 기억 모드를 구독했습니다. 다운로드가 완료되면 림월드가 자동으로 활성화합니다.</SubscribeQueued>
+			<SubscribeNoSteam>스팀을 통해 림월드를 실행 중일 때만 창작마당 모드를 직접 구독할 수 있습니다. 대신 창작마당 페이지를 엽니다.</SubscribeNoSteam>
+			<SubscribeUnavailable>작업 기억 기능의 창작마당 항목이 아직 설정되지 않았습니다. 대신 창작마당 페이지를 엽니다.</SubscribeUnavailable>
+			<SubscribeFailed>림월드가 작업 기억 모드를 자동으로 구독하지 못했습니다. 대신 창작마당 페이지를 엽니다.</SubscribeFailed>
+			<EnableFailed>작업 기억 모드의 다운로드가 완료되었으나, 림월드가 아직 설치된 모드 목록에서 이 모드를 찾지 못했습니다. 다운로드가 완전히 끝난 후 모드 메뉴를 열어 수동으로 활성화해 주세요.</EnableFailed>
+			<AlreadyEnabled>작업 기억 모드가 이미 활성화되어 있습니다.</AlreadyEnabled>
+		</WorkMemory>
+	</Rimsonable.Migration>
 </LanguageData>
