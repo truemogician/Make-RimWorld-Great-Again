@@ -1,0 +1,71 @@
+[h1]Work Memory[/h1]
+
+[b]Your crafter has a brain. Sometimes it even remembers what it was doing.[/b]
+
+[b]Work Memory[/b] adds short-term working rhythm to recipes: repeat the same kind of work, and a pawn gets into rhythm; leave it too long, and that rhythm cools off.
+
+The idea is simple, and annoyingly real. Reopening a project after a few days usually does not start with work. It starts with remembering where you stopped, why the last decision made sense, and why some past version of you named a variable like that. Once the brain catches up, efficiency starts climbing again.
+
+RimWorld pawns deserve a taste of office life too.
+
+[h2]For Rimsonable Players[/h2]
+
+If you are coming here from [b]Rimsonable[/b]'s migration notice, welcome back! This is the former Rimsonable Work Memory feature, now moved into its own mod.
+
+The old version was a good idea with suspicious numbers. A 50% cold start penalty and short fade delay meant your best crafter could spend more time being punished for starting work than rewarded for staying focused. Realistic for software development, maybe less ideal for a colony simulator.
+
+Admittedly, the original values were tested only in the dev environment, not judged in real colony gameplay. Once I enabled it in my own colony and watched pawns constantly suffering from the 50% speed penalty, even I wanted to turn the feature off myself.
+
+The new version now makes the default values more Rimsonable:
+
+[list]
+[*]Cold starts begin at 70% speed instead of 50%.
+[*]The default maximum is 115%, because the bonus is always 50% of the penalty.
+[*]Memory waits one in-game day before it starts decaying.
+[*]The settings menu lets you adjust the whole curve.
+[/list]
+
+[h2]How It Works[/h2]
+
+[url=GAMEPLAY_GIF_LINK_PLACEHOLDER][img]GAMEPLAY_GIF_IMAGE_PLACEHOLDER[/img][/url]
+
+When a pawn works at a workbench on a tracked recipe, [b]Work Memory[/b] records short-term familiarity for that pawn and that type of work. More repetition means a better speed multiplier; too much time away means the pawn has to warm up again.
+
+By default, it only applies to recipes that produce items with quality, such as weapons and apparel. If you want cooking, refining, smelting, and other non-quality recipes to use the same mechanic, there is a dedicated setting for that.
+
+The memory is mostly tied to the exact recipe, but some familiarity carries through related product categories and the same workbench. A pawn switching between similar armor bills is not a complete beginner. A pawn switching from helmets to fine meals is, academically speaking, pushing it.
+
+The current multiplier appears in the pawn info panel while they work, so you can see exactly how [b]Work Memory[/b] is affecting their speed.
+
+[h2]Settings[/h2]
+
+[url=SETTINGS_GIF_LINK_PLACEHOLDER][img]SETTINGS_GIF_IMAGE_PLACEHOLDER[/img][/url]
+
+The settings menu exposes the important parts:
+
+[list]
+[*]Apply to non-quality recipes.
+[*]Adjust the cold start penalty and maximum bonus.
+[*]Change how quickly pawns warm up.
+[*]Change when memory starts fading.
+[*]Change how quickly it fades.
+[/list]
+
+There is also a curve preview. Pick a recipe work amount and it shows when the pawn reaches normal speed, when they hit the maximum, when fading begins, and when the memory is gone.
+
+One small RimWorld accounting crime: the preview uses the raw work amount. The value shown in-game is divided by 60 for human readability, because at normal speed, 1 real-world second = 60 ticks. So if a recipe shows [b]30 work[/b] in-game, use [b]1800[/b] in the preview.
+
+If you miss the old numbers, you can set them back yourself; if you wanna continue your S&M journey in RimWorld, I won't stop you from setting the cold start to 0%.
+
+[h2]Compatibility[/h2]
+
+[b]Required:[/b] Harmony
+[b]Supported RimWorld version:[/b] 1.6
+[b]Optional integration:[/b]
+[list]
+[*]RimHUD
+[/list]
+
+If RimHUD is installed, [b]Work Memory[/b] adds the current multiplier to RimHUD's Activity row.
+
+[b]GitHub repository:[/b] [url]https://github.com/truemogician/Make-RimWorld-Great-Again/tree/main/WorkMemory[/url]
