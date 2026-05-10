@@ -1,6 +1,5 @@
 using System;
 using TrueMogician.RimWorld.Utility;
-using Verse;
 
 namespace TrueMogician.RimWorld.Rimsonable;
 
@@ -12,14 +11,16 @@ internal enum NoticeShownFlags : long {
 }
 
 internal sealed class NoticeManager : NoticeManager<NoticeShownFlags> {
-	private NoticeManager() : base(() => "Rimsonable.Title".Translate()) {
+	private NoticeManager() : base("Rimsonable.Migration.WindowTitle") {
 		ShownFlagsChanged += (_, _) => Settings.Default.Write();
 		AddNotice(
 			NoticeShownFlags.WorkMemoryMigration,
 			new StandaloneModMigrationNotice(
-				"Rimsonable.WorkMemoryMigration",
 				"TrueMogician.WorkMemory",
-				0 // TODO replace with the published Workshop id.
+				0, // TODO replace with the published Workshop id.
+				new TranslationProvider("Rimsonable.Migration.WorkMemory") {
+					KeyTransformer = key => key != "Body" ? null : $"Body.{(Settings.Default[Features.WorkMemory] ? "Enabled" : "Disabled")}"
+				}
 			)
 		);
 	}

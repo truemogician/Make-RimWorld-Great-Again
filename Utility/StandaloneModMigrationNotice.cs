@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.CompilerServices;
 using RimWorld;
 using Steamworks;
 using UnityEngine;
@@ -10,9 +10,9 @@ using Verse.Steam;
 namespace TrueMogician.RimWorld.Utility;
 
 public sealed class StandaloneModMigrationNotice(
-	string translationKeyPrefix,
-	string targetPackageId,
-	ulong workshopItemId
+	string packageId,
+	ulong workshopItemId,
+	ITranslationProvider provider
 ) : INotice {
 	private static readonly Dictionary<PublishedFileId_t, StandaloneModMigrationNotice> PendingInstalls = [];
 
@@ -20,7 +20,12 @@ public sealed class StandaloneModMigrationNotice(
 
 	private Vector2 _scrollPosition;
 
-	public TaggedString Title => Translate("Title");
+	private readonly PublishedFileId_t _publishedFileId = workshopItemId > 0 ? new PublishedFileId_t(workshopItemId) : PublishedFileId_t.Invalid;
+
+	public StandaloneModMigrationNotice(string newPackageId, ulong newWorkshopItemId, string translationKeyPrefix) :
+		this(newPackageId, newWorkshopItemId, new TranslationProvider(translationKeyPrefix)) { }
+
+	public TaggedString Title => TranslationProvider.Translate("Title");
 
 	public void DoContents(Rect rect) {
 		const float buttonHeight = 35f;
@@ -28,27 +33,30 @@ public sealed class StandaloneModMigrationNotice(
 		float buttonWidth = Mathf.Min(180f, (rect.width - gap) / 2f);
 		var buttonRow = new Rect(rect.x, rect.yMax - buttonHeight, rect.width, buttonHeight);
 		var bodyRect = new Rect(rect.x, rect.y, rect.width, rect.height - buttonHeight - gap);
-		var viewRect = new Rect(0f, 0f, bodyRect.width - 16f, Text.CalcHeight(Translate("Body", WorkshopUrl), bodyRect.width - 16f));
+		var viewRect = new Rect(
+			0f,
+			0f,
+			bodyRect.width - 16f,
+			Text.CalcHeight(TranslationProvider.Translate("Body", WorkshopUrl), bodyRect.width - 16f)
+		);
 		Widgets.BeginScrollView(bodyRect, ref _scrollPosition, viewRect);
-		Widgets.Label(viewRect, Translate("Body", WorkshopUrl));
+		Widgets.Label(viewRect, TranslationProvider.Translate("Body", WorkshopUrl));
 		Widgets.EndScrollView();
 		var subscribeButton = new Rect(buttonRow.xMax - buttonWidth, buttonRow.y, buttonWidth, buttonHeight);
 		var workshopButton = new Rect(subscribeButton.x - gap - buttonWidth, buttonRow.y, buttonWidth, buttonHeight);
-		if (Widgets.ButtonText(workshopButton, Translate("WorkshopPage")))
+		if (Widgets.ButtonText(workshopButton, TranslationProvider.Translate("WorkshopPage")))
 			OpenWorkshopPage();
-		if (Widgets.ButtonText(subscribeButton, Translate("SubscribeAndEnable")))
+		if (Widgets.ButtonText(subscribeButton, TranslationProvider.Translate("SubscribeAndEnable")))
 			SubscribeAndEnable();
 	}
 
-	public string TranslationKeyPrefix { get; } = translationKeyPrefix;
-
-	public string TargetPackageId { get; } = targetPackageId;
+	public string PackageId { get; } = packageId;
 
 	public ulong WorkshopItemId { get; } = workshopItemId;
 
-	public string WorkshopUrl => $"https://steamcommunity.com/sharedfiles/filedetails/?id={WorkshopItemId}";
+	public ITranslationProvider TranslationProvider { get; } = provider;
 
-	private PublishedFileId_t PublishedFileId => WorkshopItemId > 0 ? new PublishedFileId_t(WorkshopItemId) : PublishedFileId_t.Invalid;
+	public string WorkshopUrl => $"https://steamcommunity.com/sharedfiles/filedetails/?id={WorkshopItemId}";
 
 	private static void OnItemInstalled(ItemInstalled_t result) {
 		if (!SteamManager.Initialized || result.m_unAppID != SteamUtils.GetAppID())
@@ -69,20 +77,20 @@ public sealed class StandaloneModMigrationNotice(
 			OpenWorkshopPage();
 			return;
 		}
-		if (PublishedFileId == PublishedFileId_t.Invalid) {
+		if (_publishedFileId == PublishedFileId_t.Invalid) {
 			Notify("SubscribeUnavailable", MessageTypeDefOf.RejectInput);
 			OpenWorkshopPage();
 			return;
 		}
 		_itemInstalledCallback ??= Callback<ItemInstalled_t>.Create(OnItemInstalled);
-		PendingInstalls[PublishedFileId] = this;
-		if (!WorkshopItems.HasItem(PublishedFileId)) {
+		PendingInstalls[_publishedFileId] = this;
+		if (!WorkshopItems.HasItem(_publishedFileId)) {
 			try {
-				_ = SteamUGC.SubscribeItem(PublishedFileId);
+				_ = SteamUGC.SubscribeItem(_publishedFileId);
 			}
 			catch (Exception ex) {
-				PendingInstalls.Remove(PublishedFileId);
-				Log.Error($"Failed to subscribe to workshop item {PublishedFileId}: {ex}");
+				PendingInstalls.Remove(_publishedFileId);
+				Log.Error($"Failed to subscribe to workshop item {_publishedFileId}: {ex}");
 				Notify("SubscribeFailed", MessageTypeDefOf.RejectInput);
 				OpenWorkshopPage();
 				return;
@@ -93,23 +101,19 @@ public sealed class StandaloneModMigrationNotice(
 
 	private void OpenWorkshopPage() => SteamUtility.OpenUrl(WorkshopUrl);
 
-	private void Notify(string suffix, MessageTypeDef type)
-		=> Messages.Message(Translate(suffix), type, false);
-
-	private TaggedString Translate(string suffix, params object[] args)
-		=> args.Length == 0
-			? $"{TranslationKeyPrefix}.{suffix}".Translate()
-			: $"{TranslationKeyPrefix}.{suffix}".Translate(args.Select(arg => new NamedArgument(arg, null)).ToArray());
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private void Notify(string key, MessageTypeDef type) =>
+		Messages.Message(TranslationProvider.Translate(key), type, false);
 
 	private bool TryEnableInstalledMod(bool rebuildModList, bool notifyIfAlreadyEnabled) {
 		if (rebuildModList)
 			ModLister.RebuildModList();
-		if (ModLister.GetActiveModWithIdentifier(TargetPackageId, true) != null) {
+		if (ModLister.GetActiveModWithIdentifier(PackageId, true) != null) {
 			if (notifyIfAlreadyEnabled)
 				Notify("AlreadyEnabled", MessageTypeDefOf.TaskCompletion);
 			return true;
 		}
-		var mod = ModLister.GetModWithIdentifier(TargetPackageId, true);
+		var mod = ModLister.GetModWithIdentifier(PackageId, true);
 		if (mod == null)
 			return false;
 		mod.Active = true;

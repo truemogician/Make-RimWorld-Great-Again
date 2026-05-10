@@ -13,9 +13,7 @@ public interface INotice {
 	void DoContents(Rect rect);
 }
 
-public abstract class NoticeManager<T>(
-	Func<TaggedString> windowTitle
-) : IExposable where T : struct, Enum {
+public abstract class NoticeManager<T>(TaggedString windowTitle) : IExposable where T : struct, Enum {
 	private const float _MIN_TAB_WIDTH = 160f;
 
 	private const float _MAX_TAB_WIDTH = 320f;
@@ -81,7 +79,7 @@ public abstract class NoticeManager<T>(
 	}
 
 	private sealed class NoticesWindow : Window {
-		private readonly Func<TaggedString> _title;
+		private readonly TaggedString _title;
 
 		private readonly List<INotice> _notices;
 
@@ -89,11 +87,11 @@ public abstract class NoticeManager<T>(
 
 		private int _selectedIndex;
 
-		public NoticesWindow(Func<TaggedString> title, List<INotice> notices) {
+		public NoticesWindow(TaggedString title, List<INotice> notices) {
 			_title = title;
 			_notices = notices;
 			doCloseX = true;
-			doCloseButton = true;
+			doCloseButton = false;
 			closeOnAccept = false;
 			closeOnCancel = true;
 			forcePause = true;
@@ -113,7 +111,7 @@ public abstract class NoticeManager<T>(
 			}
 			_selectedIndex = Mathf.Clamp(_selectedIndex, 0, _notices.Count - 1);
 			using (new TextBlock(GameFont.Medium))
-				Widgets.Label(new Rect(0f, 0f, inRect.width, 32f), _title());
+				Widgets.Label(new Rect(0f, 0f, inRect.width, 32f), _title);
 			var section = new Rect(0f, 44f, inRect.width, inRect.height - 44f - FooterRowHeight);
 			var tabBase = section;
 			section.yMin += TabDrawer.GetOverflowTabHeight(tabBase, _tabs, _MIN_TAB_WIDTH, _MAX_TAB_WIDTH);
