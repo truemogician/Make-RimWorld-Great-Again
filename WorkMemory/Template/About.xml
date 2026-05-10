@@ -5,6 +5,7 @@
 	<packageId>{{PackageId}}</packageId>
 	<modVersion>{{Version}}</modVersion>
 	<description>{{Description}}</description>
+	<modIconPath IgnoreIfNoMatchingField="True">UI/Icons/ModIcon</modIconPath>
 	<supportedVersions>
 		<li>1.6</li>
 	</supportedVersions>
