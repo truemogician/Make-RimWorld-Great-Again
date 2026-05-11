@@ -10,13 +10,13 @@
 
 [h2]給理智邊緣玩家[/h2]
 
-如果你是從[b]理智邊緣[/b]的遷移提示點進來的，沒走錯。這就是原本[b]理智邊緣[/b]裡的工作手感功能，現在被拆出來獨立維護了。
+如果你是從 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3692918983][b]理智邊緣[/b][/url]的遷移提示點進來的，沒走錯。這就是原本[b]理智邊緣[/b]裡的工作手感功能，現在被拆出來獨立維護了。
 
 舊版的概念沒問題，但數值有點太極端了：冷啟動直接 50%，衰退又來得很快。結果常常不是「熟能生巧」，而是「工匠才剛想起鎚子哪一頭該往下，系統就宣布手感過期」。
 
 我承認，最初設計數值時多半是在測試環境裡跑，沒有放進實際遊玩體驗裡好好評估。等我真的把它接到自己的殖民地，看著小人幾乎一直吃 50% 的速度懲罰，我自己都想把這功能關掉了（
 
-獨立版把預設數值拉回理智邊緣（笑
+獨立版把預設數值拉回[b]理智邊緣[/b]（笑
 
 [list]
 [*]冷啟動從 70% 速度起步，不再一開工就砍半。
@@ -27,7 +27,7 @@
 
 [h2]具體原理[/h2]
 
-[url=GAMEPLAY_GIF_LINK_PLACEHOLDER][img]GAMEPLAY_GIF_IMAGE_PLACEHOLDER[/img][/url]
+[url=https://postimg.cc/9rx1SWBb][img]https://i.postimg.cc/g2p5xjXC/WorkMemory-Gameplay.gif[/img][/url]
 
 小人在工作檯工作時，[b]工作手感[/b]會記錄這個小人對這類工作的短期熟悉度。重複越多，工作速度倍率越高；離開太久，就得重新暖機。
 
@@ -39,7 +39,7 @@
 
 [h2]設定[/h2]
 
-[url=SETTINGS_GIF_LINK_PLACEHOLDER][img]SETTINGS_GIF_IMAGE_PLACEHOLDER[/img][/url]
+[url=https://postimg.cc/ZCYVV96N][img]https://i.postimg.cc/15w2Rwtv/WorkMemory-Settings.gif[/img][/url]
 
 設定選單可以調整這些內容：
 
@@ -67,5 +67,10 @@
 [/list]
 
 如果安裝了 RimHUD，[b]工作手感[/b]會把目前倍率加入 RimHUD 的「目前活動」欄位和提示文字裡。
+
+[h2]我的其他模組[/h2]
+
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3692918983][b]理智邊緣[/b][/url]：一系列可獨立開關的調整，旨在讓邊緣世界更加合理。本模組一開始是作為[b]理智邊緣[/b]的子功能存在的，後來它長大了，所以就放它出來獨立闖蕩了。
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3720856279][b]Useful Marks in Colony Groups[/b][/url]：Useful Marks 和 Colony Groups 的相容補丁，讓標記能正確顯示在 Colony Groups 的殖民者欄裡。
 
 [b]GitHub 倉庫：[/b] [url]https://github.com/truemogician/Make-RimWorld-Great-Again/tree/main/WorkMemory[/url]

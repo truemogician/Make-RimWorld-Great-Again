@@ -10,13 +10,13 @@ RimWorld pawns deserve a taste of office life too.
 
 [h2]For Rimsonable Players[/h2]
 
-If you are coming here from [b]Rimsonable[/b]'s migration notice, welcome back! This is the former Rimsonable Work Memory feature, now moved into its own mod.
+If you are coming here from [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3692918983][b]Rimsonable[/b][/url]'s migration notice, welcome back! This is the former Rimsonable Work Memory feature, now moved into its own mod.
 
 The old version was a good idea with suspicious numbers. A 50% cold start penalty and short fade delay meant your best crafter could spend more time being punished for starting work than rewarded for staying focused. Realistic for software development, maybe less ideal for a colony simulator.
 
 Admittedly, the original values were tested only in the dev environment, not judged in real colony gameplay. Once I enabled it in my own colony and watched pawns constantly suffering from the 50% speed penalty, even I wanted to turn the feature off myself.
 
-The new version now makes the default values more Rimsonable:
+The new version now makes the default values more [b]Rimsonable[/b]:
 
 [list]
 [*]Cold starts begin at 70% speed instead of 50%.
@@ -27,7 +27,7 @@ The new version now makes the default values more Rimsonable:
 
 [h2]How It Works[/h2]
 
-[url=GAMEPLAY_GIF_LINK_PLACEHOLDER][img]GAMEPLAY_GIF_IMAGE_PLACEHOLDER[/img][/url]
+[url=https://postimg.cc/9rx1SWBb][img]https://i.postimg.cc/g2p5xjXC/WorkMemory-Gameplay.gif[/img][/url]
 
 When a pawn works at a workbench on a tracked recipe, [b]Work Memory[/b] records short-term familiarity for that pawn and that type of work. More repetition means a better speed multiplier; too much time away means the pawn has to warm up again.
 
@@ -39,7 +39,7 @@ The current multiplier appears in the pawn info panel while they work, so you ca
 
 [h2]Settings[/h2]
 
-[url=SETTINGS_GIF_LINK_PLACEHOLDER][img]SETTINGS_GIF_IMAGE_PLACEHOLDER[/img][/url]
+[url=https://postimg.cc/ZCYVV96N][img]https://i.postimg.cc/15w2Rwtv/WorkMemory-Settings.gif[/img][/url]
 
 The settings menu exposes the important parts:
 
@@ -67,5 +67,10 @@ If you miss the old numbers, you can set them back yourself; if you wanna contin
 [/list]
 
 If RimHUD is installed, [b]Work Memory[/b] adds the current multiplier to RimHUD's Activity row.
+
+[h2]Other Mods by Me[/h2]
+
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3692918983][b]Rimsonable[/b][/url]: A collection of toggleable tweaks to make RimWorld more reasonable. It's also where this feature used to live, before I decided it deserved its own spotlight.
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3720856279][b]Useful Marks in Colony Groups[/b][/url]: A compatibility patch for Useful Marks and Colony Groups, making the marks show up properly in the Colony Groups colonist bar.
 
 [b]GitHub repository:[/b] [url]https://github.com/truemogician/Make-RimWorld-Great-Again/tree/main/WorkMemory[/url]

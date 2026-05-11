@@ -10,13 +10,13 @@
 
 [h2]致理智边缘玩家[/h2]
 
-如果你是从 [b]理智边缘[/b]的迁移提示点进来的，没走错。这里就是原来[b]理智边缘[/b]里的工作记忆功能，现在拆出来独立维护了。
+如果你是从 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3692918983][b]理智边缘[/b][/url]的迁移提示点进来的，没走错。这里就是原来[b]理智边缘[/b]里的工作记忆功能，现在拆出来独立维护了。
 
 旧版的思路没问题，但数值疑似有点极端了：冷启动直接 50%，衰退又来得很快。结果很多时候不是“熟能生巧”，而是“工匠刚想起来锤子哪头该往下，系统就宣布手感过期”。
 
 我承认，最初设计数值的时候都是在测试环境做的，没有在实际游戏体验里评估。等我真把它接到我自己的殖民地里时，看着小人无时无刻不在吃 50% 的速度惩罚，我自己都想把这个功能关了（
 
-独立版让默认数值重回理智边缘（笑
+独立版让默认数值重回[b]理智边缘[/b]（笑
 
 [list]
 [*]冷启动从 70% 速度起步，不再一上来砍半。
@@ -27,7 +27,7 @@
 
 [h2]具体原理[/h2]
 
-[url=GAMEPLAY_GIF_LINK_PLACEHOLDER][img]GAMEPLAY_GIF_IMAGE_PLACEHOLDER[/img][/url]
+[url=https://postimg.cc/9rx1SWBb][img]https://i.postimg.cc/g2p5xjXC/WorkMemory-Gameplay.gif[/img][/url]
 
 小人在工作台工作时，[b]工作记忆[/b]会记录这个小人对这类工作的短期熟悉度。重复越多，工作速度倍率越高；离开太久，就要重新热机。
 
@@ -39,7 +39,7 @@
 
 [h2]设置[/h2]
 
-[url=SETTINGS_GIF_LINK_PLACEHOLDER][img]SETTINGS_GIF_IMAGE_PLACEHOLDER[/img][/url]
+[url=https://postimg.cc/ZCYVV96N][img]https://i.postimg.cc/15w2Rwtv/WorkMemory-Settings.gif[/img][/url]
 
 设置菜单里可以调整这些内容：
 
@@ -67,5 +67,10 @@
 [/list]
 
 如果安装了 RimHUD，[b]工作记忆[/b]会把当前倍率加入 RimHUD 的“当前活动”栏和提示文本里。
+
+[h2]我的其他模组[/h2]
+
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3692918983][b]理智边缘[/b][/url]：一系列可独立开关的调整，旨在让边缘世界更加合理。本模组一开始是作为[b]理智边缘[/b]的子功能存在的，后来它长大了，所以就放它出来独立闯荡了。
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3720856279][b]Useful Marks in Colony Groups[/b][/url]：Useful Marks 和 Colony Groups 的兼容补丁，让标记能正确显示在 Colony Groups 的殖民者栏里。
 
 [b]GitHub 仓库：[/b] [url]https://github.com/truemogician/Make-RimWorld-Great-Again/tree/main/WorkMemory[/url]
