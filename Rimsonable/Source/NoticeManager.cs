@@ -11,16 +11,21 @@ internal enum NoticeShownFlags : long {
 }
 
 internal sealed class NoticeManager : NoticeManager<NoticeShownFlags> {
+	private const ulong _WORK_MEMORY_WORKSHOP_ID = 3723997608UL;
+
+	private const long _WORK_MEMORY_RELEASE_TIMESTAMP = 1778485275L;
+
 	private NoticeManager() : base("Rimsonable.Migration.WindowTitle") {
 		ShownFlagsChanged += (_, _) => Settings.Default.Write();
 		AddNotice(
 			NoticeShownFlags.WorkMemoryMigration,
 			new StandaloneModMigrationNotice(
 				"TrueMogician.WorkMemory",
-				3723997608,
+				_WORK_MEMORY_WORKSHOP_ID,
 				new TranslationProvider("Rimsonable.Migration.WorkMemory") {
 					KeyTransformer = key => key != "Body" ? null : $"Body.{(Settings.Default[Features.WorkMemory] ? "Enabled" : "Disabled")}"
-				}
+				},
+				DateTimeOffset.FromUnixTimeSeconds(_WORK_MEMORY_RELEASE_TIMESTAMP)
 			)
 		);
 	}
