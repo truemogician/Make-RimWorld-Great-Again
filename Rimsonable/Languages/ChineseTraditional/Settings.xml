@@ -37,7 +37,7 @@
 				原先的「工作手感」功能已經過全面重構。考量到它現在的複雜程度，繼續作為《理智邊緣》的附屬功能實在有些大材小用，因此我決定讓它獨立出來，成為一個全新的模組：工作手感。
 				本次更新重點包含：更合理的預設數值、完全可自訂的數學模型參數（你可以在設定介面中直接預覽不同參數對遊戲機制的實際影響），以及多層級的工作手感系統。
 				請點擊下方按鈕前往「工作手感」的 Steam 工作坊頁面查看詳情。
-				既然你之前已經在《理智邊緣》中啟用了此功能，也可以直接點擊「訂閱並啟用」按鈕來節省時間（若順利完成訂閱與啟用，遊戲將會自動重新啟動）。
+				既然你之前已經在《理智邊緣》中啟用了此功能，也可以直接點擊「訂閱並啟用」按鈕來節省時間。
 			</Body.Enabled>
 			<Body.Disabled>
 				原先的「工作手感」功能已經過全面重構。考量到它現在的複雜程度，繼續作為《理智邊緣》的附屬功能實在有些大材小用，因此我決定讓它獨立出來，成為一個全新的模組：工作手感。
@@ -46,12 +46,16 @@
 			</Body.Disabled>
 			<WorkshopPage>工作坊頁面</WorkshopPage>
 			<SubscribeAndEnable>訂閱並啟用</SubscribeAndEnable>
+			<Subscribing>正在訂閱……</Subscribing>
 			<SubscribeQueued>已訂閱「工作手感」。下載完成後，邊緣世界會自動將其啟用。</SubscribeQueued>
 			<SubscribeNoSteam>只有透過 Steam 執行遊戲時，才能直接訂閱工作坊模組。現在將為您開啟工作坊頁面。</SubscribeNoSteam>
 			<SubscribeUnavailable>「工作手感」的工作坊項目尚未設定。現在將為您開啟工作坊頁面。</SubscribeUnavailable>
 			<SubscribeFailed>邊緣世界無法自動訂閱「工作手感」。現在將為您開啟工作坊頁面。</SubscribeFailed>
 			<EnableFailed>「工作手感」已下載完成，但邊緣世界暫時無法在已安裝的模組清單中找到它。請在下載完成後進入模組選單手動啟用。</EnableFailed>
 			<AlreadyEnabled>「工作手感」已經啟用。</AlreadyEnabled>
+			<RestartPrompt>「工作手感」已經啟用。邊緣世界需要重新啟動後，新模組才會生效。要現在重新啟動嗎？</RestartPrompt>
+			<RestartNow>立即重新啟動</RestartNow>
+			<RestartLater>稍後再說</RestartLater>
 		</WorkMemory>
 	</Rimsonable.Migration>
 </LanguageData>

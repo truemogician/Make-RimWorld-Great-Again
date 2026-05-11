@@ -36,7 +36,7 @@
 				Die frühere Funktion „Arbeitsgedächtnis“ von Rimsonable wurde von Grund auf überarbeitet. Aufgrund ihrer gestiegenen Komplexität wird sie der Rolle als bloße Unterfunktion nicht mehr gerecht. Daher habe ich sie als eigenständige Mod veröffentlicht: Arbeitsgedächtnis.
 				Zu den Neuerungen gehören besser ausbalancierte Standardwerte, vollständig anpassbare Variablen für das mathematische Modell (im Einstellungsmenü gibt es jetzt eine Vorschau der Spielauswirkungen) sowie ein mehrstufiges Arbeitsgedächtnis.
 				Klicke auf die Schaltfläche unten, um die Workshop-Seite der neuen Mod zu besuchen.
-				Da du das Arbeitsgedächtnis in Rimsonable bereits aktiviert hattest, kannst du auch einfach auf „Abonnieren und aktivieren“ klicken. (Nach erfolgreichem Download und Aktivierung startet das Spiel automatisch neu).
+				Da du das Arbeitsgedächtnis in Rimsonable bereits aktiviert hattest, kannst du auch einfach auf „Abonnieren und aktivieren“ klicken.
 			</Body.Enabled>
 			<Body.Disabled>
 				Die frühere Funktion „Arbeitsgedächtnis“ von Rimsonable wurde von Grund auf überarbeitet. Aufgrund ihrer gestiegenen Komplexität wird sie der Rolle als bloße Unterfunktion nicht mehr gerecht. Daher habe ich sie als eigenständige Mod veröffentlicht: Arbeitsgedächtnis.
@@ -45,12 +45,16 @@
 			</Body.Disabled>
 			<WorkshopPage>Workshop-Seite</WorkshopPage>
 			<SubscribeAndEnable>Abonnieren und aktivieren</SubscribeAndEnable>
+			<Subscribing>Wird abonniert...</Subscribing>
 			<SubscribeQueued>Arbeitsgedächtnis wurde abonniert. Sobald der Download abgeschlossen ist, wird RimWorld die Mod automatisch aktivieren.</SubscribeQueued>
 			<SubscribeNoSteam>Das direkte Abonnieren von Workshop-Inhalten ist nur möglich, wenn RimWorld über Steam gestartet wurde. Die Workshop-Seite wird stattdessen im Browser geöffnet.</SubscribeNoSteam>
 			<SubscribeUnavailable>Der Workshop-Eintrag für „Arbeitsgedächtnis“ ist noch nicht konfiguriert. Die Workshop-Seite wird stattdessen im Browser geöffnet.</SubscribeUnavailable>
 			<SubscribeFailed>RimWorld konnte „Arbeitsgedächtnis“ nicht automatisch abonnieren. Die Workshop-Seite wird stattdessen im Browser geöffnet.</SubscribeFailed>
 			<EnableFailed>„Arbeitsgedächtnis“ wurde heruntergeladen, aber RimWorld konnte die Mod noch nicht in der Liste der installierten Mods finden. Bitte öffne nach Abschluss des Downloads das Mod-Menü und aktiviere sie manuell.</EnableFailed>
 			<AlreadyEnabled>„Arbeitsgedächtnis“ ist bereits aktiviert.</AlreadyEnabled>
+			<RestartPrompt>„Arbeitsgedächtnis“ wurde aktiviert. RimWorld muss neu gestartet werden, bevor die neue Mod wirksam wird. Jetzt neu starten?</RestartPrompt>
+			<RestartNow>Jetzt neu starten</RestartNow>
+			<RestartLater>Später</RestartLater>
 		</WorkMemory>
 	</Rimsonable.Migration>
 </LanguageData>

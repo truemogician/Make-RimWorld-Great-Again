@@ -37,7 +37,7 @@
 				“工作记忆”功能已被彻底重构，以其现在的复杂度，作为一个子功能寄于理智边缘篱下属实屈尊，于是我决定帮它挣脱束缚，成为一个独立的模组：工作记忆。
 				具体更新包括：更合理的默认数值，完全可调的数学模型参数（设置界面可以预览不同参数对于实际游戏行为的影响），以及多层级工作记忆。
 				详情请点击下方按钮访问工作记忆的工坊页面。
-				考虑到你之前就在理智边缘中启用了工作记忆，你也可以直接点击订阅并启用按钮省点事（如果顺利订阅并启用，游戏会自动重启）。
+				考虑到你之前就在理智边缘中启用了工作记忆，你也可以直接点击订阅并启用按钮省点事。
 			</Body.Enabled>
 			<Body.Disabled>
 				“工作记忆”功能已被彻底重构，以其现在的复杂度，作为一个子功能寄于理智边缘篱下属实屈尊，于是我决定帮它挣脱束缚，成为一个独立的模组：工作记忆。
@@ -46,12 +46,16 @@
 			</Body.Disabled>
 			<WorkshopPage>工坊页面</WorkshopPage>
 			<SubscribeAndEnable>订阅并启用</SubscribeAndEnable>
+			<Subscribing>正在订阅……</Subscribing>
 			<SubscribeQueued>已订阅工作记忆。下载完成后，边缘世界会自动启用它。</SubscribeQueued>
 			<SubscribeNoSteam>只有通过 Steam 运行边缘世界时，才能直接订阅创意工坊模组。现在将为你打开工坊页面。</SubscribeNoSteam>
 			<SubscribeUnavailable>工作记忆的创意工坊条目尚未配置。现在将为你打开工坊页面。</SubscribeUnavailable>
 			<SubscribeFailed>边缘世界无法自动订阅工作记忆。现在将为你打开工坊页面。</SubscribeFailed>
 			<EnableFailed>工作记忆已下载完成，但边缘世界暂时还没有在已安装模组列表中找到它。请在下载完成后打开模组菜单手动启用。</EnableFailed>
 			<AlreadyEnabled>工作记忆已经启用。</AlreadyEnabled>
+			<RestartPrompt>工作记忆已经启用。边缘世界需要重启后，新模组才会生效。要现在重启吗？</RestartPrompt>
+			<RestartNow>立即重启</RestartNow>
+			<RestartLater>稍后再说</RestartLater>
 		</WorkMemory>
 	</Rimsonable.Migration>
 </LanguageData>

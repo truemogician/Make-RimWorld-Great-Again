@@ -37,7 +37,7 @@
 				Rimsonable's former "Work Memory" feature has been completely refactored. Given its current complexity, keeping it as a sub-feature under Rimsonable feels like a disservice, so I decided to set it free as a standalone mod: Work Memory.
 				The updates include more reasonable default values, fully adjustable mathematical model parameters (the settings menu lets you preview how different parameters affect actual gameplay behavior), and multi-tier work memory.
 				Click the button below to visit the Work Memory workshop page.
-				Since you previously had Work Memory enabled in Rimsonable, you can also just click the subscribe and enable button to save some time (if successfully subscribed and enabled, the game will automatically restart).
+				Since you previously had Work Memory enabled in Rimsonable, you can also just click the subscribe and enable button to save some time.
 			</Body.Enabled>
 			<Body.Disabled>
 				Rimsonable's former "Work Memory" feature has been completely refactored. Given its current complexity, keeping it as a sub-feature under Rimsonable feels like a disservice, so I decided to set it free as a standalone mod: Work Memory.
@@ -46,12 +46,16 @@
 			</Body.Disabled>
 			<WorkshopPage>Workshop Page</WorkshopPage>
 			<SubscribeAndEnable>Subscribe and Enable</SubscribeAndEnable>
+			<Subscribing>Subscribing...</Subscribing>
 			<SubscribeQueued>Subscribed to Work Memory. RimWorld will enable it automatically after the download finishes.</SubscribeQueued>
 			<SubscribeNoSteam>Direct workshop subscription is only available when RimWorld is running through Steam. Opening the workshop page instead.</SubscribeNoSteam>
 			<SubscribeUnavailable>Work Memory's workshop item is not configured yet. Opening the workshop page instead.</SubscribeUnavailable>
 			<SubscribeFailed>RimWorld could not subscribe to Work Memory automatically. Opening the workshop page instead.</SubscribeFailed>
 			<EnableFailed>Work Memory finished downloading, but RimWorld could not find it in the installed mod list yet. Open the Mods menu after the download finishes and enable it manually.</EnableFailed>
 			<AlreadyEnabled>Work Memory is already enabled.</AlreadyEnabled>
+			<RestartPrompt>Work Memory has been enabled. RimWorld must restart before the new mod takes effect. Restart now?</RestartPrompt>
+			<RestartNow>Restart Now</RestartNow>
+			<RestartLater>Later</RestartLater>
 		</WorkMemory>
 	</Rimsonable.Migration>
 </LanguageData>
