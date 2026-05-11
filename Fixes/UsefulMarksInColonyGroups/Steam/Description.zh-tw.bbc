@@ -1,0 +1,21 @@
+[h1]Useful Marks in Colony Groups[/h1]
+
+[b]讓 Useful Marks 顯示在 Colony Groups 的殖民者列表上。[/b]
+
+這個模組的功能就只有這樣。如果你同時使用 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3506573327][i]Useful Marks[/i][/url] 和 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2345493945][i]Colony Groups[/i][/url]，這個修補程式能讓標記正確地渲染在 Colony Groups 的小人列上，而不是只在原版的列表裡顯示。
+
+我寫這個修補程式是因為 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3506573327][i]Useful Marks[/i][/url] 和 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2345493945][i]Colony Groups[/i][/url] 也已經不再積極維護，所以指望官方更新補丁或者直接向原倉庫提交程式碼不太現實。
+
+如果有任何一位模組作者想把這個修補整合進他們自己的模組中，請隨意取用程式碼。只要在貢獻者名單裡加上我的名字就好（你知道的，這是 MIT 授權條款的唯一要求）。
+
+[h2]我的其他模組[/h2]
+
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3692918983][b]理智邊緣[/b][/url]：一系列可獨立開關的調整，旨在讓邊緣世界更加合理。
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3723997608][b]工作手感[/b][/url]：小人在做同一件事幹得越久，效率越高；剛開始或者過了很久再回去幹的話，效率就會下降。一言以蔽之：熟能生巧。
+
+[h2]前置需求[/h2]
+[list]
+[*]Harmony
+[*]Useful Marks
+[*]Colony Groups
+[/list]

@@ -4,13 +4,14 @@
 
 That is the whole mod. If you use both [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3506573327][i]Useful Marks[/i][/url] and [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2345493945][i]Colony Groups[/i][/url], this patch makes the marks render properly on the Colony Groups pawn bar instead of only on the vanilla one.
 
-I wrote this because [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3506573327][i]Useful Marks[/i][/url] is not open-source, and [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2345493945][i]Colony Groups[/i][/url] is not actively maintained, so waiting for an official patch did not seem productive.
+I created this because [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3506573327][i]Useful Marks[/i][/url] and [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2345493945][i]Colony Groups[/i][/url] are not actively maintained, so waiting for an official patch or submitting code directly to the original repositories doesn't seem productive.
 
 If either mod author wants to fold this into their own mod, feel free to take the code. Just add my name to the contributor list (you know, that's all the MIT license asks for).
 
-[h2]Other mods by me[/h2]
+[h2]Other Mods by Me[/h2]
 
-[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3692918983][b]Rimsonable[/b][/url] - a collection of toggleable tweaks to make RimWorld more reasonable.
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3692918983][b]Rimsonable[/b][/url]: A collection of toggleable tweaks to make RimWorld more reasonable.
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3723997608][b]Work Memory[/b][/url]: Pawns will work faster when they have been doing the same task for a while, and slower when they are starting fresh or returning after a long break.
 
 [h2]Requirements[/h2]
 [list]

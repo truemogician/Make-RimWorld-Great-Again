@@ -1,0 +1,21 @@
+[h1]Useful Marks in Colony Groups[/h1]
+
+[b]让 Useful Marks 显示在 Colony Groups 的殖民者栏上。[/b]
+
+这就是这个模组的全部功能。如果你同时使用 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3506573327][i]Useful Marks[/i][/url] 和 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2345493945][i]Colony Groups[/i][/url]，这个补丁能让标记正确地渲染在 Colony Groups 的殖民者头像栏上，而不是只在原版殖民者栏里显示。
+
+我写这个补丁是因为 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3506573327][i]Useful Marks[/i][/url] 和 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2345493945][i]Colony Groups[/i][/url] 似乎都不在积极维护了，所以指望官方更新补丁或者直接向原仓库提交代码不太现实。
+
+如果任何一位模组作者想把这个补丁整合进他们自己的模组中，请随意取用代码。只要在贡献者名单里加上我的名字就行（你知道的，这是 MIT 协议的唯一要求）。
+
+[h2]我的其他模组[/h2]
+
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3692918983][b]理智边缘[/b][/url]：一系列可独立开关的调整，旨在让边缘世界更加合理。
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3723997608][b]工作记忆[/b][/url]：小人在做同一件事干得越久，效率越高；刚开始或者过了很久再回去干的话，效率就会下降。一言以蔽之：熟能生巧。
+
+[h2]前置需求[/h2]
+[list]
+[*]Harmony
+[*]Useful Marks
+[*]Colony Groups
+[/list]
