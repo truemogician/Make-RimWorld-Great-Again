@@ -46,18 +46,6 @@ Oi！這裡不是給你睡的！
 
 雖說動物本來就不是什麼天才，但也不至於蠢到連安全一點的地方都不會找。OK，[i]理智邊緣[/i]幫牠們把腦子裝回去了。（如果你的殖民地窮到連床都沒有，那恭喜，你的殖民者也會長出同款腦子。）
 
-[b]工作手感[/b]
-
-[url=https://postimg.cc/CZDK7SRJ][img]https://i.postimg.cc/k5Ytn5qr/Rimsonable__Work_Memory.gif[/img][/url]
-
-同一個配方一直做下去，小人會越做越順手。剛開工時手還生，只有 50% 效率；進入狀況後，最高可以爬到 125%。說穿了就是：活做熟了，手感自然會上來；三不五時丟下工作檯跑去忙別的，當然又得重新熱機。
-
-具體數值上，工作量 400 的配方大約連續做 400 tick 會進入中段，800 tick 滿速；工作量 1000 的配方則分別大約是 1000 和 2000 tick。另外還有 800 tick 的緩衝期，短暫打斷不會立刻把工匠打回「手感歸零」。
-
-另外也加了一個子選項：如果你希望這套機制也會作用在烹飪、精煉這類不會產生品質的工作單上，自己打開就行。
-
-如果你有裝 RimHUD，現在的工作手感加成也會顯示在 RimHUD 的「目前活動」欄位裡，不會因為原版人物卡被換掉就直接消失。介面相容性這件事，也該講點道理。
-
 [b]手榴彈可穿透護盾[/b]
 
 [url=https://postimg.cc/TKBwnp3k][img]https://i.postimg.cc/SKxMF9Fp/Rimsonable__Allow_Grenades_Through_Shields.gif[/img][/url]
@@ -89,10 +77,14 @@ CE 裡拿望遠鏡的觀測手終於不再只是純擺設了：火砲會優先�
 [b]支援聯動 MOD：[/b]
 [list]
 [*] Combat Extended
-[*] RimHUD
 [*] Vanilla Expanded Framework
 [/list]
 
 相關 MOD 啟用時，聯動模組會自動載入。
+
+[h2]我的其他模組[/h2]
+
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3723997608][b]工作手感[/b][/url]：之前是[i]理智邊緣[/i]裡的一個子功能，現在拆成了一個獨立模組。小人在做同一件事幹得越久，效率越高；剛開始或者過了很久再回去幹的話，效率就會下降。一言以蔽之：熟能生巧。
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3720856279][b]Useful Marks in Colony Groups[/b][/url]：Useful Marks 和 Colony Groups 的相容補丁，讓標記能正確顯示在 Colony Groups 的殖民者欄裡。
 
 邊緣世界大概永遠都會是一部靠離譜決策推動劇情的傑作。[i]理智邊緣[/i]要做的，就是盡量別再讓這些離譜決策出自你的殖民者、你的訪客，還有那個覺得機械要塞探測啟動器「看起來好像很值得湊近研究一下」的天才。

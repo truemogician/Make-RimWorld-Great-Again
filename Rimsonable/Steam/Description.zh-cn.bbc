@@ -46,18 +46,6 @@ Oi！这里不让睡觉！
 
 虽说动物本来智商就不高，但显然也不至于脑残到都不知道找个安全点的地方睡觉。OK，[i]理智边缘[/i]帮它们装上了脑子。（如果你的殖民地穷到连床都没有，那恭喜，你的殖民者也会长出同样的脑子。）
 
-[b]工作记忆[/b]
-
-[url=https://postimg.cc/CZDK7SRJ][img]https://i.postimg.cc/k5Ytn5qr/Rimsonable__Work_Memory.gif[/img][/url]
-
-同一个配方一直做下去，小人会越来越顺手。刚开工时手生，只有50%效率；进入状态以后，最高能爬到125%。说白了就是：活干熟了，手就稳了；隔三差五丢下工作台跑去摸鱼，当然又得重新热机。
-
-具体数值上，400工作量的配方大约连续做400 tick到中段，800 tick满速；1000工作量的配方则分别大约是1000和2000 tick。另外还有800 tick宽限，短暂打断不会立刻把工匠打回“手感清零”的状态。
-
-另外还加了一个子选项：如果你希望这套机制也作用于烹饪、精炼这类不会产出品质物品的工作单，也可以自己打开。
-
-如果你装了RimHUD，现在的工作记忆加成也会显示在 RimHUD 的“当前活动”一栏里，不会因为原版人物卡被替换掉就直接消失。显然，界面兼容也是合理的一部分。
-
 [b]允许手雷穿越护盾[/b]
 
 [url=https://postimg.cc/TKBwnp3k][img]https://i.postimg.cc/SKxMF9Fp/Rimsonable__Allow_Grenades_Through_Shields.gif[/img][/url]
@@ -89,10 +77,14 @@ CE里拿望远镜的观察手终于不是摆设了：火炮会优先攻击带有
 [b]联动MOD：[/b]
 [list]
 [*] Combat Extended
-[*] RimHUD
 [*] Vanilla Expanded Framework
 [/list]
 
 相关MOD激活时联动模块自动加载。
+
+[h2]我的其他模组[/h2]
+
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3723997608][b]工作记忆[/b][/url]：之前是[i]理智边缘[/i]里的一个子功能，现在拆成了一个独立模组。小人在做同一件事干得越久，效率越高；刚开始或者过了很久再回去干的话，效率就会下降。一言以蔽之：熟能生巧。
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3720856279][b]Useful Marks in Colony Groups[/b][/url]：Useful Marks 和 Colony Groups 的兼容补丁，让标记能正确显示在 Colony Groups 的殖民者栏里。
 
 边缘世界大概永远都会是一部靠离谱决策推动剧情的杰作。[i]理智边缘[/i]要做的，就是尽量别再让这些离谱决策出自你的殖民者、你的访客，以及那个觉得机械族探测激活器“看起来挺值得靠近研究一下”的天才。

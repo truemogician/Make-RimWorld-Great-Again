@@ -17,7 +17,7 @@ internal sealed class NoticeManager : NoticeManager<NoticeShownFlags> {
 			NoticeShownFlags.WorkMemoryMigration,
 			new StandaloneModMigrationNotice(
 				"TrueMogician.WorkMemory",
-				0, // TODO replace with the published Workshop id.
+				3723997608,
 				new TranslationProvider("Rimsonable.Migration.WorkMemory") {
 					KeyTransformer = key => key != "Body" ? null : $"Body.{(Settings.Default[Features.WorkMemory] ? "Enabled" : "Disabled")}"
 				}
