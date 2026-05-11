@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using HarmonyLib;
 using RimWorld;
 using Steamworks;
 using TrueMogician.RimWorld.Utility.Extensions;
@@ -13,29 +16,60 @@ using Verse.Steam;
 
 namespace TrueMogician.RimWorld.Utility;
 
-public sealed class StandaloneModMigrationNotice(
-	string packageId,
-	ulong workshopItemId,
-	ITranslationProvider provider
-) : INotice {
+public sealed class StandaloneModMigrationNotice : INotice {
 	private static readonly Dictionary<PublishedFileId_t, StandaloneModMigrationNotice> PendingInstalls = [];
 
 	private static Callback<ItemInstalled_t>? _itemInstalledCallback;
 
 	private static Callback<RemoteStoragePublishedFileSubscribed_t>? _itemSubscribedCallback;
 
+	private static readonly Func<string, string, string> GetSettingsFilename = 
+		AccessTools.MethodDelegate<Func<string, string, string>>(
+			AccessTools.Method(typeof(LoadedModManager), "GetSettingsFilename")
+		);
+
 	private Vector2 _scrollPosition;
 
 	private bool _subscribing;
 
-	private readonly PublishedFileId_t _publishedFileId = workshopItemId > 0 ? new PublishedFileId_t(workshopItemId) : PublishedFileId_t.Invalid;
+	private readonly PublishedFileId_t _publishedFileId;
 
-	public StandaloneModMigrationNotice(string newPackageId, ulong newWorkshopItemId, string translationKeyPrefix) :
-		this(newPackageId, newWorkshopItemId, new TranslationProvider(translationKeyPrefix)) { }
+	private readonly Assembly _sourceAssembly;
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public StandaloneModMigrationNotice(
+		string packageId,
+		ulong workshopItemId,
+		ITranslationProvider provider,
+		DateTimeOffset? releaseTimestamp = null
+	) : this(packageId, workshopItemId, provider, releaseTimestamp, Assembly.GetCallingAssembly()) { }
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public StandaloneModMigrationNotice(
+		string packageId,
+		ulong workshopItemId,
+		string translationKeyPrefix,
+		DateTimeOffset? releaseTimestamp = null
+	) : this(packageId, workshopItemId, new TranslationProvider(translationKeyPrefix), releaseTimestamp, Assembly.GetCallingAssembly()) { }
+
+	private StandaloneModMigrationNotice(
+		string packageId,
+		ulong workshopItemId,
+		ITranslationProvider provider,
+		DateTimeOffset? releaseTimestamp,
+		Assembly sourceAssembly
+	) {
+		PackageId = packageId;
+		WorkshopItemId = workshopItemId;
+		TranslationProvider = provider;
+		ReleaseTimestamp = releaseTimestamp;
+		_sourceAssembly = sourceAssembly;
+		_publishedFileId = workshopItemId > 0 ? new PublishedFileId_t(workshopItemId) : PublishedFileId_t.Invalid;
+	}
 
 	public TaggedString Title => TranslationProvider.Translate("Title");
 
-	public bool ShouldShow => !IsTargetEnabled();
+	public bool ShouldShow => !IsTargetEnabled() && HasExistingSourceInstall();
 
 	public void DoContents(Rect rect) {
 		const float buttonHeight = 36f;
@@ -63,11 +97,13 @@ public sealed class StandaloneModMigrationNotice(
 		}
 	}
 
-	public string PackageId { get; } = packageId;
+	public string PackageId { get; }
 
-	public ulong WorkshopItemId { get; } = workshopItemId;
+	public ulong WorkshopItemId { get; }
 
-	public ITranslationProvider TranslationProvider { get; } = provider;
+	public ITranslationProvider TranslationProvider { get; }
+
+	public DateTimeOffset? ReleaseTimestamp { get; }
 
 	private static void OnItemSubscribed(RemoteStoragePublishedFileSubscribed_t result) {
 		if (!SteamManager.Initialized || result.m_nAppID != SteamUtils.GetAppID())
@@ -81,6 +117,26 @@ public sealed class StandaloneModMigrationNotice(
 			return;
 		if (PendingInstalls.TryGetValue(result.m_nPublishedFileId, out var notice))
 			notice.TryFinishInstallAndEnable(true);
+	}
+
+	private static bool SourceSettingsFileExists(Mod mod) => 
+		mod.Content != null && File.Exists(GetSettingsFilename(mod.Content.FolderName, mod.GetType().Name));
+
+	private static bool SourceInstallPredatesRelease(Mod? mod, DateTimeOffset releaseTimestamp) {
+		var sourceFileId = mod?.Content?.ModMetaData?.GetPublishedFileId() ?? PublishedFileId_t.Invalid;
+		return sourceFileId != PublishedFileId_t.Invalid
+			&& TryGetInstallTimestamp(sourceFileId, out var installTimestamp)
+			&& installTimestamp < releaseTimestamp;
+	}
+
+	private static bool TryGetInstallTimestamp(PublishedFileId_t fileId, out DateTimeOffset installTimestamp) {
+		installTimestamp = default;
+		if (!SteamManager.Initialized)
+			return false;
+		if (!SteamUGC.GetItemInstallInfo(fileId, out _, out _, 1024, out var timestamp) || timestamp == 0)
+			return false;
+		installTimestamp = DateTimeOffset.FromUnixTimeSeconds(timestamp);
+		return true;
 	}
 
 	private void SubscribeAndEnable() {
@@ -160,4 +216,15 @@ public sealed class StandaloneModMigrationNotice(
 			ModLister.RebuildModList();
 		return ModLister.GetActiveModWithIdentifier(PackageId, true) != null;
 	}
+
+	private bool HasExistingSourceInstall() {
+		var mod = GetSourceModHandle();
+		if (mod != null && SourceSettingsFileExists(mod))
+			return true;
+		return ReleaseTimestamp is { } releaseTimestamp && SourceInstallPredatesRelease(mod, releaseTimestamp);
+	}
+
+	private Mod? GetSourceModHandle() =>
+		LoadedModManager.ModHandles.FirstOrDefault(m => m.GetType().Assembly == _sourceAssembly)
+		?? LoadedModManager.ModHandles.FirstOrDefault(m => m.Content?.assemblies.loadedAssemblies.Contains(_sourceAssembly) == true);
 }
