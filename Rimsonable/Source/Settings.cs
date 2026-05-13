@@ -8,7 +8,6 @@ using TrueMogician.RimWorld.Utility;
 using TrueMogician.RimWorld.Utility.Attributes;
 using TrueMogician.RimWorld.Utility.Extensions;
 using Verse;
-using RimsonableNoticeManager = TrueMogician.RimWorld.Rimsonable.NoticeManager;
 
 namespace TrueMogician.RimWorld.Rimsonable;
 
@@ -64,7 +63,7 @@ public class Settings : FeatureSettings<Features> {
 	public override void ExposeData() {
 		base.ExposeData();
 		Scribe_Values.Look(ref _autoTargetMarksOnNonHostile, nameof(AutoTargetMarksOnNonHostile).ToCamelCase());
-		RimsonableNoticeManager.Instance.ExposeData();
+		Notices.ExposeData();
 	}
 
 	private static void DrawSubSetting(DrawFeatureRowEventArgs args, SettingsMenuConfig conf, string memberName, ref bool value) {

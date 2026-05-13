@@ -14,7 +14,7 @@ using UnityEngine.UIElements;
 using Verse;
 using Verse.Steam;
 
-namespace TrueMogician.RimWorld.Utility;
+namespace TrueMogician.RimWorld.Utility.NoticeManager;
 
 public sealed class StandaloneModMigrationNotice : INotice {
 	private static readonly Dictionary<PublishedFileId_t, StandaloneModMigrationNotice> PendingInstalls = [];

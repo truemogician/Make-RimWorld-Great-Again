@@ -1,3 +1,4 @@
+using TrueMogician.RimWorld.Utility.NoticeManager;
 using UnityEngine;
 using Verse;
 
@@ -8,13 +9,8 @@ public class Mod : Verse.Mod {
 
 	public Mod(ModContentPack content) : base(content) {
 		Settings.Default = GetSettings<Settings>();
-		LongEventHandler.QueueLongEvent(
-			() => Settings.Default.Apply(),
-			$"{ThisAssembly.Info.Title}-ApplySettings",
-			true,
-			null,
-			callback: NoticeManager.Instance.RegisterShowingNoticesWhenLoaded
-		);
+		Notices.Register();
+		LongEventHandler.QueueLongEvent(() => Settings.Default.Apply(), $"{ThisAssembly.Info.Title}-ApplySettings", true, null);
 	}
 
 	public override string SettingsCategory() => _TITLE_TRANSLATION_KEY.TryTranslate(out var title) ? title : ThisAssembly.Info.Title;
