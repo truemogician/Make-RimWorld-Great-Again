@@ -7,7 +7,7 @@ using HarmonyLib;
 namespace TrueMogician.RimWorld.Utility;
 
 public abstract class ClosureFinder {
-	private List<MethodBase> _closures = new();
+	private readonly List<MethodBase> _closures = [];
 
 	public IReadOnlyList<MethodBase> Closures => _closures;
 
@@ -31,40 +31,40 @@ public abstract class ClosureFinder {
 public class AssignmentClosureFinder : ClosureFinder {
 	private readonly MemberInfo _target;
 
-	public AssignmentClosureFinder(MemberInfo target) {
-		_target = target;
-	}
+	public AssignmentClosureFinder(MemberInfo target) => _target = target;
 
 	public AssignmentClosureFinder(Type targetType, string targetName) {
-		if (AccessTools.Field(targetType, targetName) is FieldInfo field)
+		if (AccessTools.Field(targetType, targetName) is { } field)
 			_target = field;
-		else if (AccessTools.Property(targetType, targetName) is PropertyInfo property)
+		else if (AccessTools.Property(targetType, targetName) is { } property)
 			_target = property;
 		else
 			throw new ArgumentException($"No field or property named {targetName} found in {targetType}");
 	}
 
 	public override IEnumerable<MethodBase> FindClosures(IReadOnlyList<CodeInstruction> insts) {
-		if (_target is FieldInfo field) {
-			for (var i = 0; i < insts.Count; i++) {
-				if (!insts[i].StoresField(field))
-					continue;
-				if (ClosureFinderUtility.TryExtractClosure(insts, i - 1, out var closure))
-					yield return closure;
+		switch (_target) {
+			case FieldInfo field: {
+				for (var i = 0; i < insts.Count; i++) {
+					if (!insts[i].StoresField(field))
+						continue;
+					if (ClosureFinderUtility.TryExtractClosure(insts, i - 1, out var closure))
+						yield return closure;
+				}
+				yield break;
 			}
-			yield break;
-		}
-		if (_target is PropertyInfo property) {
-			var setter = property.GetSetMethod(true) ?? throw new ArgumentException($"Property {_target.Name} does not have a setter.");
-			for (var i = 0; i < insts.Count; i++) {
-				if (!insts[i].Calls(setter))
-					continue;
-				if (ClosureFinderUtility.TryExtractClosure(insts, i - 1, out var closure))
-					yield return closure;
+			case PropertyInfo property: {
+				var setter = property.GetSetMethod(true) ?? throw new ArgumentException($"Property {_target.Name} does not have a setter.");
+				for (var i = 0; i < insts.Count; i++) {
+					if (!insts[i].Calls(setter))
+						continue;
+					if (ClosureFinderUtility.TryExtractClosure(insts, i - 1, out var closure))
+						yield return closure;
+				}
+				yield break;
 			}
-			yield break;
+			default: throw new ArgumentException($"Unsupported target member type: {_target.GetType().Name}");
 		}
-		throw new ArgumentException($"Unsupported target member type: {_target.GetType().Name}");
 	}
 }
 
@@ -84,7 +84,7 @@ public class ParameterClosureFinder : ClosureFinder {
 	}
 
 	public ParameterClosureFinder(Type targetType, string methodName, int paramIndex) {
-		if (AccessTools.Method(targetType, methodName) is MethodInfo method)
+		if (AccessTools.Method(targetType, methodName) is { } method)
 			_method = method;
 		else
 			throw new ArgumentException($"No method named {methodName} found in {targetType}");
@@ -92,7 +92,7 @@ public class ParameterClosureFinder : ClosureFinder {
 	}
 
 	public ParameterClosureFinder(Type targetType, string methodName, string paramName) {
-		if (AccessTools.Method(targetType, methodName) is MethodInfo method)
+		if (AccessTools.Method(targetType, methodName) is { } method)
 			_method = method;
 		else
 			throw new ArgumentException($"No method named {methodName} found in {targetType}");
