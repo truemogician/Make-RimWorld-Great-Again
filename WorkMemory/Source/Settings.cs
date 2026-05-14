@@ -53,18 +53,17 @@ public class Settings : ModSettings {
 
 	private float _contentHeight = 1f;
 
-	private int _previewWorkAmount = 800;
+	private float _workAmount = 1000f;
 
 	private readonly float[] _penaltyChoices = [0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1f];
 
-	private readonly float[] _warmupSpeedChoices = [0.25f, 0.5f, 0.75f, 1f, 1.5f, 2f, 2.5f, 3f, 4f];
+	private readonly float[] _warmupSpeedChoices = [0.2f, 1f / 3, 0.5f, 0.75f, 1f, 1.5f, 2f, 2.5f, 3f, 4f, 5f];
 
-	private readonly int[] _decayDelayChoices =
-		new[] { 0f, 0.5f, 1f, 2f, 3f, 4f, 6f, 8f, 12f, 24f, 36f, 48f, 72f }
-			.Select(h => Mathf.RoundToInt(h * GenDate.TicksPerHour))
-			.ToArray();
+	private readonly int[] _decayDelayChoices = new[] { 0, 1, 2, 4, 6, 8, 12, 24, 36, 48, 72 }.Select(h => h * GenDate.TicksPerHour).ToArray();
 
-	private readonly float[] _decaySpeedChoices = [0.05f, 0.1f, 0.15f, 0.25f, 0.5f, 0.75f, 1f, 1.5f, 2f];
+	private readonly float[] _decaySpeedChoices = [0.1f, 0.2f, 0.25f, 1f / 3, 0.5f, 0.75f, 1f, 1.5f, 2f, 3f];
+
+	private readonly float[] _workAmountChoices = [200f, 400f, 600f, 800f, 1000f, 1500f, 2000f, 3000f, 4000f, 6000f, 8000f];
 
 	private readonly record struct CurvePreview(
 		float ReferenceWorkAmount,
@@ -198,13 +197,19 @@ public class Settings : ModSettings {
 			Widgets.Label(labelRect, label);
 	}
 
-	private static void DrawChartGrid(Rect plotRect) {
+	private void DrawChartGrid(Rect plotRect) {
 		for (var i = 0; i <= 4; i++) {
 			float x = Mathf.Lerp(plotRect.xMin, plotRect.xMax, i / 4f);
-			float y = Mathf.Lerp(plotRect.yMin, plotRect.yMax, i / 4f);
 			Widgets.DrawLine(new Vector2(x, plotRect.yMin), new Vector2(x, plotRect.yMax), _chartGrid, 0.6f);
-			Widgets.DrawLine(new Vector2(plotRect.xMin, y), new Vector2(plotRect.xMax, y), _chartGrid, 0.6f);
 		}
+		foreach (float y in GetHorizontalGridLines(plotRect))
+			Widgets.DrawLine(new Vector2(plotRect.xMin, y), new Vector2(plotRect.xMax, y), _chartGrid, 0.6f);
+	}
+
+	private IEnumerable<float> GetHorizontalGridLines(Rect plotRect) {
+		yield return plotRect.yMin;
+		yield return Mathf.Lerp(plotRect.yMax, plotRect.yMin, Mathf.InverseLerp(MinMultiplier, MaxMultiplier, 1f));
+		yield return plotRect.yMax;
 	}
 
 	private static void DrawMilestone(Rect plotRect, float tick, float xMax, bool drawLabel = true) {
@@ -226,19 +231,12 @@ public class Settings : ModSettings {
 
 		using (new TextBlock(GameFont.Medium, TextAnchor.MiddleCenter))
 			Widgets.Label(rows[0], TranslateIllustration("title", "Curve Preview"));
-		var inputRects = rows[1].ToFlexbox([Flexbox.Length.Auto, _SLIDER_LABEL_WIDTH, _SLIDER_WIDTH], 10f).ToArray();
+		var cols = rows[1].ToFlexbox([Flexbox.Length.Auto, _SLIDER_LABEL_WIDTH, _SLIDER_WIDTH], 10f).ToArray();
 		using (new TextBlock(TextAnchor.MiddleLeft))
-			Widgets.Label(inputRects[0], TranslateIllustration("workAmount", "Recipe work amount"));
+			Widgets.Label(cols[0], TranslateIllustration("workAmount", "Recipe work amount"));
 		using (new TextBlock(TextAnchor.MiddleRight))
-			Widgets.Label(inputRects[1], _previewWorkAmount.ToString());
-		_previewWorkAmount = WidgetsExtension.HorizontalSlider(
-			inputRects[2],
-			_previewWorkAmount,
-			100,
-			2000,
-			true,
-			step: 100
-		);
+			Widgets.Label(cols[1], _workAmount.ToString("F0"));
+		_workAmount = WidgetsExtension.HorizontalSlider(cols[2], _workAmount, _workAmountChoices, v => v.ToString("F0"), true, false);
 
 		var preview = BuildCurvePreview();
 		DrawPreviewMetric(rows[2], 0, FormatIllustration("ticksTo100", "100% speed: {0}", FormatTicks(preview.NormalTick)));
@@ -250,7 +248,7 @@ public class Settings : ModSettings {
 	}
 
 	private CurvePreview BuildCurvePreview() {
-		float referenceWorkAmount = WorkMemoryCurve.GetReferenceWorkAmount(_previewWorkAmount, _warmupSpeed);
+		float referenceWorkAmount = WorkMemoryCurve.GetReferenceWorkAmount(_workAmount, _warmupSpeed);
 		float momentumCap = WorkMemoryCurve.GetMomentumCap(referenceWorkAmount);
 		float normalTick = WorkMemoryCurve.GetMomentumForMultiplier(1f, referenceWorkAmount, MinMultiplier, MaxMultiplier);
 		float fadeStartTick = momentumCap + _decayDelay;
@@ -294,6 +292,8 @@ public class Settings : ModSettings {
 	private void DrawChartLabels(Rect rect, Rect plotRect) {
 		using (new TextBlock(GameFont.Tiny, TextAnchor.UpperRight)) {
 			Widgets.Label(new Rect(rect.x, plotRect.yMin - 3f, 38f, 18f), MaxMultiplier.ToStringPercent());
+			float normalY = Mathf.Lerp(plotRect.yMax, plotRect.yMin, Mathf.InverseLerp(MinMultiplier, MaxMultiplier, 1f));
+			Widgets.Label(new Rect(rect.x, normalY - 9f, 38f, 18f), 1f.ToStringPercent());
 			Widgets.Label(new Rect(rect.x, plotRect.yMax - 12f, 38f, 18f), MinMultiplier.ToStringPercent());
 		}
 	}
