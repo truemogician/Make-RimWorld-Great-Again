@@ -9,7 +9,7 @@
 		<Description>A lightweight custom profiler for test and diagnosis</Description>
 		<PackageId>TrueMogician.Profiler</PackageId>
 		<Version>0.0.1</Version>
-		<Title>Test Profiler</Title>
+		<Title>Tick Profiler</Title>
 		<RootNamespace>TrueMogician.RimWorld</RootNamespace>
 	</PropertyGroup>
 

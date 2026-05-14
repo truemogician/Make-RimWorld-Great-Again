@@ -19,21 +19,33 @@ namespace TrueMogician.RimWorld.Profiler.Windows;
 using static Helper;
 
 public sealed class TickProfilerReportWindow : Window {
-	private const float _ROW_HEIGHT = 24f;
 	private const float _SCROLLBAR_WIDTH = 16f;
+	private const float _SIDEBAR_WIDTH = 160f;
 	private const float _SECTION_GAP = 8f;
-	private const float _SECTION_PADDING = 8f;
-	private const float _TABLE_ROW_GAP = 4f;
-	private const float _TABLE_COLUMN_GAP = 6f;
-	private const float _BUTTONS_HEIGHT = 38f;
+	private const float _SUMMARY_HEIGHT = 60f;
+	private const float _SECTION_PADDING = 12f;
+	private const float _TABLE_ROW_HEIGHT = 30f;
+	private const float _TABLE_COLUMN_GAP = 8f;
+	private const int _TABLE_BORDER_THICKNESS = 1;
+	private const float _BUTTONS_HEIGHT = 36f;
 	private const float _LIST_UPDATE_FREQUENCY = 2f;
 
-	private static readonly Flexbox.Length[] _TABLE_COLUMNS = [80f, 35f, 60f, 80f, Flexbox.Length.Auto];
+	private static readonly Flexbox.Length[] _TABLE_COLUMNS = [Flexbox.Length.Auto, 40f, 80f, 80f, 80f, 80f, 80f];
+	private static readonly string[] _TABLE_COLUMN_LABELS = ["Label", "%", "Count", "Time", "Avg", "Max", "MAD"];
+	private static readonly Color _ROW_BORDER_COLOR = new(0.75f, 0.75f, 0.75f, 0.9f);
+	private static readonly Color[] _PROPORTION_BAR_COLORS = [
+		new(0.75f, 0.15f, 0.12f, 0.5f),
+		new(0.85f, 0.75f, 0.18f, 0.5f),
+		new(0.55f, 0.7f, 0.85f, 0.5f),
+		new(0.6f, 0.6f, 0.6f, 0.5f)
+	];
 
 	private readonly object _aggregateLock = new();
+	private readonly List<TabRecord> _tabs = [];
 	private int _lastAllRecordsCount;
 	private float _nextListsUpdateAt;
 	private bool _updatingLists;
+	private ReportTab _selectedTab;
 
 	private readonly EntryList _typedList = new();
 	private readonly EntryList _pawnList = new();
@@ -44,54 +56,60 @@ public sealed class TickProfilerReportWindow : Window {
 		doCloseButton = false;
 		draggable = true;
 		absorbInputAroundWindow = true;
+		_tabs.Add(new TabRecord("Types", () => _selectedTab = ReportTab.Types, () => _selectedTab == ReportTab.Types));
+		_tabs.Add(new TabRecord("Pawn categories", () => _selectedTab = ReportTab.Pawns, () => _selectedTab == ReportTab.Pawns));
+		_tabs.Add(new TabRecord("Selected pawns", () => _selectedTab = ReportTab.Keys, () => _selectedTab == ReportTab.Keys));
+	}
+
+	private enum ReportTab : byte {
+		Types,
+		Pawns,
+		Keys
 	}
 
 	public override Vector2 InitialSize => new(1500f, 750f);
 
-	public override void DoWindowContents(Rect inRect) {
-		DoManagerContents(inRect, true);
-	}
+	public override void DoWindowContents(Rect inRect) => DoManagerContents(inRect, true);
 
 	public void DoManagerContents(Rect inRect, bool showTitle) {
 		UpdateLists(false);
-		List<Flexbox.Length> heights = [60f, Flexbox.Length.Auto, _BUTTONS_HEIGHT];
+		List<Flexbox.Length> heights = [_SUMMARY_HEIGHT, Flexbox.Length.Auto, _BUTTONS_HEIGHT];
 		if (showTitle)
 			heights.Insert(0, 30f);
 		var rows = inRect.ToFlexbox(FlexDirection.Column, heights, _SECTION_GAP).ToList();
-		var rowIndex = 0;
+		var idx = 0;
 
 		if (showTitle) {
 			using (new TextBlock(GameFont.Medium, TextAnchor.MiddleCenter))
-				Widgets.Label(rows[rowIndex], "Tick Profiler");
-			rowIndex++;
+				Widgets.Label(rows[idx], "Tick Profiler");
+			idx++;
 		}
 
 		using (new TextBlock(GameFont.Small)) {
-			DrawSummary(rows[rowIndex]);
-			rowIndex++;
-			DrawLists(rows[rowIndex]);
-			rowIndex++;
-			DrawButtons(rows[rowIndex]);
+			DrawSummary(rows[idx]);
+			idx++;
+			DrawLists(rows[idx]);
+			idx++;
+			DrawButtons(rows[idx]);
 		}
 	}
 
-	private static void DrawAggregateTable(Rect rect, string title, EntryList list) {
+	private static void DrawAggregateTable(Rect rect, EntryList list) {
 		Widgets.DrawMenuSection(rect);
-		var inner = rect.ContractedBy(_SECTION_PADDING);
-
-		var rows = inner.ToFlexbox(FlexDirection.Column, [22f, 22f, Flexbox.Length.Auto], _TABLE_ROW_GAP).ToList();
-		Widgets.Label(rows[0], $"{title} — {Bold(list.Entries.Count)} entries");
-		DrawHeaderRow(rows[1]);
-		var outRect = rows[2];
-		float viewHeight = list.Entries.Count * _ROW_HEIGHT;
-		var widths = outRect.ToFlexbox([Flexbox.Length.Auto, _SCROLLBAR_WIDTH]).ToList();
-		var viewRect = new Rect(0f, 0f, widths[0].width, Math.Max(outRect.height, viewHeight));
-
-		Widgets.BeginScrollView(outRect, ref list.ScrollPos, viewRect);
+		var inner = rect.Padding(_SECTION_PADDING);
+		var sections = inner.ToFlexbox(FlexDirection.Column, [_TABLE_ROW_HEIGHT, Flexbox.Length.Auto]).ToArray();
+		float viewHeight = list.Entries.Count * _TABLE_ROW_HEIGHT;
+		var viewRect = new Rect(0f, 0f, sections[1].width, Math.Max(sections[1].height, viewHeight));
+		if ((list.Entries.Count + 1) * _TABLE_ROW_HEIGHT >= inner.height) {
+			sections[0].width -= _SCROLLBAR_WIDTH;
+			viewRect.width -= _SCROLLBAR_WIDTH;
+		}
+		DrawHeaderRow(sections[0]);
+		Widgets.BeginScrollView(sections[1], ref list.ScrollPos, viewRect);
 		try {
 			Text.WordWrap = false;
 			for (var i = 0; i < list.Entries.Count; i++) {
-				var rowRect = new Rect(0f, i * _ROW_HEIGHT, viewRect.width, _ROW_HEIGHT);
+				var rowRect = new Rect(0f, _TABLE_ROW_HEIGHT * i, viewRect.width, _TABLE_ROW_HEIGHT);
 				if (Mouse.IsOver(rowRect))
 					Widgets.DrawHighlight(rowRect);
 				DrawEntryRow(rowRect, list.Entries[i], list.TotalTime);
@@ -103,50 +121,62 @@ public sealed class TickProfilerReportWindow : Window {
 		}
 	}
 
-	private static void DrawEntryRow(Rect rect, AggregateEntry entry, long totalTicks) {
-		var cols = rect.ToFlexbox(_TABLE_COLUMNS, _TABLE_COLUMN_GAP).ToList();
-
-		double pct = totalTicks == 0 ? 0 : entry.Ticks * 100.0 / totalTicks;
-		double avg = entry.Count == 0 ? 0 : entry.AverageTicks * 1_000_000.0 / Stopwatch.Frequency;
-
+	private static void DrawHeaderRow(Rect rect) {
+		DrawRowBorder(rect);
+		var cols = rect.Padding(0, _TABLE_COLUMN_GAP).ToFlexbox(_TABLE_COLUMNS, _TABLE_COLUMN_GAP).ToList();
+		using (new TextBlock(TextAnchor.MiddleLeft))
+			Widgets.Label(cols[0], Bold(_TABLE_COLUMN_LABELS[0]));
 		using (new TextBlock(TextAnchor.MiddleRight)) {
-			Widgets.Label(cols[0], FormatTimeInTick(entry.Ticks));
-			Widgets.Label(cols[1], $"{pct:F1}");
-			Widgets.Label(cols[2], FormatCount(entry.Count));
-			Widgets.Label(cols[3], FormatTime(avg, "µs"));
+			for (var i = 1; i < _TABLE_COLUMN_LABELS.Length; ++i)
+				Widgets.Label(cols[i], Bold(_TABLE_COLUMN_LABELS[i]));
 		}
+	}
 
+	private static void DrawEntryRow(Rect rect, AggregateEntry entry, long totalTicks) {
+		var cols = rect.Padding(0, _TABLE_COLUMN_GAP).ToFlexbox(_TABLE_COLUMNS, _TABLE_COLUMN_GAP).ToList();
+		double pct = totalTicks == 0 ? 0 : entry.Ticks / (double)totalTicks;
+		double avg = entry.Count == 0 ? 0 : entry.AverageTicks * 1_000_000.0 / Stopwatch.Frequency;
+		var barRect = rect.Padding(0, _TABLE_BORDER_THICKNESS, _TABLE_BORDER_THICKNESS);
+		barRect.width *= Mathf.Clamp01((float)pct);
+		Widgets.DrawBoxSolid(barRect, ProportionBarColor(pct));
 		using (new TextBlock(TextAnchor.MiddleLeft)) {
-			var labelRect = cols[4];
+			var labelRect = cols[0];
 			string truncated = entry.Label.Truncate(labelRect.width);
 			Widgets.Label(labelRect, truncated);
 			if (Mouse.IsOver(labelRect))
 				TooltipHandler.TipRegion(labelRect, entry.Label);
 		}
-	}
-
-	private static void DrawHeaderRow(Rect rect) {
-		var cols = rect.ToFlexbox(_TABLE_COLUMNS, _TABLE_COLUMN_GAP).ToList();
 		using (new TextBlock(TextAnchor.MiddleRight)) {
-			Widgets.Label(cols[0], Bold("Time"));
-			Widgets.Label(cols[1], Bold("%"));
-			Widgets.Label(cols[2], Bold("Count"));
-			Widgets.Label(cols[3], Bold("Avg"));
+			Widgets.Label(cols[1], $"{pct * 100.0:F1}");
+			Widgets.Label(cols[2], FormatCount(entry.Count));
+			Widgets.Label(cols[3], FormatTimeInTick(entry.Ticks));
+			Widgets.Label(cols[4], FormatTime(avg, "µs"));
+			Widgets.Label(cols[5], FormatTickDuration(entry.MaxTicks));
+			Widgets.Label(cols[6], FormatTickDuration(entry.MAD));
 		}
-		using (new TextBlock(TextAnchor.MiddleLeft))
-			Widgets.Label(cols[4], Bold("Label"));
+		DrawRowBorder(rect, BorderEdges.Bottom | BorderEdges.Left | BorderEdges.Right);
 	}
 
-	private static void DrawSummaryRow(Rect rect, params (string Label, string Value)?[] items) {
+	private static void DrawRowBorder(Rect rect, BorderEdges edges = BorderEdges.All) {
+		using (new TextBlock(_ROW_BORDER_COLOR))
+			WidgetsExtension.DrawBorder(rect, edges);
+	}
+
+	private static Color ProportionBarColor(double pct) => pct switch {
+		>= 0.20 => _PROPORTION_BAR_COLORS[0],
+		>= 0.05 => _PROPORTION_BAR_COLORS[1],
+		>= 0.01 => _PROPORTION_BAR_COLORS[2],
+		_       => _PROPORTION_BAR_COLORS[3]
+	};
+
+	private static void DrawSummaryRow(Rect rect, params (string Label, string Value)[] items) {
 		var flexbox = rect.ToFlexbox(
 			FlexDirection.Row,
-			Enumerable.Repeat<Flexbox.Length>(200f, items.Length),
+			items.Length,
 			justifyContent: JustifyContent.SpaceBetween
 		);
 		foreach (var (item, group) in items.Zip(flexbox, (i, g) => (i, g))) {
-			if (item is null)
-				continue;
-			(string label, string value) = item.Value;
+			(string label, string value) = item;
 			var cols = group.ToFlexbox([55f, Flexbox.Length.Auto], 4f).ToList();
 			using (new TextBlock(TextAnchor.MiddleLeft)) {
 				Widgets.Label(cols[0], Bold(label + ":"));
@@ -162,6 +192,11 @@ public sealed class TickProfilerReportWindow : Window {
 	private static string FormatTimeInTick(long ticks) => FormatTime(TickToMs(ticks));
 
 	private static string FormatTimeInTick(double ticks) => FormatTime(TickToMs(ticks));
+
+	private static string FormatTickDuration(double ticks) {
+		double ms = TickToMs(ticks);
+		return ms < 1 ? FormatTime(ms * 1000.0, "µs") : FormatTime(ms);
+	}
 
 	private static string FormatTimeWithPercent(long ticks, long totalTicks) {
 		double pct = totalTicks == 0 ? 0 : ticks * 100.0 / totalTicks;
@@ -183,7 +218,7 @@ public sealed class TickProfilerReportWindow : Window {
 
 	private void DrawSummary(Rect rect) {
 		Widgets.DrawMenuSection(rect);
-		var inner = rect.ContractedBy(_SECTION_PADDING);
+		var inner = rect.Padding(_SECTION_PADDING / 2, _SECTION_PADDING);
 		var rows = inner.ToFlexbox(FlexDirection.Column, 2, 2f).ToList();
 		var summary = TickPatches.Summary;
 		long typedTime, pawnTime, keyedTime;
@@ -197,26 +232,51 @@ public sealed class TickProfilerReportWindow : Window {
 				rows[0],
 				("Ticks", FormatCount(summary.TickCount)),
 				("Total", FormatTimeInTick(summary.TotalTime)),
-				("Things", FormatTimeWithPercent(typedTime, summary.TotalTime)),
-				("Pawns", FormatTimeWithPercent(pawnTime, summary.TotalTime)),
-				("Keyed", FormatTimeWithPercent(keyedTime, summary.TotalTime))
+				("Avg", FormatTimeInTick(summary.AvgTime)),
+				("Min", FormatTimeInTick(summary.MinTime)),
+				("Max", FormatTimeInTick(summary.MaxTime))
 			);
 			DrawSummaryRow(
 				rows[1],
-				("Avg", FormatTimeInTick(summary.AvgTime)),
-				("Min", FormatTimeInTick(summary.MinTime)),
-				("Max", FormatTimeInTick(summary.MaxTime)),
-				null
+				("Things", FormatTimeWithPercent(typedTime, summary.TotalTime)),
+				("Pawns", FormatTimeWithPercent(pawnTime, summary.TotalTime)),
+				("Keyed", FormatTimeWithPercent(keyedTime, summary.TotalTime))
 			);
 		}
 	}
 
 	private void DrawLists(Rect rect) {
-		var cols = rect.ToFlexbox(FlexDirection.Row, 3, _SECTION_GAP).ToList();
+		var cols = rect.ToFlexbox([_SIDEBAR_WIDTH, Flexbox.Length.Auto], _SECTION_GAP).ToList();
+		DrawTabSidebar(cols[0]);
 		lock (_aggregateLock) {
-			DrawAggregateTable(cols[0], "By type (Thing.DoTick)", _typedList);
-			DrawAggregateTable(cols[1], "By pawn category", _pawnList);
-			DrawAggregateTable(cols[2], "By key (selected pawns)", _keyedList);
+			switch (_selectedTab) {
+				case ReportTab.Types: DrawAggregateTable(cols[1], _typedList); break;
+				case ReportTab.Pawns: DrawAggregateTable(cols[1], _pawnList); break;
+				case ReportTab.Keys:  DrawAggregateTable(cols[1], _keyedList); break;
+				default:              throw new ArgumentOutOfRangeException();
+			}
+		}
+	}
+
+	private void DrawTabSidebar(Rect rect) {
+		Widgets.DrawMenuSection(rect);
+		var inner = rect.Padding(_SECTION_PADDING);
+		var rows = inner.ToFlexbox(
+				FlexDirection.Column,
+				Enumerable.Repeat<Flexbox.Length>(_TABLE_ROW_HEIGHT, _tabs.Count),
+				_TABLE_COLUMN_GAP / 2
+			)
+			.ToArray();
+		for (var i = 0; i < _tabs.Count; ++i) {
+			var tab = _tabs[i];
+			if (tab.Selected)
+				Widgets.DrawHighlightSelected(rows[i]);
+			else if (Mouse.IsOver(rows[i]))
+				Widgets.DrawHighlight(rows[i]);
+			using (new TextBlock(TextAnchor.MiddleLeft))
+				Widgets.Label(rows[i].Padding(0f, _TABLE_COLUMN_GAP), tab.label);
+			if (Widgets.ButtonInvisible(rows[i]))
+				tab.clickedAction?.Invoke();
 		}
 	}
 
@@ -329,6 +389,8 @@ public sealed class TickProfilerReportWindow : Window {
 	}
 
 	internal sealed class AggregateEntry(string label) {
+		private List<long> _samples = [];
+
 		public static IComparer<AggregateEntry> CountComparer { get; }
 			= Comparer<AggregateEntry>.Create((a, b) => b.Count.CompareTo(a.Count));
 
@@ -341,14 +403,40 @@ public sealed class TickProfilerReportWindow : Window {
 
 		public long Ticks { get; private set; }
 
+		public long MaxTicks { get; private set; }
+
+		public double MAD {
+			get {
+				if (_samples.Count == 0)
+					return 0;
+				double median = Median(_samples);
+				var deviations = new List<long>(_samples.Count);
+				foreach (long sample in _samples)
+					deviations.Add((long)Math.Abs(sample - median));
+				return Median(deviations);
+			}
+		}
+
 		public double AverageTicks => Count == 0 ? 0 : (double)Ticks / Count;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Add(int count, long qpcTicks) {
 			Count += count;
 			Ticks += qpcTicks;
+			_samples.Add(qpcTicks);
+			if (qpcTicks > MaxTicks)
+				MaxTicks = qpcTicks;
 		}
 
-		public AggregateEntry Clone() => new(Label) { Count = Count, Ticks = Ticks };
+		public AggregateEntry Clone() =>
+			new(Label) { Count = Count, Ticks = Ticks, MaxTicks = MaxTicks, _samples = [.._samples] };
+
+		private static double Median(List<long> values) {
+			if (values.Count == 0)
+				return 0;
+			values.Sort();
+			int middle = values.Count / 2;
+			return values.Count % 2 == 0 ? (values[middle - 1] + values[middle]) / 2.0 : values[middle];
+		}
 	}
 }

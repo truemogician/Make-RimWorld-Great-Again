@@ -1,13 +1,54 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using LudeonTK;
 using TrueMogician.Extensions.Enumerable;
 using UnityEngine;
 using Verse;
 
 namespace TrueMogician.RimWorld.Utility.GUI;
 
+[Flags]
+public enum BorderEdges : byte {
+	Top = 1,
+	Bottom = 2,
+	Left = 4,
+	Right = 8,
+	All = Top | Bottom | Left | Right
+}
+
 public static class WidgetsExtension {
+	public static void DrawBorder(Rect rect, BorderEdges edges = BorderEdges.All, int thickness = 1, Texture2D? lineTexture = null) {
+		var vector = new Vector2(rect.x, rect.y);
+		var vector2 = new Vector2(rect.x + rect.width, rect.y + rect.height);
+		if (vector.x > vector2.x) {
+			(float x1, float x2) = (vector2.x, vector.x);
+			vector.x = x1;
+			vector2.x = x2;
+		}
+		if (vector.y > vector2.y) {
+			(float y1, float y2) = (vector2.y, vector.y);
+			vector.y = y1;
+			vector2.y = y2;
+		}
+		Vector3 vector3 = vector2 - vector;
+		var texture = lineTexture ?? BaseContent.WhiteTex;
+		if ((edges & BorderEdges.Left) != 0)
+			UnityEngine.GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector.x, vector.y, thickness, vector3.y)), texture);
+		if ((edges & BorderEdges.Right) != 0)
+			UnityEngine.GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(vector2.x - thickness, vector.y, thickness, vector3.y)), texture);
+		if ((edges & BorderEdges.Top) != 0) {
+			float x = vector.x + ((edges & BorderEdges.Left) != 0 ? thickness : 0f);
+			float width = vector3.x - ((edges & BorderEdges.Left) != 0 ? thickness : 0f) - ((edges & BorderEdges.Right) != 0 ? thickness : 0f);
+			UnityEngine.GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(x, vector.y, width, thickness)), texture);
+		}
+		if ((edges & BorderEdges.Bottom) != 0) {
+			float x = vector.x + ((edges & BorderEdges.Left) != 0 ? thickness : 0f);
+			float width = vector3.x - ((edges & BorderEdges.Left) != 0 ? thickness : 0f) - ((edges & BorderEdges.Right) != 0 ? thickness : 0f);
+			UnityEngine.GUI.DrawTexture(UIScaling.AdjustRectToUIScaling(new Rect(x, vector2.y - thickness, width, thickness)), texture);
+		}
+	}
+
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static int HorizontalSlider(
 		Rect rect,
