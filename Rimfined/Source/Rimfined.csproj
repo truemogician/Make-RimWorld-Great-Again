@@ -10,6 +10,7 @@
 		<PackageId>TrueMogician.Rimfined</PackageId>
 		<Version>0.0.1</Version>
 		<Title>Rimfined</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<RootNamespace>TrueMogician.RimWorld.Rimfined</RootNamespace>
 	</PropertyGroup>
 

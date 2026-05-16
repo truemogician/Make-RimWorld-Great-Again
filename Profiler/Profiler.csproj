@@ -10,6 +10,7 @@
 		<PackageId>TrueMogician.Profiler</PackageId>
 		<Version>0.0.1</Version>
 		<Title>Tick Profiler</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<RootNamespace>TrueMogician.RimWorld</RootNamespace>
 	</PropertyGroup>
 

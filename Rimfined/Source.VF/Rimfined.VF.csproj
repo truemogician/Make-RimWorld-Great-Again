@@ -9,6 +9,7 @@
 		<PackageId>TrueMogician.Rimfined.VF</PackageId>
 		<Version>0.0.1</Version>
 		<Title>Rimfined for Vehicle Framework</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<RootNamespace>TrueMogician.RimWorld.Rimfined.VF</RootNamespace>
 	</PropertyGroup>
 

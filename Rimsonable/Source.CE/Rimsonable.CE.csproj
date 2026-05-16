@@ -9,6 +9,7 @@
 		<PackageId>TrueMogician.Rimsonable.CE</PackageId>
 		<Version>1.0.0</Version>
 		<Title>Rimsonable for Combat Extended</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<RootNamespace>TrueMogician.RimWorld.Rimsonable.CE</RootNamespace>
 	</PropertyGroup>
 

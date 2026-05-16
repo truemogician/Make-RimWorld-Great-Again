@@ -9,6 +9,7 @@
 		<PackageId>TrueMogician.Rimfined.CE</PackageId>
 		<Version>0.0.1</Version>
 		<Title>Rimfined for Combat Extended</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<RootNamespace>TrueMogician.RimWorld.Rimfined.CE</RootNamespace>
 	</PropertyGroup>
 

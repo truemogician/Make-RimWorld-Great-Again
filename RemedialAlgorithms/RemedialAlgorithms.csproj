@@ -9,7 +9,8 @@
 		<Description>Remedial Algorithms is a mod that implements a few optimizations Tynan forgot to include while building his "spaghetti" empire. It replaces offensive brute-force iterations with optimized HashSets and cache-friendly logic. If the base game is a failing grade in Data Structures, this mod is the professional refactor required to make late-game colonies playable again.</Description>
 		<PackageId>TrueMogician.RemedialAlgorithms</PackageId>
 		<Version>0.0.1</Version>
-		<Title>Remedial Algorithms: Tynan's Data Structures Retake</Title>
+		<Title>Remedial Algorithms</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<RootNamespace>TrueMogician.RimWorld</RootNamespace>
 	</PropertyGroup>
 

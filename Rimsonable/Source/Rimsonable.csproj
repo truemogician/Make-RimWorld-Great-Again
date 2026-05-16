@@ -10,6 +10,7 @@
 		<PackageId>TrueMogician.Rimsonable</PackageId>
 		<Version>1.1.2</Version>
 		<Title>Rimsonable</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<RootNamespace>TrueMogician.RimWorld.Rimsonable</RootNamespace>
 	</PropertyGroup>
 

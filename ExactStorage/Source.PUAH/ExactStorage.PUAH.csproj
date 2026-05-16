@@ -9,6 +9,7 @@
 		<PackageId>TrueMogician.ExactStorage.PUAH</PackageId>
 		<Version>0.0.1</Version>
 		<Title>Exact Storage for Pick Up And Haul</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<RootNamespace>TrueMogician.RimWorld.ExactStorage.PUAH</RootNamespace>
 	</PropertyGroup>
 

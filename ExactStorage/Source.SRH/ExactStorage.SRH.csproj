@@ -9,6 +9,7 @@
 		<PackageId>TrueMogician.ExactStorage.SRH</PackageId>
 		<Version>0.0.1</Version>
 		<Title>Exact Storage for Storage Refill Hysteresis</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<RootNamespace>TrueMogician.RimWorld.ExactStorage.SRH</RootNamespace>
 	</PropertyGroup>
 

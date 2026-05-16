@@ -10,6 +10,7 @@
 		<PackageId>TrueMogician.AnimalHaulExtended</PackageId>
 		<Version>0.0.1</Version>
 		<Title>Animal Haul Extended</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<RootNamespace>TrueMogician.RimWorld.AnimalHaulExtended</RootNamespace>
 	</PropertyGroup>
 

@@ -9,6 +9,7 @@
 		<Authors>true_mogician</Authors>
 		<Description>Common utilities for true_mogician's mods</Description>
 		<Title>true_mogician's RimWorld Mod Utilities</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<AssemblyName>$(PackageId)</AssemblyName>
 	</PropertyGroup>
 
