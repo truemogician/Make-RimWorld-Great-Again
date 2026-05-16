@@ -5,7 +5,7 @@
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
 		<PackageId>TrueMogician.RimWorld.Utility</PackageId>
-		<Version>1.1.0</Version>
+		<Version>1.1.1</Version>
 		<Authors>true_mogician</Authors>
 		<Description>Common utilities for true_mogician's mods</Description>
 		<Title>true_mogician's RimWorld Mod Utilities</Title>

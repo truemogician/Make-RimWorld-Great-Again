@@ -23,5 +23,11 @@
 			<SummaryWarning>Configured minimums exceed the estimated stock capacity.</SummaryWarning>
 			<SummaryUnknownCapacityWarning>Exact Storage cannot estimate this storage's stock capacity. Vanilla storage checks still apply.</SummaryUnknownCapacityWarning>
 		</UI>
+		<Settings.Features>
+			<Diagnostics>
+				<label>Diagnostics</label>
+				<description>Records detailed events about storage decisions and haul jobs to the log. Use this when investigating performance spikes or job-loop warnings. Off by default; turning it on adds noticeable log volume but is otherwise harmless.</description>
+			</Diagnostics>
+		</Settings.Features>
 	</ExactStorage>
 </LanguageData>

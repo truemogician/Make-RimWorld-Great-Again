@@ -1,6 +1,7 @@
 using System;
 using HarmonyLib;
 using RimWorld;
+using TrueMogician.RimWorld.Utility.Diagnostics;
 using Verse;
 using Verse.AI;
 
@@ -21,20 +22,29 @@ internal static class StorageBehaviorPatches {
 		ref IHaulDestination haulDestination,
 		ref bool __result
 	) {
+		var vanillaCell = foundCell;
+		bool vanillaResult = __result;
+		string? branch = null;
 		if (TryFindPreferredUnderMinCell(t, carrier, map, currentPriority, faction, out var preferredCell, out var preferredDestination)) {
 			foundCell = preferredCell;
 			haulDestination = preferredDestination;
 			__result = true;
+			branch = "override_under_min";
 		}
 		else if (__result && foundCell.IsValid && !foundCell.CanReceiveAt(map, t)) {
 			if (TryFindAllowedCell(t, carrier, map, currentPriority, faction, out var allowedCell, out var allowedDestination)) {
 				foundCell = allowedCell;
 				haulDestination = allowedDestination;
 				__result = true;
+				branch = "fallback_allowed";
 			}
-			else
+			else {
 				__result = false;
+				branch = "fallback_none";
+			}
 		}
+		if (branch is not null)
+			Diagnostic.Record("StorageSearch", branch, carrier, t, foundCell, $"vanillaCell={vanillaCell}\tvanillaOk={vanillaResult}\tresult={__result}");
 	}
 
 	[HarmonyPatch(typeof(HaulAIUtility), nameof(HaulAIUtility.HaulToCellStorageJob))]
@@ -43,27 +53,34 @@ internal static class StorageBehaviorPatches {
 		if (__result is null || storeCell.GetSlotGroup(p.Map) is not { } slotGroup)
 			return;
 		var settings = slotGroup.Settings;
+		int origCount = __result.count;
 		if (t.IsCurrentStorageScope(settings, slotGroup.parent)) {
+			Diagnostic.Record("HaulJob", "current_scope", p, t, storeCell, $"orig={origCount}\tresult=null");
 			__result = null;
 			return;
 		}
-		var limit = NO_LIMIT;
+		uint limit = NO_LIMIT;
 		if (Manager.TryGetProfile(settings, out var profile) && profile.Enabled) {
-			var preferMin = settings.ShouldPreferForMinimum(t, storeCell, p.Map);
+			bool preferMin = settings.ShouldPreferForMinimum(t, storeCell, p.Map);
 			limit = settings.DestinationCountLimit(t, preferMin, storeCell, p.Map);
 		}
-		var sourceLimit = t.SourceCountLimit(storeCell, p.Map);
+		uint sourceLimit = t.SourceCountLimit(storeCell, p.Map);
 		if (sourceLimit != NO_LIMIT)
 			limit = Math.Min(limit, sourceLimit);
 		if (limit != NO_LIMIT) {
-			var cappedLimit = limit > int.MaxValue ? int.MaxValue : (int)limit;
+			int cappedLimit = limit > int.MaxValue ? int.MaxValue : (int)limit;
 			if (cappedLimit < __result.count) {
 				__result.count = cappedLimit;
 				__result.haulOpportunisticDuplicates = false;
 			}
 		}
-		if (__result.count <= 0)
+		if (__result.count <= 0) {
+			Diagnostic.Record("HaulJob", "cap_zero", p, t, storeCell, $"orig={origCount}\tlimit={limit}\tresult=null");
 			__result = null;
+			return;
+		}
+		if (__result.count != origCount)
+			Diagnostic.Record("HaulJob", "capped", p, t, storeCell, $"orig={origCount}\tnew={__result.count}\tlimit={limit}", Verbosity.Full);
 	}
 
 	[HarmonyPatch(typeof(HaulAIUtility), nameof(HaulAIUtility.HaulToStorageJob))]
@@ -71,10 +88,10 @@ internal static class StorageBehaviorPatches {
 	internal static void HaulAIUtility_HaulToStorageJob_Postfix(Thing t, ref Job? __result) {
 		if (__result is null)
 			return;
-		var limit = t.SourceExcessLimit();
+		uint limit = t.SourceExcessLimit();
 		var storeCell = __result.GetTarget(TargetIndex.B).Cell;
 		if (storeCell.IsValid && t.MapHeld is { } map) {
-			var sourceLimit = t.SourceCountLimit(storeCell, map);
+			uint sourceLimit = t.SourceCountLimit(storeCell, map);
 			if (sourceLimit != NO_LIMIT)
 				limit = Math.Min(limit, sourceLimit);
 		}

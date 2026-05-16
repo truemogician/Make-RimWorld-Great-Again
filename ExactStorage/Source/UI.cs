@@ -57,7 +57,7 @@ public static class UI {
 
 	private static readonly Texture2D _markerTex = SolidTex(new(0.9f, 0.9f, 0f));
 
-	private static readonly Dictionary<(Quota Quota, bool Min), (string Buffer, bool Focused)> _editState = new();
+	private static readonly Dictionary<(Quota Quota, bool Min), (string Buffer, bool Focused)> _editState = [];
 
 	private static readonly FieldInfo _listingCurY = AccessTools.Field(typeof(Listing), "curY");
 
