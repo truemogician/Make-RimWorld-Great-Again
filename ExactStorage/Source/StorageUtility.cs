@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using RimWorld;
 using TrueMogician.RimWorld.Utility.Diagnostics;
 using Verse;
@@ -14,6 +15,8 @@ public static class StorageUtility {
 	public const uint NO_LIMIT = uint.MaxValue;
 
 	private static readonly List<EnrouteStockProvider> _enrouteStockProviders = [];
+
+	private static readonly ConditionalWeakTable<Map, ActiveJobsCache> _activeJobsCache = new();
 
 	public delegate decimal EnrouteStockProvider(StorageSettings settings, Quota quota, ISlotGroupParent? parent, Map map, Pawn pawn, Job job);
 
@@ -47,7 +50,13 @@ public static class StorageUtility {
 		out IHaulDestination destination
 	) => TryFindCell(thing, carrier, map, currentPriority, faction, CellSearchMode.AnyAllowed, out cell, out destination);
 
-	internal static IEnumerable<(Pawn Claimant, Job Job)> EnumerateActiveJobs(Map map) {
+	internal static IReadOnlyList<(Pawn Claimant, Job Job)> EnumerateActiveJobs(Map map) {
+		var cache = _activeJobsCache.GetValue(map, _ => new ActiveJobsCache());
+		var tick = Find.TickManager?.TicksGame ?? -1;
+		if (cache.Tick == tick && tick >= 0)
+			return cache.Jobs;
+		cache.Tick = tick;
+		cache.Jobs.Clear();
 		var seen = new HashSet<Job>();
 		foreach (var pawn in map.mapPawns.AllPawnsSpawned) {
 			if (pawn.jobs is null)
@@ -55,15 +64,16 @@ public static class StorageUtility {
 			foreach (var job in pawn.jobs.AllJobs()) {
 				if (job is null || !seen.Add(job))
 					continue;
-				yield return (pawn, job);
+				cache.Jobs.Add((pawn, job));
 			}
 		}
 		foreach (var reservation in map.reservationManager.ReservationsReadOnly) {
 			var job = reservation.Job;
 			if (job is null || !seen.Add(job))
 				continue;
-			yield return (reservation.Claimant, job);
+			cache.Jobs.Add((reservation.Claimant, job));
 		}
+		return cache.Jobs;
 	}
 
 	private static bool TryFindCell(
@@ -354,7 +364,13 @@ public static class StorageUtility {
 			_underMin = underMin;
 		}
 
-		public static MinimumBalance For(StorageSettings settings, Profile profile, ISlotGroupParent? parent, Job? ignoredJob = null) {
+		public static MinimumBalance For(
+			StorageSettings settings,
+			Profile profile,
+			ISlotGroupParent? parent,
+			Job? ignoredJob = null,
+			bool includeEnroute = true
+		) {
 			if (!RefillGate.AllowsRefill(settings) || !settings.TryGetCapacity(out int capacity, parent))
 				return new MinimumBalance(settings, parent, false, 0, 0, 0, null);
 			List<(Quota Quota, decimal Remaining)>? underMin = null;
@@ -365,7 +381,9 @@ public static class StorageUtility {
 					|| !settings.QuotaAllowed(quota)
 					|| profile.HasActiveAncestorCategoryQuota(quota, settings))
 					continue;
-				decimal count = profile.CountFor(quota, parent) + EnrouteStockFor(settings, quota, parent, ignoredJob);
+				decimal count = profile.CountFor(quota, parent);
+				if (includeEnroute)
+					count += EnrouteStockFor(settings, quota, parent, ignoredJob);
 				decimal remaining = quota.Min - count;
 				if (remaining <= 0m)
 					continue;
@@ -457,6 +475,12 @@ public static class StorageUtility {
 		}
 	}
 
+	private sealed class ActiveJobsCache {
+		public int Tick = -1;
+
+		public readonly List<(Pawn Pawn, Job Job)> Jobs = [];
+	}
+
 	extension(StorageSettings settings) {
 		public bool SupportsExactStorage => settings.owner is StorageGroup or ISlotGroupParent;
 
@@ -534,7 +558,7 @@ public static class StorageUtility {
 					return false;
 				}
 			}
-			var balance = MinimumBalance.For(settings, profile, parent);
+			var balance = MinimumBalance.For(settings, profile, parent, includeEnroute: false);
 			if (currentlyStored) {
 				bool displace = balance.ShouldDisplace(thing);
 				if (displace)
