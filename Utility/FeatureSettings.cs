@@ -83,7 +83,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 		bool defaultEnabled = typeof(T).GetCustomAttribute<FeaturesEnumAttribute>()?.DefaultEnabled ?? true;
 		ulong result = defaultEnabled ? All : 0;
 		foreach (var (feature, attributes, _, _) in GetFeatureAttributes()) {
-			bool? enabled = attributes.OfType<FeatureAttribute>().FirstOrDefault()?.DefaultEnabled;
+			bool? enabled = attributes.OfType<FeatureAttribute>().FirstOrDefault()?.Enabled;
 			if (enabled.HasValue && enabled.Value != defaultEnabled) {
 				if (enabled.Value)
 					result |= ToUlong(feature);
@@ -148,7 +148,7 @@ public abstract class FeatureSettings<T>(Logger? logger = null) : ModSettings
 		Scribe_Values.Look(ref _specifiedFeatures, SpecifiedFeaturesLabel);
 	}
 
-	public void Apply() {
+	public virtual void Apply() {
 		var newPatches = GetEnabledPatches();
 		var patchesToRemove = AppliedPatches.Except(newPatches).ToList();
 		var patchesToAdd = newPatches.Except(AppliedPatches).ToList();

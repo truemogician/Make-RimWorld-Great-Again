@@ -2,16 +2,18 @@ using System;
 
 namespace TrueMogician.RimWorld.Utility.Attributes;
 
-public abstract class FeatureAttributeBase : Attribute { }
+public abstract class FeatureAttributeBase : Attribute;
 
 /// <summary>
 ///     Configure a feature flag enum field for use in a <see cref="FeatureSettings{T}" />.
 /// </summary>
 [AttributeUsage(AttributeTargets.Field)]
 public class FeatureAttribute : FeatureAttributeBase {
+	internal bool? Enabled;
+
 	public FeatureAttribute() { }
 
-	public FeatureAttribute(bool? defaultEnabled) => DefaultEnabled = defaultEnabled;
+	public FeatureAttribute(bool? defaultEnabled) => Enabled = defaultEnabled;
 
 	/// <summary>
 	///     The fallback label for this feature if no translation is found.
@@ -24,12 +26,6 @@ public class FeatureAttribute : FeatureAttributeBase {
 	public string? Description { get; init; }
 
 	/// <summary>
-	///     Whether this feature is enabled by default. If null, the default from
-	///     <see cref="FeaturesEnumAttribute.DefaultEnabled" /> is used.
-	/// </summary>
-	public bool? DefaultEnabled { get; init; }
-
-	/// <summary>
 	///     An array of mod identifiers that this feature depends on.
 	/// </summary>
 	public string[]? ModDependencies { get; init; }
@@ -38,6 +34,15 @@ public class FeatureAttribute : FeatureAttributeBase {
 	///     An array of mod identifiers that this feature is incompatible with.
 	/// </summary>
 	public string[]? ModIncompatibilities { get; init; }
+
+	/// <summary>
+	///     Whether this feature is enabled by default. If null, the default from
+	///     <see cref="FeaturesEnumAttribute.DefaultEnabled" /> is used.
+	/// </summary>
+	public bool DefaultEnabled {
+		get => Enabled ?? throw new InvalidOperationException("DefaultEnabled is not set");
+		init => Enabled = value;
+	}
 }
 
 /// <summary>
