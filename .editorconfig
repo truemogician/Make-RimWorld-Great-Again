@@ -20,7 +20,7 @@ insert_final_newline = false
 # Organize usings
 dotnet_separate_import_directive_groups = false
 dotnet_sort_system_directives_first = true
-file_header_template =
+file_header_template = 
 
 # this. and Me. preferences
 dotnet_style_qualification_for_event = false:suggestion
@@ -223,15 +223,15 @@ dotnet_naming_rule.private_static_readonly_should_be_pascal.style = pascal_case
 
 dotnet_naming_symbols.interface.applicable_kinds = interface
 dotnet_naming_symbols.interface.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.interface.required_modifiers =
+dotnet_naming_symbols.interface.required_modifiers = 
 
 dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum
 dotnet_naming_symbols.types.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.types.required_modifiers =
+dotnet_naming_symbols.types.required_modifiers = 
 
 dotnet_naming_symbols.non_field_members.applicable_kinds = property, event, method
 dotnet_naming_symbols.non_field_members.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.non_field_members.required_modifiers =
+dotnet_naming_symbols.non_field_members.required_modifiers = 
 
 # Custom Symbols from R# settings
 
@@ -249,23 +249,23 @@ dotnet_naming_symbols.private_static_readonly.required_modifiers = static, reado
 
 # Naming styles definitions
 
-dotnet_naming_style.pascal_case.required_prefix =
-dotnet_naming_style.pascal_case.required_suffix =
-dotnet_naming_style.pascal_case.word_separator =
+dotnet_naming_style.pascal_case.required_prefix = 
+dotnet_naming_style.pascal_case.required_suffix = 
+dotnet_naming_style.pascal_case.word_separator = 
 dotnet_naming_style.pascal_case.capitalization = pascal_case
 
 dotnet_naming_style.begins_with_i.required_prefix = I
-dotnet_naming_style.begins_with_i.required_suffix =
-dotnet_naming_style.begins_with_i.word_separator =
+dotnet_naming_style.begins_with_i.required_suffix = 
+dotnet_naming_style.begins_with_i.word_separator = 
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 
-dotnet_naming_style.screaming_snake.required_prefix =
-dotnet_naming_style.screaming_snake.required_suffix =
+dotnet_naming_style.screaming_snake.required_prefix = 
+dotnet_naming_style.screaming_snake.required_suffix = 
 dotnet_naming_style.screaming_snake.word_separator = _
 dotnet_naming_style.screaming_snake.capitalization = all_upper
 
 dotnet_naming_style.screaming_snake_with_underscore.required_prefix = _
-dotnet_naming_style.screaming_snake_with_underscore.required_suffix =
+dotnet_naming_style.screaming_snake_with_underscore.required_suffix = 
 dotnet_naming_style.screaming_snake_with_underscore.word_separator = _
 dotnet_naming_style.screaming_snake_with_underscore.capitalization = all_upper
 
@@ -444,7 +444,7 @@ dotnet_naming_symbols.constants_symbols_1.required_modifiers = const
 dotnet_naming_symbols.constants_symbols_1.resharper_applicable_kinds = constant_field
 dotnet_naming_symbols.constants_symbols_1.resharper_required_modifiers = any
 dotnet_naming_symbols.enum_member_symbols.applicable_accessibilities = *
-dotnet_naming_symbols.enum_member_symbols.applicable_kinds =
+dotnet_naming_symbols.enum_member_symbols.applicable_kinds = 
 dotnet_naming_symbols.enum_member_symbols.resharper_applicable_kinds = enum_member
 dotnet_naming_symbols.enum_member_symbols.resharper_required_modifiers = any
 dotnet_naming_symbols.private_static_fields_symbols.applicable_accessibilities = private
@@ -479,11 +479,11 @@ dotnet_naming_symbols.protected_internal_non_static_field_symbols_1.applicable_k
 dotnet_naming_symbols.protected_internal_non_static_field_symbols_1.resharper_applicable_kinds = field
 dotnet_naming_symbols.protected_internal_non_static_field_symbols_1.resharper_required_modifiers = instance
 dotnet_naming_symbols.unity_serialized_field_symbols.applicable_accessibilities = *
-dotnet_naming_symbols.unity_serialized_field_symbols.applicable_kinds =
+dotnet_naming_symbols.unity_serialized_field_symbols.applicable_kinds = 
 dotnet_naming_symbols.unity_serialized_field_symbols.resharper_applicable_kinds = unity_serialised_field
 dotnet_naming_symbols.unity_serialized_field_symbols.resharper_required_modifiers = instance
 dotnet_naming_symbols.unity_serialized_field_symbols_1.applicable_accessibilities = *
-dotnet_naming_symbols.unity_serialized_field_symbols_1.applicable_kinds =
+dotnet_naming_symbols.unity_serialized_field_symbols_1.applicable_kinds = 
 dotnet_naming_symbols.unity_serialized_field_symbols_1.resharper_applicable_kinds = unity_serialised_field
 dotnet_naming_symbols.unity_serialized_field_symbols_1.resharper_required_modifiers = instance
 
@@ -591,7 +591,7 @@ resharper_vb_max_line_length = 120
 resharper_wrap_after_declaration_lpar = true
 resharper_wrap_after_invocation_lpar = true
 resharper_wrap_array_initializer_style = chop_if_long
-resharper_wrap_before_arrow_with_expressions = true
+resharper_wrap_before_arrow_with_expressions = false
 resharper_wrap_before_declaration_rpar = true
 resharper_wrap_before_invocation_rpar = true
 resharper_wrap_braced_init_list_style = chop_if_long
