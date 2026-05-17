@@ -133,12 +133,24 @@ public static class StorageUtility {
 	}
 
 	private static uint SourceMinimumLimit(Thing thing, IntVec3 storeCell, Map map) {
-		if (StoreUtility.CurrentHaulDestinationOf(thing)?.GetStoreSettings() is not { } sourceSettings)
+		if (StoreUtility.CurrentHaulDestinationOf(thing)?.GetStoreSettings() is not { } sourceSettings
+			|| !Manager.TryGetProfile(sourceSettings, out var sourceProfile)
+			|| !sourceProfile.Enabled)
 			return NO_LIMIT;
-		if (!Manager.TryGetProfile(sourceSettings, out var sourceProfile) || !sourceProfile.Enabled)
+		var slotGroup = storeCell.GetSlotGroup(map);
+		if (slotGroup is null)
 			return NO_LIMIT;
-		if (CanDrainForHigherPriorityMinimum(sourceSettings, thing, storeCell, map))
+		var destinationSettings = slotGroup.Settings;
+		bool destUnderMin = destinationSettings.ShouldPreferForMinimum(thing, storeCell, map);
+		// Higher-priority + under-min: vanilla wants this; allow full drain even past source's own min.
+		if (destUnderMin && (int)destinationSettings.Priority > (int)sourceSettings.Priority)
 			return NO_LIMIT;
+		// Destination has no unmet minimum for this thing; draining the source would only worsen
+		// its slack with no compensating gain anywhere, so block the haul entirely.
+		if (!destUnderMin) {
+			Diagnostic.Record("SourceMin", "dest_no_need", null, thing, storeCell, $"settingsOwner={sourceSettings.owner?.GetType().Name ?? "null"}");
+			return 0u;
+		}
 		var parent = sourceSettings.ParentForStoredThing(thing);
 		var thingDef = thing.InnerDef;
 		uint limit = NO_LIMIT;
@@ -159,7 +171,7 @@ public static class StorageUtility {
 				Verbosity.Full
 			);
 		}
-		if (limit != NO_LIMIT)
+		if (limit != NO_LIMIT) {
 			Diagnostic.Record(
 				"SourceMin",
 				"result",
@@ -168,16 +180,8 @@ public static class StorageUtility {
 				storeCell,
 				$"settingsOwner={sourceSettings.owner?.GetType().Name ?? "null"}\tlimit={limit}"
 			);
+		}
 		return limit;
-	}
-
-	private static bool CanDrainForHigherPriorityMinimum(StorageSettings sourceSettings, Thing thing, IntVec3 storeCell, Map map) {
-		var slotGroup = storeCell.GetSlotGroup(map);
-		if (slotGroup is null)
-			return false;
-		var destinationSettings = slotGroup.Settings;
-		return (int)destinationSettings.Priority > (int)sourceSettings.Priority
-			&& destinationSettings.ShouldPreferForMinimum(thing, storeCell, map);
 	}
 
 	private static bool ShouldConsiderGroup(ISlotGroup? group, Faction faction) {
@@ -727,21 +731,15 @@ public static class StorageUtility {
 
 		public uint SourceCountLimit(IntVec3 storeCell, Map map) {
 			uint excess = thing.SourceExcessLimit();
+			// Over-max source: always allow draining the excess, regardless of destination justification.
+			if (excess != NO_LIMIT) {
+				Diagnostic.Record("SourceCap", "excess", null, thing, storeCell, $"excess={excess}");
+				return excess;
+			}
 			uint minLimit = SourceMinimumLimit(thing, storeCell, map);
-			uint limit = excess;
 			if (minLimit != NO_LIMIT)
-				limit = Math.Min(limit, minLimit);
-			uint final = Math.Max(0, limit);
-			if (final != NO_LIMIT)
-				Diagnostic.Record(
-					"SourceCap",
-					"result",
-					null,
-					thing,
-					storeCell,
-					$"excess={(excess == NO_LIMIT ? "NO_LIMIT" : excess.ToString())}\tmin={(minLimit == NO_LIMIT ? "NO_LIMIT" : minLimit.ToString())}\tfinal={final}"
-				);
-			return final;
+				Diagnostic.Record("SourceCap", "result", null, thing, storeCell, $"min={minLimit}\tfinal={minLimit}");
+			return minLimit;
 		}
 
 		public bool IsCurrentStorageScope(StorageSettings settings, ISlotGroupParent parent) {
