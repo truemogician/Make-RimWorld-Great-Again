@@ -29,7 +29,9 @@ public enum Features : ulong {
 	[FeatureIgnore]
 	WorkMemory = 1 << 4,
 
-	BuildAtCorners = 1 << 5
+	BuildAtCorners = 1 << 5,
+
+	EmergencyJobOverride = 1 << 6
 }
 
 [Translation("Rimsonable.Settings")]
@@ -38,11 +40,17 @@ public class Settings : FeatureSettings<Features> {
 
 	private bool _autoTargetMarksOnNonHostile;
 
+	private bool _emergencyJobInterruptOngoingWork;
+
 	public Settings() : base(Helper.Logger) {
 		AfterDrawFeatureRow += (_, args) => {
 			var conf = args.Config;
-			if (args is { Feature: Features.EnhanceArtilleryMarkers, Enabled: true })
-				DrawSubSetting(args, conf, nameof(AutoTargetMarksOnNonHostile), ref _autoTargetMarksOnNonHostile);
+			switch (args) {
+				case { Feature: Features.EnhanceArtilleryMarkers, Enabled: true }:
+					DrawSubSetting(args, conf, nameof(AutoTargetMarksOnNonHostile), ref _autoTargetMarksOnNonHostile); break;
+				case { Feature: Features.EmergencyJobOverride, Enabled: true }:
+					DrawSubSetting(args, conf, nameof(EmergencyJobInterruptOngoingWork), ref _emergencyJobInterruptOngoingWork); break;
+			}
 		};
 	}
 
@@ -51,6 +59,7 @@ public class Settings : FeatureSettings<Features> {
 		AddFeaturePatches(Features.SafeRestLocation, typeof(SafeRestLocation));
 		AddFeaturePatches(Features.AutoAvoidProximityActivators, typeof(AutoAvoidProximityActivators));
 		AddFeaturePatches(Features.BuildAtCorners, typeof(BuildAtCorners));
+		AddFeaturePatches(Features.EmergencyJobOverride, typeof(EmergencyJobOverride));
 	}
 
 	public static Settings Default { get; internal set; } = null!;
@@ -60,9 +69,13 @@ public class Settings : FeatureSettings<Features> {
 	[Translation]
 	public bool AutoTargetMarksOnNonHostile => _autoTargetMarksOnNonHostile;
 
+	[Translation]
+	public bool EmergencyJobInterruptOngoingWork => _emergencyJobInterruptOngoingWork;
+
 	public override void ExposeData() {
 		base.ExposeData();
 		Scribe_Values.Look(ref _autoTargetMarksOnNonHostile, nameof(AutoTargetMarksOnNonHostile).ToCamelCase());
+		Scribe_Values.Look(ref _emergencyJobInterruptOngoingWork, nameof(EmergencyJobInterruptOngoingWork).ToCamelCase());
 		Notices.ExposeData();
 	}
 

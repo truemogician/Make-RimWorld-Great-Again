@@ -23,11 +23,19 @@
 				<label>Build at Corners</label>
 				<description>Allow colonists to construct blueprints and frames placed at wall corners (the center of a + shape). In vanilla, such blueprints can be delivered to but never finished because no pawn can reach them through the diagonal.</description>
 			</BuildAtCorners>
+			<EmergencyJobOverride>
+				<label>Emergency Jobs Override Schedule</label>
+				<description>For emergency work (any WorkGiver flagged "[E]" — vanilla covers firefighting and urgent medical tending; mods may add more), dispatch the closest capable colonist regardless of schedule, waking them from sleep or pulling them off recreation as needed. Each emergency target is handled by at most one pawn, so the colony doesn't swarm a single fire.</description>
+			</EmergencyJobOverride>
 		</Features>
 		<AutoTargetMarksOnNonHostile>
 			<label>Auto Target Artillery Markers on Non-Hostile Entities</label>
 			<description>Whether artillery and mortars should automatically target artillery markers on non-hostile entities (e.g., neutral animals or visitors).</description>
 		</AutoTargetMarksOnNonHostile>
+		<EmergencyJobInterruptOngoingWork>
+			<label>Interrupt Ongoing Work for Emergencies</label>
+			<description>Also pull colonists off their current work job (mining, hauling, construction, etc.) when an emergency needs them. When disabled (default), only resting, recreation, idle, and other casual jobs are interrupted.</description>
+		</EmergencyJobInterruptOngoingWork>
 	</Rimsonable.Settings>
 	<Rimsonable.Migration>
 		<WindowTitle>Rimsonable Migration Notices</WindowTitle>

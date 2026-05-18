@@ -74,3 +74,6 @@
 ### ~~Build at Corners~~
 - **Description:** In vanilla game, the build blueprint at wall corners (the central tile of a + shape) can be hauled to, but not built on. This feature intends to fix that by allowing construction at corners.
 - **Completion Date:** 2026-04-23
+
+### Emergency Jobs Override Schedule
+- **Description:** Make an exception in the normal job dispatching system for emergency jobs (e.g., firefighting, rescue). The system should prioritize timely response, which means looking for the closest pawn capable of performing the job, even if they are currently on a break or sleeping, or even doing another job (allowance for interruption of the current job will be controlled by a separate toggle, which will be off by default).
