@@ -6,6 +6,8 @@ namespace TrueMogician.RimWorld.ExactStorage;
 public static class Manager {
 	private static readonly ConditionalWeakTable<StorageSettings, Profile> _profiles = new();
 
+	internal static long ProfileVersion { get; private set; }
+
 	public static Profile GetProfile(StorageSettings settings) => _profiles.GetValue(settings, static settings => new Profile(settings));
 
 	public static bool TryGetProfile(StorageSettings? settings, out Profile profile) {
@@ -17,10 +19,13 @@ public static class Manager {
 
 	public static void SetProfile(StorageSettings settings, Profile? profile) {
 		_profiles.Remove(settings);
-		if (profile is null || !profile.HasData)
+		if (profile is null || !profile.HasData) {
+			BumpProfileVersion();
 			return;
+		}
 		profile.Settings = settings;
 		_profiles.Add(settings, profile);
+		BumpProfileVersion();
 	}
 
 	public static void CopyProfile(StorageSettings target, StorageSettings source) {
@@ -29,4 +34,6 @@ public static class Manager {
 		else
 			SetProfile(target, null);
 	}
+
+	internal static void BumpProfileVersion() => ++ProfileVersion;
 }

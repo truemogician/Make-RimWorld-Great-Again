@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using RimWorld;
 using TrueMogician.RimWorld.Utility.Diagnostics;
 using Verse;
@@ -15,8 +14,6 @@ public static class StorageUtility {
 	public const uint NO_LIMIT = uint.MaxValue;
 
 	private static readonly List<EnrouteStockProvider> _enrouteStockProviders = [];
-
-	private static readonly ConditionalWeakTable<Map, ActiveJobsCache> _activeJobsCache = new();
 
 	public delegate decimal EnrouteStockProvider(StorageSettings settings, Quota quota, ISlotGroupParent? parent, Map map, Pawn pawn, Job job);
 
@@ -53,44 +50,10 @@ public static class StorageUtility {
 	internal static bool MapHasActiveQuotaFor(Map? map, ThingDef? def) {
 		if (map is null || def is null)
 			return false;
-		var groups = map.haulDestinationManager.AllGroupsListInPriorityOrder;
-		foreach (var g in groups) {
-			var settings = g?.parent?.GetStoreSettings();
-			if (settings is null)
-				continue;
-			if (!Manager.TryGetProfile(settings, out var profile) || !profile.Enabled)
-				continue;
-			if (profile.HasMatchingQuota(def))
-				return true;
-		}
-		return false;
+		return MapIndexRegistry.For(map).IsActiveFor(def);
 	}
 
-	internal static IReadOnlyList<(Pawn Claimant, Job Job)> EnumerateActiveJobs(Map map) {
-		var cache = _activeJobsCache.GetValue(map, _ => new ActiveJobsCache());
-		var tick = Find.TickManager?.TicksGame ?? -1;
-		if (cache.Tick == tick && tick >= 0)
-			return cache.Jobs;
-		cache.Tick = tick;
-		cache.Jobs.Clear();
-		var seen = new HashSet<Job>();
-		foreach (var pawn in map.mapPawns.AllPawnsSpawned) {
-			if (pawn.jobs is null)
-				continue;
-			foreach (var job in pawn.jobs.AllJobs()) {
-				if (job is null || !seen.Add(job))
-					continue;
-				cache.Jobs.Add((pawn, job));
-			}
-		}
-		foreach (var reservation in map.reservationManager.ReservationsReadOnly) {
-			var job = reservation.Job;
-			if (job is null || !seen.Add(job))
-				continue;
-			cache.Jobs.Add((reservation.Claimant, job));
-		}
-		return cache.Jobs;
-	}
+	internal static IReadOnlyList<(Pawn Claimant, Job Job)> EnumerateActiveJobs(Map map) => MapIndexRegistry.For(map).ActiveJobs;
 
 	private static bool TryFindCell(
 		Thing thing,
@@ -493,12 +456,6 @@ public static class StorageUtility {
 			(uint relief, _) = ReliefFor(thing, raw);
 			return available - consumed - Math.Max(0L, (long)_unmetSlots - relief);
 		}
-	}
-
-	private sealed class ActiveJobsCache {
-		public int Tick = -1;
-
-		public readonly List<(Pawn Pawn, Job Job)> Jobs = [];
 	}
 
 	extension(StorageSettings settings) {

@@ -259,9 +259,9 @@ public static class UI {
 			return;
 		}
 		if (min)
-			quota.Min = value;
+			Profile.SetMin(quota, value);
 		else
-			quota.Max = value;
+			Profile.SetMax(quota, value);
 		decimal newValue = min ? quota.Min : quota.Max;
 		_editState[key] = (DisplayValue(profile, quota, newValue), false);
 		if (newValue == oldValue)

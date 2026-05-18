@@ -9,18 +9,18 @@ namespace TrueMogician.RimWorld.ExactStorage;
 using static AmountUtility;
 
 public sealed class Profile(StorageSettings settings) : IExposable {
-	public bool Enabled;
+	private bool _enabled;
 
-	public bool UseStackUnit;
+	private bool _useStackUnit;
 
-	public bool SeparateLinkedStorages;
+	private bool _separateLinkedStorages;
 
 	private readonly Dictionary<string, Quota> _quotas = new();
 
 	public void ExposeData() {
-		Scribe_Values.Look(ref Enabled, "enabled");
-		Scribe_Values.Look(ref UseStackUnit, "useStackUnit");
-		Scribe_Values.Look(ref SeparateLinkedStorages, "separateLinkedStorages");
+		Scribe_Values.Look(ref _enabled, "enabled");
+		Scribe_Values.Look(ref _useStackUnit, "useStackUnit");
+		Scribe_Values.Look(ref _separateLinkedStorages, "separateLinkedStorages");
 		List<Quota>? quotas = null;
 		if (Scribe.mode == LoadSaveMode.Saving) {
 			PruneInactive();
@@ -32,16 +32,47 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 			foreach (var quota in quotas)
 				_quotas[quota.Key] = quota;
 			PruneInactive();
+			Manager.BumpProfileVersion();
 		}
 	}
 
 	public StorageSettings Settings { get; internal set; } = settings;
 
+	public bool Enabled {
+		get => _enabled;
+		set {
+			if (_enabled == value)
+				return;
+			_enabled = value;
+			Manager.BumpProfileVersion();
+		}
+	}
+
+	public bool UseStackUnit {
+		get => _useStackUnit;
+		set {
+			if (_useStackUnit == value)
+				return;
+			_useStackUnit = value;
+			Manager.BumpProfileVersion();
+		}
+	}
+
+	public bool SeparateLinkedStorages {
+		get => _separateLinkedStorages;
+		set {
+			if (_separateLinkedStorages == value)
+				return;
+			_separateLinkedStorages = value;
+			Manager.BumpProfileVersion();
+		}
+	}
+
 	public IReadOnlyCollection<Quota> Quotas => _quotas.Values;
 
 	public bool HasData {
 		get {
-			if (Enabled || UseStackUnit || SeparateLinkedStorages)
+			if (_enabled || _useStackUnit || _separateLinkedStorages)
 				return true;
 			foreach (var quota in _quotas.Values) {
 				if (quota.Active)
@@ -51,11 +82,26 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 		}
 	}
 
+	public static void SetMin(Quota quota, decimal value) {
+		if (quota.Min == value)
+			return;
+		quota.Min = value;
+		Manager.BumpProfileVersion();
+	}
+
+	public static void SetMax(Quota quota, decimal value) {
+		if (quota.Max == value)
+			return;
+		quota.Max = value;
+		Manager.BumpProfileVersion();
+	}
+
 	public ThingQuota GetOrCreateQuota(ThingDef def) {
 		if (_quotas.TryGetValue(def.defName, out var quota))
 			return (quota as ThingQuota)!;
 		var newQuota = new ThingQuota(def);
 		_quotas.Add(def.defName, newQuota);
+		Manager.BumpProfileVersion();
 		return newQuota;
 	}
 
@@ -64,6 +110,7 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 			return (quota as ThingCategoryQuota)!;
 		var newQuota = new ThingCategoryQuota(def);
 		_quotas.Add(def.defName, newQuota);
+		Manager.BumpProfileVersion();
 		return newQuota;
 	}
 
@@ -76,16 +123,6 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 			if (_quotas.TryGetValue(category.defName, out var categoryQuota) && QuotaValid(categoryQuota))
 				yield return categoryQuota;
 		}
-	}
-
-	public bool HasMatchingQuota(ThingDef def) {
-		if (_quotas.TryGetValue(def.defName, out var thingQuota) && QuotaValid(thingQuota))
-			return true;
-		foreach (var category in DefCache.AncestorCategoriesOf(def)) {
-			if (_quotas.TryGetValue(category.defName, out var categoryQuota) && QuotaValid(categoryQuota))
-				return true;
-		}
-		return false;
 	}
 
 	public bool QuotaValid(Quota quota) => QuotaUsable(quota) && CategoryTotalsValid(quota);
@@ -121,13 +158,17 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 		&& CategoryMaxBound(categoryDef) is { } cap
 		&& quota.Min > cap;
 
-	public void PruneInactive() => _quotas.RemoveAll(pair => !pair.Value.Active || !pair.Value.Valid);
+	public void PruneInactive() {
+		int removed = _quotas.RemoveAll(pair => !pair.Value.Active || !pair.Value.Valid);
+		if (removed > 0)
+			Manager.BumpProfileVersion();
+	}
 
 	public Profile CloneFor(StorageSettings settings) {
 		var clone = new Profile(settings) {
-			Enabled = Enabled,
-			UseStackUnit = UseStackUnit,
-			SeparateLinkedStorages = SeparateLinkedStorages
+			_enabled = _enabled,
+			_useStackUnit = _useStackUnit,
+			_separateLinkedStorages = _separateLinkedStorages
 		};
 		foreach ((string? def, var quota) in _quotas)
 			clone._quotas.Add(def, quota.Clone());
@@ -144,7 +185,7 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 	}
 
 	internal uint CategoryChildrenSlots(ThingCategoryDef categoryDef, bool max) {
-		uint sum = 0u;
+		var sum = 0u;
 		foreach (var def in DefCache.ChildrenOf(categoryDef)) {
 			if (_quotas.TryGetValue(def.defName, out var quota)
 				&& QuotaUsable(quota)
