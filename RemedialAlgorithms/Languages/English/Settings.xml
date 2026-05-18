@@ -5,5 +5,9 @@
 			<label>Trade Setup</label>
 			<description>Speed up the initialization of a trade.</description>
 		</TradeSetup>
+		<ThingFilterToggle>
+			<label>Thing Filter Toggle</label>
+			<description>Collapse redundant change-callback firings when a storage filter toggles a whole category. Fixes potential freezes on large categories in linked storage groups.</description>
+		</ThingFilterToggle>
 	</RemedialAlgorithms.Settings>
 </LanguageData>
