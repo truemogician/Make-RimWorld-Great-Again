@@ -78,6 +78,16 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 		}
 	}
 
+	public bool HasMatchingQuota(ThingDef def) {
+		if (_quotas.TryGetValue(def.defName, out var thingQuota) && QuotaValid(thingQuota))
+			return true;
+		foreach (var category in DefCache.AncestorCategoriesOf(def)) {
+			if (_quotas.TryGetValue(category.defName, out var categoryQuota) && QuotaValid(categoryQuota))
+				return true;
+		}
+		return false;
+	}
+
 	public bool QuotaValid(Quota quota) => QuotaUsable(quota) && CategoryTotalsValid(quota);
 
 	public bool HasActiveAncestorCategoryQuota(Quota quota, StorageSettings settings) {
@@ -147,6 +157,16 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 		return sum;
 	}
 
+	private static decimal? ChildContrib(Quota quota, bool max, bool category) {
+		if (max) {
+			if (quota.HasMax)
+				return quota.Max;
+			if (category)
+				return null;
+		}
+		return quota.HasMin ? quota.Min : null;
+	}
+
 	private decimal? CategoryMaxBound(ThingCategoryDef categoryDef) {
 		var sum = 0m;
 		foreach (var def in DefCache.ChildrenOf(categoryDef)) {
@@ -172,15 +192,5 @@ public sealed class Profile(StorageSettings settings) : IExposable {
 		if (quota is ThingQuota)
 			return true;
 		return UseStackUnit || quota is ThingCategoryQuota { CategoryDef: { } categoryDef } && DefCache.TryGetUnifiedStackLimit(categoryDef, out _);
-	}
-
-	private static decimal? ChildContrib(Quota quota, bool max, bool category) {
-		if (max) {
-			if (quota.HasMax)
-				return quota.Max;
-			if (category)
-				return null;
-		}
-		return quota.HasMin ? quota.Min : null;
 	}
 }

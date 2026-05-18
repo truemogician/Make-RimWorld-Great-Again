@@ -22,6 +22,8 @@ internal static class StorageBehaviorPatches {
 		ref IHaulDestination haulDestination,
 		ref bool __result
 	) {
+		if (!MapHasActiveQuotaFor(map, t.InnerDef))
+			return;
 		var vanillaCell = foundCell;
 		bool vanillaResult = __result;
 		string? branch = null;

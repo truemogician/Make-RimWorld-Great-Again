@@ -50,6 +50,22 @@ public static class StorageUtility {
 		out IHaulDestination destination
 	) => TryFindCell(thing, carrier, map, currentPriority, faction, CellSearchMode.AnyAllowed, out cell, out destination);
 
+	internal static bool MapHasActiveQuotaFor(Map? map, ThingDef? def) {
+		if (map is null || def is null)
+			return false;
+		var groups = map.haulDestinationManager.AllGroupsListInPriorityOrder;
+		foreach (var g in groups) {
+			var settings = g?.parent?.GetStoreSettings();
+			if (settings is null)
+				continue;
+			if (!Manager.TryGetProfile(settings, out var profile) || !profile.Enabled)
+				continue;
+			if (profile.HasMatchingQuota(def))
+				return true;
+		}
+		return false;
+	}
+
 	internal static IReadOnlyList<(Pawn Claimant, Job Job)> EnumerateActiveJobs(Map map) {
 		var cache = _activeJobsCache.GetValue(map, _ => new ActiveJobsCache());
 		var tick = Find.TickManager?.TicksGame ?? -1;
