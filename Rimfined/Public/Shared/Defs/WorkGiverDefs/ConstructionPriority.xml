@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+	<WorkGiverDef>
+		<defName>Rimfined_ConstructDeliverResourcesToConstruction</defName>
+		<label>deliver resources to construction</label>
+		<giverClass>TrueMogician.RimWorld.Rimfined.Contents.WorkGiver.ConstructDeliverResourcesToConstruction</giverClass>
+		<workType>Construction</workType>
+		<priorityInType>70</priorityInType>
+		<verb>work on</verb>
+		<gerund>working on</gerund>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+		<nonColonistsCanDo>true</nonColonistsCanDo>
+		<prioritizeSustains>true</prioritizeSustains>
+		<equivalenceGroup>AssistInConstruction</equivalenceGroup>
+	</WorkGiverDef>
+
+	<WorkGiverDef>
+		<defName>Rimfined_DeliverResourcesToConstruction</defName>
+		<label>deliver resources to construction</label>
+		<giverClass>TrueMogician.RimWorld.Rimfined.Contents.WorkGiver.ConstructDeliverResourcesToConstruction</giverClass>
+		<workType>Hauling</workType>
+		<priorityInType>10</priorityInType>
+		<verb>deliver to</verb>
+		<gerund>delivering to</gerund>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+		<nonColonistsCanDo>true</nonColonistsCanDo>
+		<prioritizeSustains>true</prioritizeSustains>
+		<equivalenceGroup>AssistInConstruction</equivalenceGroup>
+	</WorkGiverDef>
+</Defs>

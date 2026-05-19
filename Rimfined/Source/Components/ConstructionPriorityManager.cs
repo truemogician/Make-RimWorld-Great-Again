@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
+using TrueMogician.RimWorld.Rimfined.Contents.WorkGiver;
 using TrueMogician.RimWorld.Utility;
 using Verse;
 
@@ -66,13 +67,17 @@ internal static class ConstructionPriorityUtility {
 
 	internal static ConstructionPriorityManager Manager => CachedGameComponent<ConstructionPriorityManager>.Component;
 
+	internal static bool UseUnifiedConstructionDelivery =>
+		Settings.Default[Features.ConstructionPriority] && Settings.Default.UseUnifiedConstructionDelivery;
+
 	internal static bool ValidTarget(Thing thing) => thing is Blueprint or Frame && thing.Faction == Faction.OfPlayer;
 
-	internal static StoragePriority GetPriority(Thing thing)
-		=> CachedGameComponent<ConstructionPriorityManager>.TryGet()?[thing] ?? StoragePriority.Normal;
+	internal static StoragePriority GetPriority(Thing thing) =>
+		CachedGameComponent<ConstructionPriorityManager>.TryGet()?[thing] ?? StoragePriority.Normal;
 
-	internal static bool PrioritizesConstruction(WorkGiver_Scanner scanner)
-		=> scanner is WorkGiver_ConstructFinishFrames
+	internal static bool PrioritizesConstruction(WorkGiver_Scanner scanner) =>
+		scanner is WorkGiver_ConstructFinishFrames
+			or ConstructDeliverResourcesToConstruction
 			or WorkGiver_ConstructDeliverResourcesToFrames
 			or WorkGiver_ConstructDeliverResourcesToBlueprints;
 

@@ -74,6 +74,15 @@ internal static class ConstructionPriorityPatches {
 		__result = (float)GetPriority(thing);
 	}
 
+	[HarmonyPatch(typeof(WorkGiver), nameof(WorkGiver.ShouldSkip))]
+	[HarmonyPostfix]
+	internal static void WorkGiver_ShouldSkip_Postfix(WorkGiver __instance, ref bool __result) {
+		if (!UseUnifiedConstructionDelivery)
+			return;
+		if (__instance is WorkGiver_ConstructDeliverResourcesToFrames or WorkGiver_ConstructDeliverResourcesToBlueprints)
+			__result = true;
+	}
+
 	internal readonly struct FailedConstructionState(Frame frame) {
 		public readonly Map? Map = frame.Map;
 

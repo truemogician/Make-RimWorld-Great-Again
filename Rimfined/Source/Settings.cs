@@ -16,7 +16,7 @@ using Verse;
 namespace TrueMogician.RimWorld.Rimfined;
 
 [Flags]
-[FeaturesEnum(true)]
+[FeaturesEnum]
 [Translation("Rimfined.Settings.Features", ImplicitMembers = true)]
 public enum Features : ulong {
 	None = 0,
@@ -46,6 +46,8 @@ public class Settings : FeatureSettings<Features> {
 	private const float _SLIDER_WIDTH = 300f;
 
 	private bool _autoNoTargetForPrisonerRelatives;
+
+	private bool _useUnifiedConstructionDelivery = true;
 
 	private byte _defaultNoTargetMarkTtlHours = 24;
 
@@ -84,6 +86,16 @@ public class Settings : FeatureSettings<Features> {
 					roundTo: 1
 				);
 			}
+			if (args is { Feature: Features.ConstructionPriority, Enabled: true }) {
+				var rect = args.NewLine().Padding(0, conf.ResetButtonWidth + conf.Gap, 0, _ADDITIONAL_SETTINGS_INDENT);
+				if (Translate(nameof(UseUnifiedConstructionDelivery), "description") is { } tip && !tip.NullOrEmpty())
+					TooltipHandler.TipRegion(rect, tip);
+				Widgets.CheckboxLabeled(
+					rect,
+					Translate(nameof(UseUnifiedConstructionDelivery), "label"),
+					ref _useUnifiedConstructionDelivery
+				);
+			}
 		};
 	}
 
@@ -106,9 +118,13 @@ public class Settings : FeatureSettings<Features> {
 	[Translation]
 	public int DefaultNoTargetMarkTtl => _defaultNoTargetMarkTtlHours == 0 ? -1 : _defaultNoTargetMarkTtlHours * GenDate.TicksPerHour;
 
+	[Translation]
+	public bool UseUnifiedConstructionDelivery => _useUnifiedConstructionDelivery;
+
 	public override void ExposeData() {
 		base.ExposeData();
 		Scribe_Values.Look(ref _autoNoTargetForPrisonerRelatives, nameof(AutoNoTargetForPrisonerRelatives).ToCamelCase());
+		Scribe_Values.Look(ref _useUnifiedConstructionDelivery, nameof(UseUnifiedConstructionDelivery).ToCamelCase(), true);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]

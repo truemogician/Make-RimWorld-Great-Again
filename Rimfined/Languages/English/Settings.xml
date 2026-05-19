@@ -46,6 +46,10 @@
 				<permanent>Permanent</permanent>
 			</slider>
 		</DefaultNoTargetMarkTtl>
+		<UseUnifiedConstructionDelivery>
+			<label>Unify blueprint and frame delivery</label>
+			<description>When enabled, replaces vanilla blueprint/frame resource delivery scanners with a unified scanner so construction priority is compared across both target types.</description>
+		</UseUnifiedConstructionDelivery>
 	</Rimfined.Settings>
 	<Rimfined.Commands>
 		<NoTarget>
