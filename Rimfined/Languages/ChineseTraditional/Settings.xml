@@ -46,6 +46,10 @@
 				<permanent>永久</permanent>
 			</slider>
 		</DefaultNoTargetMarkTtl>
+		<UseUnifiedConstructionDelivery>
+			<label>統一藍圖與框架的物資運送</label>
+			<description>啟用後，將原版的藍圖與框架物資運送掃描器替換為統一的掃描器，以便在這兩類目標之間統一比較建造優先級。</description>
+		</UseUnifiedConstructionDelivery>
 	</Rimfined.Settings>
 	<Rimfined.Commands>
 		<NoTarget>

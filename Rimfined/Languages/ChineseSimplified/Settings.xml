@@ -46,6 +46,10 @@
 				<permanent>永久</permanent>
 			</slider>
 		</DefaultNoTargetMarkTtl>
+		<UseUnifiedConstructionDelivery>
+			<label>统一蓝图与框架的物资运送</label>
+			<description>启用后，将原版的蓝图和框架物资运送扫描器替换为统一的扫描器，以便在这两类目标之间统一比较建造优先级。</description>
+		</UseUnifiedConstructionDelivery>
 	</Rimfined.Settings>
 	<Rimfined.Commands>
 		<NoTarget>

@@ -5,4 +5,14 @@
 		<verb>抓捕</verb>
 		<gerund>正在抓捕</gerund>
 	</Rimfined_CaptureMarkedPawn>
+	<Rimfined_ConstructDeliverResourcesToConstruction>
+		<label>為建造目標運送物資</label>
+		<verb>建造</verb>
+		<gerund>正在建造</gerund>
+	</Rimfined_ConstructDeliverResourcesToConstruction>
+	<Rimfined_DeliverResourcesToConstruction>
+		<label>為建造目標運送物資</label>
+		<verb>運送物資給</verb>
+		<gerund>正在運送物資給</gerund>
+	</Rimfined_DeliverResourcesToConstruction>
 </LanguageData>
