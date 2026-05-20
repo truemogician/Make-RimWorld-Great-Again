@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<PriorityLoadController.Command>
+		<SetPriority>
+			<label>Load priority</label>
+			<description>Set the load-shedding priority for this appliance. During a power shortage, lower-priority appliances on the same grid are shut down first.</description>
+		</SetPriority>
+	</PriorityLoadController.Command>
+	<PriorityLoadController.Controller>
+		<Active>Active</Active>
+		<Inactive>Inactive</Inactive>
+		<NotConnected>Not connected to a power grid</NotConnected>
+		<CustomPriorityCount>Custom priorities set: {0}</CustomPriorityCount>
+	</PriorityLoadController.Controller>
+</LanguageData>
