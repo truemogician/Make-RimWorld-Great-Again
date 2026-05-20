@@ -23,6 +23,7 @@
 		<Project Path="AnimalHaulExtended/Source/AnimalHaulExtended.csproj" />
 		<Project Path="AnimalHaulExtended/Source.PUAH/AnimalHaulExtended.PUAH.csproj" />
 	</Folder>
+	<Project Path="PriorityLoadController/Source/PriorityLoadController.csproj" />
 	<Folder Name="/WorkMemory/">
 		<Project Path="WorkMemory/Source/WorkMemory.csproj" />
 		<Project Path="WorkMemory/Source.RimHUD/WorkMemory.RimHUD.csproj" />
