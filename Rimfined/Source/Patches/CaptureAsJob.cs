@@ -7,6 +7,7 @@ using Verse;
 
 namespace TrueMogician.RimWorld.Rimfined.Patches;
 
+[StaticConstructorOnStartup]
 internal static class CaptureAsJobPatches {
 	internal static readonly Texture2D CaptureIcon = ContentFinder<Texture2D>.Get("UI/Commands/Capture");
 

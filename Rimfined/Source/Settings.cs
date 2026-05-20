@@ -77,14 +77,7 @@ public class Settings : FeatureSettings<Features> {
 						: string.Format(fmt, _defaultNoTargetMarkTtlHours);
 				using (new TextBlock(TextAnchor.MiddleRight))
 					Widgets.Label(rects[1], sliderLabel);
-				_defaultNoTargetMarkTtlHours = (byte)Widgets.HorizontalSlider(
-					rects[2],
-					_defaultNoTargetMarkTtlHours,
-					0,
-					48,
-					true,
-					roundTo: 1
-				);
+				_defaultNoTargetMarkTtlHours = (byte)WidgetsExtension.HorizontalSlider(rects[2], _defaultNoTargetMarkTtlHours, 0, 48, true);
 			}
 			if (args is { Feature: Features.ConstructionPriority, Enabled: true }) {
 				var rect = args.NewLine().Padding(0, conf.ResetButtonWidth + conf.Gap, 0, _ADDITIONAL_SETTINGS_INDENT);

@@ -13,6 +13,7 @@ using Verse.AI;
 
 namespace TrueMogician.RimWorld.Rimfined.Patches;
 
+[StaticConstructorOnStartup]
 internal static class NoTargetPatches {
 	internal static NoTargetMarks NoTargetPawns => CachedGameComponent<NoTargetMarks>.Component;
 

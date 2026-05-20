@@ -14,6 +14,7 @@ namespace TrueMogician.RimWorld.Rimfined.Patches;
 
 using static DelayedQuestAcceptanceUtility;
 
+[StaticConstructorOnStartup]
 internal static class DelayedQuestAcceptancePatches {
 	private const float _ROW_HEIGHT = 40f;
 
