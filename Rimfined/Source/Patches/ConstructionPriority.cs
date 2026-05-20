@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 using RimWorld;
 using TrueMogician.RimWorld.Rimfined.Components;
@@ -82,6 +84,40 @@ internal static class ConstructionPriorityPatches {
 		if (__instance is WorkGiver_ConstructDeliverResourcesToFrames or WorkGiver_ConstructDeliverResourcesToBlueprints)
 			__result = true;
 	}
+
+	[HarmonyPatch(typeof(WorkGiver_ConstructDeliverResources), "ResourceDeliverJobFor")]
+	[HarmonyTranspiler]
+	internal static IEnumerable<CodeInstruction> WorkGiver_ConstructDeliverResources_ResourceDeliverJobFor_Transpiler(
+		IEnumerable<CodeInstruction> instructions
+	) {
+		var codes = instructions.ToList();
+		var makingForField = AccessTools.Field(typeof(FloatMenuMakerMap), nameof(FloatMenuMakerMap.makingFor));
+		var replacements = 0;
+		for (var i = 0; i < codes.Count; ++i) {
+			if (codes[i].opcode != OpCodes.Ldsfld || !Equals(codes[i].operand, makingForField))
+				continue;
+			for (var j = i + 1; j < codes.Count - 1 && j <= i + 6; ++j) {
+				if (!IsBeq(codes[j].opcode))
+					continue;
+				if (!IsLeave(codes[j + 1].opcode))
+					break;
+				codes[j + 1].opcode = OpCodes.Br;
+				codes[j + 1].operand = codes[j].operand;
+				++replacements;
+				i = j + 1;
+				break;
+			}
+		}
+		if (replacements != 2)
+			Helper.Logger.Warning($"Expected to patch 2 construction material scan early exits, patched {replacements}.", true);
+		return codes;
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static bool IsBeq(OpCode opCode) => opCode == OpCodes.Beq || opCode == OpCodes.Beq_S;
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static bool IsLeave(OpCode opCode) => opCode == OpCodes.Leave || opCode == OpCodes.Leave_S;
 
 	internal readonly struct FailedConstructionState(Frame frame) {
 		public readonly Map? Map = frame.Map;
