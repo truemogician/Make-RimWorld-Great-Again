@@ -2,7 +2,6 @@ using System;
 using HarmonyLib;
 using PickUpAndHaul;
 using RimWorld;
-using TrueMogician.RimWorld.Utility.Diagnostics;
 using Verse;
 
 namespace TrueMogician.RimWorld.ExactStorage.PUAH.Patches;
@@ -11,7 +10,6 @@ internal static class CapacityPatches {
 	[HarmonyPatch(typeof(WorkGiver_HaulToInventory), nameof(WorkGiver_HaulToInventory.CapacityAt))]
 	[HarmonyPostfix]
 	internal static void WorkGiverHaulToInventory_CapacityAt_Postfix(Thing thing, IntVec3 storeCell, Map map, ref int __result) {
-		int vanilla = __result;
 		if (__result <= 0)
 			return;
 		if (storeCell.GetSlotGroup(map)?.Settings is not { } settings)
@@ -24,15 +22,5 @@ internal static class CapacityPatches {
 			limit = Math.Min(limit, sourceLimit);
 		if (limit != StorageUtility.NO_LIMIT)
 			__result = Math.Min(__result, limit > int.MaxValue ? int.MaxValue : (int)limit);
-		if (__result != vanilla) {
-			Diagnostic.Record(
-				"PuahCap",
-				__result == 0 ? "capped_zero" : "capped",
-				null,
-				thing,
-				storeCell,
-				$"vanilla={vanilla}\tpreferMin={preferMin}\tdest={(destLimit == StorageUtility.NO_LIMIT ? "NO_LIMIT" : destLimit.ToString())}\tsrc={(sourceLimit == StorageUtility.NO_LIMIT ? "NO_LIMIT" : sourceLimit.ToString())}\tfinal={__result}"
-			);
-		}
 	}
 }

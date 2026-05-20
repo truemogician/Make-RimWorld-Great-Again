@@ -29,7 +29,6 @@ public class Settings() : FeatureSettings<Features>(Helper.Logger) {
 			typeof(StorageSettingsPatches),
 			typeof(StorageUIPatches)
 		);
-		AddFeaturePatches(Features.Diagnostics, typeof(JobLifecyclePatches));
 	}
 
 	public static Settings Default { get; internal set; } = null!;

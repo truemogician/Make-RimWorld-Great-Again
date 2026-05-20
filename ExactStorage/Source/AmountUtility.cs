@@ -45,8 +45,8 @@ public static class AmountUtility {
 	public static decimal Normalize(decimal stack) => stack < 0m ? UNSET : stack;
 
 	private static uint ToUInt(decimal value, bool floor) => value switch {
-		<= 0m           => 0u,
+		<= 0m            => 0u,
 		>= uint.MaxValue => uint.MaxValue,
-		_               => (uint)(floor ? Math.Floor(value) : Math.Ceiling(value))
+		_                => (uint)(floor ? Math.Floor(value) : Math.Ceiling(value))
 	};
 }
