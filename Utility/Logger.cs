@@ -1,12 +1,19 @@
 using System;
 using System.Reflection;
+using UnityEngine;
 
 namespace TrueMogician.RimWorld.Utility;
 
-public class Logger(string prefix, bool raw = false) {
-	public Logger() : this(Assembly.GetCallingAssembly().GetName().Name) { }
+using static Formatter;
 
-	public Logger(string prefix, string color) : this($"<color={color}>{prefix}</color>") { }
+public class Logger(string prefix, bool raw = false) {
+	public Logger(Color? color = null) : this(Colored(Assembly.GetCallingAssembly().GetName().Name, color)) { }
+
+	public Logger(Color32? color = null) : this(Colored(Assembly.GetCallingAssembly().GetName().Name, color)) { }
+
+	public Logger(string prefix, Color color) : this(Colored(prefix, color)) { }
+
+	public Logger(string prefix, Color32 color) : this(Colored(prefix, color)) { }
 
 	public string Prefix { get; } = raw ? prefix : $"[{prefix}] ";
 

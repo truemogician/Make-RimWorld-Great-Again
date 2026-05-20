@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
@@ -22,6 +22,18 @@ public static class Formatter {
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static string Colored(IFormattable obj, Color? color) => Colored(obj.ToString(), color);
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static string Colored(string text, Color32 color) => Colored(text, $"#{color.r:X2}{color.g:X2}{color.b:X2}");
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static string Colored(IFormattable obj, Color32 color) => Colored(obj.ToString(), color);
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static string Colored(string text, Color32? color) => color is null ? text : Colored(text, color.Value);
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static string Colored(IFormattable obj, Color32? color) => Colored(obj.ToString(), color);
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static string Bold(string text) => $"<b>{text}</b>";
@@ -63,15 +75,33 @@ public class StyledString(string text) {
 
 	public string Text { get; } = text;
 
-	public string? Color { get; set; }
-
 	public bool Bold { get; set; }
 
 	public bool Italic { get; set; }
 
 	public int? Size { get; set; }
 
-	public override string ToString() => Formatter.Styled(Text, Color, Bold, Italic, Size);
+	public string? ColorRaw { get; set; }
+
+	public Color? Color {
+		get => ColorRaw is null ? null : ColorUtility.TryParseHtmlString(ColorRaw, out var color) ? color
+			: throw new FormatException($"Invalid color format: {ColorRaw}");
+		set {
+			if (value is not null)
+				ColorRaw = ColorUtility.ToHtmlStringRGB(value.Value);
+		}
+	}
+
+	public Color32? Color32 {
+		get => ColorRaw is null ? null : ColorUtility.TryParseHtmlString(ColorRaw, out var color) ? color
+			: throw new FormatException($"Invalid color format: {ColorRaw}");
+		set {
+			if (value is not null)
+				ColorRaw = $"#{value.Value.r:X2}{value.Value.g:X2}{value.Value.b:X2}";
+		}
+	}
+
+	public override string ToString() => Formatter.Styled(Text, ColorRaw, Bold, Italic, Size);
 
 	public static explicit operator StyledString(string text) => new(text);
 
@@ -84,12 +114,17 @@ public class StyleBuilder(string text) {
 	public StyleBuilder(IFormattable obj) : this(obj.ToString()) { }
 
 	public StyleBuilder Color(string color) {
-		_styledString.Color = color;
+		_styledString.ColorRaw = color;
 		return this;
 	}
 
 	public StyleBuilder Color(Color color) {
-		_styledString.Color = $"#{ColorUtility.ToHtmlStringRGB(color)}";
+		_styledString.Color = color;
+		return this;
+	}
+
+	public StyleBuilder Color(Color32 color) {
+		_styledString.Color32 = color;
 		return this;
 	}
 
