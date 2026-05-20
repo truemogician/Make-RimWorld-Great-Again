@@ -8,6 +8,8 @@ public static class Manager {
 
 	internal static long ProfileVersion { get; private set; }
 
+	internal static long StorageStateVersion { get; private set; }
+
 	public static Profile GetProfile(StorageSettings settings) => _profiles.GetValue(settings, static settings => new Profile(settings));
 
 	public static bool TryGetProfile(StorageSettings? settings, out Profile profile) {
@@ -36,4 +38,6 @@ public static class Manager {
 	}
 
 	internal static void BumpProfileVersion() => ++ProfileVersion;
+
+	internal static void BumpStorageStateVersion() => ++StorageStateVersion;
 }

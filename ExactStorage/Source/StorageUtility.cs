@@ -1,8 +1,14 @@
+global using MinimumBalanceCacheKey = (
+	RimWorld.StorageSettings Settings,
+	RimWorld.ISlotGroupParent? Parent,
+	bool IncludeEnroute,
+	Verse.AI.Job? IgnoredJob
+);
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
-using TrueMogician.RimWorld.Utility.Diagnostics;
 using Verse;
 using Verse.AI;
 
@@ -14,6 +20,10 @@ public static class StorageUtility {
 	public const uint NO_LIMIT = uint.MaxValue;
 
 	private static readonly List<EnrouteStockProvider> _enrouteStockProviders = [];
+
+	private static readonly Dictionary<MinimumBalanceCacheKey, MinimumBalance> _mbCache = [];
+
+	private static (int Tick, long Profile, long StorageState) Version = (int.MinValue, -1, -1);
 
 	public delegate decimal EnrouteStockProvider(StorageSettings settings, Quota quota, ISlotGroupParent? parent, Map map, Pawn pawn, Job job);
 
@@ -88,7 +98,9 @@ public static class StorageUtility {
 				if (!CandidateAllowed(slotGroup.Settings, thing, candidate, map, mode))
 					continue;
 				int dist = (start - candidate).LengthHorizontalSquared;
-				if (dist > closestDist || !StoreUtility.IsGoodStoreCell(candidate, map, thing, carrier, faction))
+				if (dist > closestDist)
+					continue;
+				if (!StoreUtility.IsGoodStoreCell(candidate, map, thing, carrier, faction))
 					continue;
 				cell = candidate;
 				destination = slotGroup.parent;
@@ -171,23 +183,6 @@ public static class StorageUtility {
 		return slots;
 	}
 
-	private static uint IncomingStackSlots(
-		StorageSettings settings,
-		Thing thing,
-		uint raw,
-		ISlotGroupParent? parent,
-		IntVec3? cell,
-		Map? map
-	) {
-		if (raw == 0u)
-			return 0u;
-		int stackSpace = cell is { } c && map is not null
-			? ExistingStackSpaceInCell(thing, c, map)
-			: ExistingStackSpaceInScope(settings, thing, parent);
-		uint extraRaw = raw > stackSpace ? raw - (uint)stackSpace : 0u;
-		return StackSlots(RawToStack(extraRaw, thing.InnerDef));
-	}
-
 	private static int ExistingStackSpaceInScope(StorageSettings settings, Thing thing, ISlotGroupParent? parent) {
 		var space = 0;
 		foreach (var heldThing in settings.HeldThings(parent)) {
@@ -222,6 +217,20 @@ public static class StorageUtility {
 				map = null;
 				return null;
 		}
+	}
+
+	private static bool TryGetCachedMinimumBalance(MinimumBalanceCacheKey key, out MinimumBalance balance) {
+		var curVersion = (
+			Find.TickManager?.TicksGame ?? -1, 
+			Manager.ProfileVersion, 
+			Manager.StorageStateVersion
+		);
+		if (curVersion == Version)
+			return _mbCache.TryGetValue(key, out balance);
+		Version = curVersion;
+		_mbCache.Clear();
+		balance = default;
+		return false;
 	}
 
 	private static decimal EnrouteStockFor(StorageSettings settings, Quota quota, ISlotGroupParent? parent, Job? ignoredJob = null) {
@@ -283,10 +292,9 @@ public static class StorageUtility {
 
 	/**
 	 * Owns the minimum-balance state for one (settings, parent) scope: capacity, used slots, unmet-minimum slots,
-	 * and the list of quotas currently below their minimum. The cluster of free helpers it replaces all shared
-	 * these locals; collapsing them into one ref struct removes a lot of parameter-passing noise.
+	 * and the list of quotas currently below their minimum.
 	 */
-	internal readonly ref struct MinimumBalance {
+	internal readonly struct MinimumBalance {
 		private readonly StorageSettings _settings;
 
 		private readonly ISlotGroupParent? _parent;
@@ -326,6 +334,21 @@ public static class StorageUtility {
 			Job? ignoredJob = null,
 			bool includeEnroute = true
 		) {
+			var key = (settings, parent, includeEnroute, ignoredJob);
+			if (TryGetCachedMinimumBalance(key, out var cached))
+				return cached;
+			var balance = Build(settings, profile, parent, ignoredJob, includeEnroute);
+			_mbCache[key] = balance;
+			return balance;
+		}
+
+		private static MinimumBalance Build(
+			StorageSettings settings,
+			Profile profile,
+			ISlotGroupParent? parent,
+			Job? ignoredJob,
+			bool includeEnroute
+		) {
 			if (!RefillGate.AllowsRefill(settings) || !settings.TryGetCapacity(out int capacity, parent))
 				return new MinimumBalance(settings, parent, false, 0, 0, 0, null);
 			List<(Quota Quota, decimal Remaining)>? underMin = null;
@@ -362,13 +385,14 @@ public static class StorageUtility {
 				return NO_LIMIT;
 			long available = Math.Max(0L, _capacity - _usedSlots);
 			long threshold = Math.Min(0L, available - _unmetSlots);
-			if (BalanceAfterIncoming(thing, maxRaw, cell, map, available) >= threshold)
+			int stackSpace = ExistingStackSpaceFor(thing, cell, map);
+			if (BalanceAfterIncoming(thing, maxRaw, available, stackSpace) >= threshold)
 				return NO_LIMIT;
 			var low = 0u;
 			uint high = maxRaw;
 			while (low < high) {
-				uint mid = (low + high + 1) / 2;
-				if (BalanceAfterIncoming(thing, mid, cell, map, available) >= threshold)
+				uint mid = (low + high + 1) >> 1;
+				if (BalanceAfterIncoming(thing, mid, available, stackSpace) >= threshold)
 					low = mid;
 				else
 					high = mid - 1;
@@ -423,10 +447,22 @@ public static class StorageUtility {
 			return (slots, stackRelief);
 		}
 
-		private long BalanceAfterIncoming(Thing thing, uint raw, IntVec3? cell, Map? map, long available) {
-			uint consumed = IncomingStackSlots(_settings, thing, raw, _parent, cell, map);
+		private int ExistingStackSpaceFor(Thing thing, IntVec3? cell, Map? map) =>
+			cell is { } c && map is not null
+				? ExistingStackSpaceInCell(thing, c, map)
+				: ExistingStackSpaceInScope(_settings, thing, _parent);
+
+		private long BalanceAfterIncoming(Thing thing, uint raw, long available, int stackSpace) {
+			uint consumed = IncomingStackSlots(thing, raw, stackSpace);
 			(uint relief, _) = ReliefFor(thing, raw);
 			return available - consumed - Math.Max(0L, (long)_unmetSlots - relief);
+		}
+
+		private static uint IncomingStackSlots(Thing thing, uint raw, int stackSpace) {
+			if (raw == 0u)
+				return 0u;
+			uint extraRaw = raw > stackSpace ? raw - (uint)stackSpace : 0u;
+			return StackSlots(RawToStack(extraRaw, thing.InnerDef));
 		}
 	}
 
@@ -484,14 +520,7 @@ public static class StorageUtility {
 			}
 		}
 
-		public bool Contains(Thing thing) {
-			var parent = settings.ParentForStoredThing(thing);
-			foreach (var heldThing in settings.HeldThings(parent)) {
-				if (heldThing == thing)
-					return true;
-			}
-			return false;
-		}
+		public bool Contains(Thing thing) => StoreUtility.CurrentHaulDestinationOf(thing)?.GetStoreSettings() == settings;
 
 		public bool Allows(Thing thing, bool currentlyStored, ISlotGroupParent? parent = null) {
 			if (!settings.SupportsExactStorage || !Manager.TryGetProfile(settings, out var profile) || !profile.Enabled)
@@ -582,7 +611,10 @@ public static class StorageUtility {
 			return true;
 		}
 
-		public void NotifyChanged() => settings.owner?.Notify_SettingsChanged();
+		public void NotifyChanged() {
+			Manager.BumpStorageStateVersion();
+			settings.owner?.Notify_SettingsChanged();
+		}
 
 		public bool MatchesScope(ISlotGroupParent? parent, Map map, LocalTargetInfo target) {
 			if (target.HasThing || !target.Cell.IsValid)
