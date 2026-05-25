@@ -31,8 +31,9 @@ public sealed class TickProfilerReportWindow : Window {
 	private const float _LIST_UPDATE_FREQUENCY = 2f;
 
 	private static readonly Flexbox.Length[] _TABLE_COLUMNS = [Flexbox.Length.Auto, 40f, 80f, 80f, 80f, 80f, 80f];
-	private static readonly string[] _TABLE_COLUMN_LABELS = ["Label", "%", "Count", "Time", "Avg", "Max", "MAD"];
+	private static readonly string[] _TABLE_COLUMN_LABELS = ["Label", "%", "Count", "Time", "Avg", "Max", "Burst"];
 	private static readonly Color _ROW_BORDER_COLOR = new(0.75f, 0.75f, 0.75f, 0.9f);
+
 	private static readonly Color[] _PROPORTION_BAR_COLORS = [
 		new(0.75f, 0.15f, 0.12f, 0.5f),
 		new(0.85f, 0.75f, 0.18f, 0.5f),
@@ -151,8 +152,8 @@ public sealed class TickProfilerReportWindow : Window {
 			Widgets.Label(cols[2], FormatCount(entry.Count));
 			Widgets.Label(cols[3], FormatTimeInTick(entry.Ticks));
 			Widgets.Label(cols[4], FormatTime(avg, "µs"));
-			Widgets.Label(cols[5], FormatTickDuration(entry.MaxTicks));
-			Widgets.Label(cols[6], FormatTickDuration(entry.MAD));
+			Widgets.Label(cols[5], FormatRatio(entry.MaxRatio));
+			Widgets.Label(cols[6], FormatRatio(entry.BurstRatio));
 		}
 		DrawRowBorder(rect, BorderEdges.Bottom | BorderEdges.Left | BorderEdges.Right);
 	}
@@ -185,24 +186,28 @@ public sealed class TickProfilerReportWindow : Window {
 		}
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static string FormatCount(int count) => Colored(count, Color.cyan);
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static string FormatTime(double time, string unit = "ms") => Colored(time.ToString("F2"), Color.green) + $" {unit}";
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static string FormatTimeInTick(long ticks) => FormatTime(TickToMs(ticks));
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static string FormatTimeInTick(double ticks) => FormatTime(TickToMs(ticks));
 
-	private static string FormatTickDuration(double ticks) {
-		double ms = TickToMs(ticks);
-		return ms < 1 ? FormatTime(ms * 1000.0, "µs") : FormatTime(ms);
-	}
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static string FormatRatio(double ratio) => Colored(ratio.ToString("F1"), Color.yellow) + " x";
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static string FormatTimeWithPercent(long ticks, long totalTicks) {
 		double pct = totalTicks == 0 ? 0 : ticks * 100.0 / totalTicks;
 		return FormatTimeInTick(ticks) + $" ({pct:F1}%)";
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static string FormatPawnLabel(PawnProps props) {
 		if (!props.OnActiveMap)
 			return "Off-map pawns";
@@ -389,8 +394,6 @@ public sealed class TickProfilerReportWindow : Window {
 	}
 
 	internal sealed class AggregateEntry(string label) {
-		private List<long> _samples = [];
-
 		public static IComparer<AggregateEntry> CountComparer { get; }
 			= Comparer<AggregateEntry>.Create((a, b) => b.Count.CompareTo(a.Count));
 
@@ -405,38 +408,29 @@ public sealed class TickProfilerReportWindow : Window {
 
 		public long MaxTicks { get; private set; }
 
-		public double MAD {
-			get {
-				if (_samples.Count == 0)
-					return 0;
-				double median = Median(_samples);
-				var deviations = new List<long>(_samples.Count);
-				foreach (long sample in _samples)
-					deviations.Add((long)Math.Abs(sample - median));
-				return Median(deviations);
-			}
-		}
+		public int SampleCount { get; private set; }
+
+		public double SumSquares { get; private set; }
 
 		public double AverageTicks => Count == 0 ? 0 : (double)Ticks / Count;
+
+		public double AverageSampleTicks => SampleCount == 0 ? 0 : Ticks / (double)SampleCount;
+
+		public double MaxRatio => AverageSampleTicks == 0 ? 0 : MaxTicks / AverageSampleTicks;
+
+		public double BurstRatio => Ticks == 0 ? 0 : SampleCount * SumSquares / ((double)Ticks * Ticks);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Add(int count, long qpcTicks) {
 			Count += count;
 			Ticks += qpcTicks;
-			_samples.Add(qpcTicks);
+			++SampleCount;
+			SumSquares += (double)qpcTicks * qpcTicks;
 			if (qpcTicks > MaxTicks)
 				MaxTicks = qpcTicks;
 		}
 
 		public AggregateEntry Clone() =>
-			new(Label) { Count = Count, Ticks = Ticks, MaxTicks = MaxTicks, _samples = [.._samples] };
-
-		private static double Median(List<long> values) {
-			if (values.Count == 0)
-				return 0;
-			values.Sort();
-			int middle = values.Count / 2;
-			return values.Count % 2 == 0 ? (values[middle - 1] + values[middle]) / 2.0 : values[middle];
-		}
+			new(Label) { Count = Count, Ticks = Ticks, MaxTicks = MaxTicks, SampleCount = SampleCount, SumSquares = SumSquares };
 	}
 }
