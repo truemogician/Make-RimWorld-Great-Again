@@ -22,8 +22,6 @@ public static class EmergencyJobOverride {
 
 		public void Clear() => _dispatchedPawnIds.Clear();
 
-		public void RefreshNow() => Refresh();
-
 		public override void MapComponentTick() {
 			if (!Settings.Default[Features.EmergencyJobOverride]) {
 				if (_dispatchedPawnIds.Count > 0)
@@ -35,6 +33,26 @@ public static class EmergencyJobOverride {
 			if (Find.TickManager.TicksGame % _REFRESH_INTERVAL_TICKS != phase)
 				return;
 			Refresh();
+		}
+
+		public void Refresh() {
+			_dispatchedPawnIds.Clear();
+			EnsureEmergencyWorkGiversCached();
+			if (_emergencyWorkGivers!.Count == 0)
+				return;
+			var candidates = map.mapPawns.FreeColonistsSpawned
+				.Where(pawn => pawn is { Drafted: false, Downed: false, InMentalState: false } && !pawn.IsBurning())
+				.ToList();
+			if (candidates.Count == 0)
+				return;
+			// Defer override triggers until after the read phase: StartJob side-effects can mutate listerThings / mapPawns.
+			var scanners = _emergencyWorkGivers
+				.Select(wg => wg.Worker)
+				.OfType<WorkGiver_Scanner>()
+				.ToList();
+			var pendingOverrides = scanners.SelectMany(scanner => DispatchForWorkGiver(scanner, candidates)).ToList();
+			foreach (var pawn in pendingOverrides)
+				TryTriggerOverride(pawn);
 		}
 
 		private static bool PawnCanUseWorkGiver(Pawn pawn, WorkGiver_Scanner scanner) {
@@ -59,52 +77,37 @@ public static class EmergencyJobOverride {
 			pawn.jobs?.CheckForJobOverride();
 		}
 
-		private void Refresh() {
-			_dispatchedPawnIds.Clear();
-			EnsureEmergencyWorkGiversCached();
-			if (_emergencyWorkGivers!.Count == 0)
-				return;
-			var candidates = EnumerateCandidates().ToList();
-			if (candidates.Count == 0)
-				return;
-			foreach (var wgDef in _emergencyWorkGivers) {
-				if (wgDef.Worker is not WorkGiver_Scanner scanner)
-					continue;
-				DispatchForWorkGiver(scanner, candidates);
-			}
-		}
-
-		private void DispatchForWorkGiver(WorkGiver_Scanner scanner, List<Pawn> candidates) {
+		private IEnumerable<Pawn> DispatchForWorkGiver(WorkGiver_Scanner scanner, List<Pawn> candidates) {
 			if (scanner.def.scanThings) {
-				// Mirror JobGiver_Work: prefer PotentialWorkThingsGlobal when provided; otherwise fall back to ListerThings
-				IEnumerable<Thing>? targets = scanner.PotentialWorkThingsGlobal(candidates[0]);
+				// Mirror JobGiver_Work: prefer PotentialWorkThingsGlobal, fall back to ListerThings; both can return live lists, so snapshot below.
+				var targets = scanner.PotentialWorkThingsGlobal(candidates[0]);
 				if (targets is null) {
 					if (scanner.PotentialWorkThingRequest.IsUndefined)
-						return;
+						yield break;
 					targets = map.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest);
 				}
-				foreach (var target in targets) {
+				foreach (var target in targets.ToList()) {
 					var closest = FindClosestCapable(scanner, target, candidates);
 					if (closest is null)
 						continue;
 					if (_dispatchedPawnIds.Add(closest.thingIDNumber))
-						TryTriggerOverride(closest);
+						yield return closest;
 				}
-				return;
 			}
-			// NonScanJob-only WGs (e.g. WorkGiver_PatientGoToBedEmergencyTreatment): the calling pawn IS the target.
-			foreach (var candidate in candidates) {
-				if (_dispatchedPawnIds.Contains(candidate.thingIDNumber) || !PawnCanUseWorkGiver(candidate, scanner))
-					continue;
-				Job? job = null;
-				try {
-					job = scanner.NonScanJob(candidate);
+			else { // NonScanJob-only WGs (e.g. WorkGiver_PatientGoToBedEmergencyTreatment): the calling pawn IS the target.
+				foreach (var candidate in candidates) {
+					if (_dispatchedPawnIds.Contains(candidate.thingIDNumber) || !PawnCanUseWorkGiver(candidate, scanner))
+						continue;
+					Job? job = null;
+					try {
+						job = scanner.NonScanJob(candidate);
+					}
+					catch {
+						// Swallow WorkGiver-internal exceptions; vanilla logs its own.
+					}
+					if (job is not null && _dispatchedPawnIds.Add(candidate.thingIDNumber))
+						yield return candidate;
 				}
-				catch {
-					// Swallow WorkGiver-internal exceptions; vanilla logs its own.
-				}
-				if (job is not null && _dispatchedPawnIds.Add(candidate.thingIDNumber))
-					TryTriggerOverride(candidate);
 			}
 		}
 
@@ -128,13 +131,6 @@ public static class EmergencyJobOverride {
 				}
 			}
 			return best;
-		}
-
-		private IEnumerable<Pawn> EnumerateCandidates() {
-			foreach (var pawn in map.mapPawns.FreeColonistsSpawned) {
-				if (pawn is { Drafted: false, Downed: false, InMentalState: false } && !pawn.IsBurning())
-					yield return pawn;
-			}
 		}
 	}
 
@@ -162,7 +158,7 @@ public static class EmergencyJobOverride {
 		if (Find.Maps is null)
 			return;
 		foreach (var map in Find.Maps)
-			map.GetComponent<DispatchTracker>()?.RefreshNow();
+			map.GetComponent<DispatchTracker>()?.Refresh();
 	}
 
 	[PatchHook(PatchHookTiming.AfterUnpatch)]
