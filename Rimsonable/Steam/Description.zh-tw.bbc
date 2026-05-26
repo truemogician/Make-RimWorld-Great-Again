@@ -28,7 +28,7 @@
 
 [b]自動避開探測啟動器[/b]
 
-[url=https://postimg.cc/fV1LYJRB][img]https://i.postimg.cc/zfGgZhZZ/Rimsonable__Auto_Avoid_Proximity_Activators.gif[/img][/url]
+[img]https://i.postimg.cc/zfGgZhZZ/Rimsonable__Auto_Avoid_Proximity_Activators.gif[/img]
 
 一整座大型機械要塞休眠著砸到你家門口。你這邊忙著打鐵、修牆、拉陣線，準備打一場像樣的仗。結果鏡頭一轉，一位訪客手上只拎著一瓶酒，就這樣晃啊晃地往那群沉睡中的殺戮機器旁邊靠過去。
 
@@ -48,7 +48,7 @@ Oi！這裡不是給你睡的！
 
 [b]手榴彈可穿透護盾[/b]
 
-[url=https://postimg.cc/TKBwnp3k][img]https://i.postimg.cc/SKxMF9Fp/Rimsonable__Allow_Grenades_Through_Shields.gif[/img][/url]
+[img]https://i.postimg.cc/SKxMF9Fp/Rimsonable__Allow_Grenades_Through_Shields.gif[/img]
 
 護盾不分內外很合理，但不是吧，手榴彈也算子彈喔？
 
@@ -62,7 +62,7 @@ Oi！這裡不是給你睡的！
 
 [b]緊急工作無視作息日程[/b]
 
-[url=https://postimg.cc/WDVFjmXW][img]https://i.postimg.cc/g0XvVNRW/Rimsonable-Emergency-Job-Override.gif[/img][/url]
+[img]https://i.postimg.cc/g0XvVNRW/Rimsonable-Emergency-Job-Override.gif[/img]
 
 你是不是也納悶過，為什麼剛拼死幫殖民地擋下機械要塞的戰士正躺在病床上奄奄一息，而你家那位有著「善良」特質的醫生卻還在床上呼呼大睡？或者為什麼一個平時見到發狂松鼠都會嚇尿的工人，居然能在閃電把整個娛樂室都點燃之後，還能繼續淡定地坐在那裡看電視？
 
@@ -70,11 +70,11 @@ Oi！這裡不是給你睡的！
 
 註：緊急工作是指在 Def 中被標記為 [i]emergency[/i] 的工作——你可以在工作優先順序面板中透過 [b][E][/b] 字尾來識別它們。原版遊戲裡只標記了三個：救火、緊急就醫以及救治重傷患。其他模組如果也添加了帶有此標記的工作，也會被自動識別並啟用該機制。
 
-如果你看到這裡覺得有點不對勁：「等等，原版早就已經有這個標記了？」——華生，你突破盲點了。邊緣世界確實有一套緊急工作系統。但出於某些高深莫測的原因，泰南依然覺得按時睡覺比拯救你戰友的狗命更重要。可能泰南小時候吃了沒洗的蘋果導致食物中毒，結果醫生卻在門外忙著玩丟馬蹄鐵，讓他足足等了兩個小時。
+如果你看到這裡覺得有點不對勁：「等等，原版早就已經有這個標記了？」——華生，你突破盲點了。邊緣世界確實有一套緊急工作系統。但出於某些高深莫測的原因，泰南依然覺得按時睡覺比拯救你戰友的狗命更重要。可能泰南小時候吃了沒洗的蘋果導致食物中毒，結果醫生卻在门外忙著玩丟馬蹄鐵，讓他足足等了兩個小時。
 
 [b]Combat Extended：火砲標記強化[/b]
 
-[url=https://postimg.cc/zHTr5JgR][img]https://i.postimg.cc/kGpXQGMw/Rimsonable__Enhance_Artillery_Markers.gif[/img][/url]
+[img]https://i.postimg.cc/kGpXQGMw/Rimsonable__Enhance_Artillery_Markers.gif[/img]
 
 CE 裡拿望遠鏡的觀測手終於不再只是純擺設了：火砲會優先攻擊帶有火砲標記的目標，其他砲塔打這些目標時也會準一點。資訊戰，朋友！
 
