@@ -9,5 +9,23 @@
 			<label>Thing Filter Toggle</label>
 			<description>Collapse redundant change-callback firings when a storage filter toggles a whole category. Fixes potential freezes on large categories in linked storage groups.</description>
 		</ThingFilterToggle>
+		<WildAnimalFoodSearch>
+			<label>Wild Animal Food Search</label>
+			<description>Cache short-lived failed wild animal food searches. Food search profiling stays active regardless of this setting.</description>
+		</WildAnimalFoodSearch>
+		<WildAnimalFoodSearchCacheTtl>
+			<label>Cache lifetime</label>
+			<description>How long (in real seconds) a failed wild animal food search is remembered before it is allowed to retry. Longer values increase reuse but make wild animals slower to react to newly available food.</description>
+			<slider>
+				<label>{0} s</label>
+			</slider>
+		</WildAnimalFoodSearchCacheTtl>
+		<WildAnimalFoodSearchStarvingCacheTtl>
+			<label>Starving cache lifetime</label>
+			<description>Shorter cache lifetime (in real seconds) used when the search was marked desperate. Desperate searches retry sooner because a starving animal is more likely to find food after a small change.</description>
+			<slider>
+				<label>{0} s</label>
+			</slider>
+		</WildAnimalFoodSearchStarvingCacheTtl>
 	</RemedialAlgorithms.Settings>
 </LanguageData>
