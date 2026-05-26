@@ -8,7 +8,7 @@
 		<Authors>true_mogician</Authors>
 		<Description>Rimsonable brings a splash of logic to the Rim by finally making life a little more reasonable. This collection overhauls various head-scratching mechanics to ensure your colonists behave according to the laws of reality rather than game-y quirks. These changes prioritize grounded rationale over ease of play, meaning some things will feel more intuitive while others become much more punishing. Every feature can be toggled individually in the mod options if you ever decide you prefer the original chaos.</Description>
 		<PackageId>TrueMogician.Rimsonable</PackageId>
-		<Version>1.1.2</Version>
+		<Version>1.2.0</Version>
 		<Title>Rimsonable</Title>
 		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<RootNamespace>TrueMogician.RimWorld.Rimsonable</RootNamespace>
