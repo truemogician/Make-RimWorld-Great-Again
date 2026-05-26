@@ -54,6 +54,18 @@ Place a blueprint in the middle of a [b]+[/b] of walls and watch vanilla do its 
 
 Rimsonable lets pawns finish those corner blueprints from a diagonal cell. You no longer have to tear down a wall just finish the blueprint, and your colonists can finally get over their fear of diagonal movement.
 
+[b]Emergency Jobs Override Schedule[/b]
+
+[url=https://postimg.cc/WDVFjmXW][img]https://i.postimg.cc/g0XvVNRW/Rimsonable-Emergency-Job-Override.gif[/img][/url]
+
+Ever wondered how your colony doctor, despite having a Kindhearted trait, could sleep soundly while the fighter who just protected the colony from a mech cluster is bleeding out next door? Or how your Coward worker could calmly keep watching TV after lighting has just set the whole rec room on fire?
+
+This feature finally teaches your colonists what "emergency" actually means. Schedules no longer prevent your doc from saving lives. Emergency jobs go to whoever is closest, regardless of what their schedule says they should be doing. And if you want to take it further, there is a separate settings toggle (default off) that also pulls colonists off their current work job, not just off recreation or sleep.
+
+Note: emergency jobs are those flagged [i]emergency[/i] in their Def — you can spot them by the [b][E][/b] suffix in the work priorities panel. Vanilla flags three: firefighting, self-bedding for emergency treatment, and tending patients with urgent needs. Any modded WorkGivers that mark themselves the same way are picked up automatically.
+
+If you are sitting there going [i]"wait, vanilla already has a flag for this?"[/i] — bingo, you nailed it! RimWorld does have an emergency-job system. But somehow Tynan decided that a regular sleeping habit is still more important than saving your comrade's life. Who knows?
+
 [b]Combat Extended: Artillery Marker Enhancement[/b]
 
 [url=https://postimg.cc/zHTr5JgR][img]https://i.postimg.cc/kGpXQGMw/Rimsonable__Enhance_Artillery_Markers.gif[/img][/url]
