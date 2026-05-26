@@ -22,11 +22,19 @@
 				<label>Bau an Wandecken</label>
 				<description>Erlaubt Personen, Baupläne und Rahmen an Wandecken (dem Mittelpunkt einer +-Form) zu errichten. Im Vanilla-Spiel lassen sich solche Baupläne zwar mit Material beliefern, aber nie fertigstellen, weil niemand diagonal an sie herankommt.</description>
 			</BuildAtCorners>
+			<EmergencyJobOverride>
+				<label>Tagesplan bei Notfällen ignorieren</label>
+				<description>Entsendet bei Notfallarbeiten (jeder WorkGiver mit dem Kürzel „[E]“ – Vanilla umfasst Brandbekämpfung und dringende medizinische Versorgung; Mods können weitere hinzufügen) die nächste fähige Person unabhängig von ihrem Tagesplan. Weckt sie bei Bedarf aus dem Schlaf oder zieht sie von Freizeitaktivitäten ab. Jedes Notfallziel wird von maximal einer Person bearbeitet, damit nicht die gesamte Kolonie zu einem einzelnen Brand eilt.</description>
+			</EmergencyJobOverride>
 		</Features>
 		<AutoTargetMarksOnNonHostile>
 			<label>Artilleriemarkierungen auf nicht feindlichen Zielen automatisch anvisieren</label>
 			<description>Ob Artillerie und Mörser Artilleriemarkierungen auf nicht feindlichen Zielen wie neutralen Tieren oder Besuchern automatisch als Ziel wählen sollen.</description>
 		</AutoTargetMarksOnNonHostile>
+		<EmergencyJobInterruptOngoingWork>
+			<label>Laufende Arbeit für Notfälle unterbrechen</label>
+			<description>Zieht Kolonisten auch von ihrer aktuellen Arbeit (Bergbau, Transport, Bauarbeiten usw.) ab, wenn ein Notfall sie erfordert. Wenn deaktiviert (Standard), werden nur Schlaf, Freizeit, Untätigkeit und andere alltägliche Aufgaben unterbrochen.</description>
+		</EmergencyJobInterruptOngoingWork>
 	</Rimsonable.Settings>
 	<Rimsonable.Migration>
 		<WindowTitle>Rimsonable Migrationshinweise</WindowTitle>

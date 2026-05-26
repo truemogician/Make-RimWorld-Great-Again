@@ -23,11 +23,19 @@
 				<label>墙角施工</label>
 				<description>允许人员施工放置在墙角（十字形中心）的蓝图和框架。原版中，这类蓝图可以被运送资源，却因为没有人能从斜角接触到而永远无法完工。</description>
 			</BuildAtCorners>
+			<EmergencyJobOverride>
+				<label>紧急工作无视日程</label>
+				<description>对于紧急工作（任何标记为“[E]”的工作——原版包括救火和紧急就医；模组可能会添加更多），无视日程派遣最近的殖民者。每个紧急目标最多由一名小人处理，因此殖民地不会一拥而上处理同一个火灾。</description>
+			</EmergencyJobOverride>
 		</Features>
 		<AutoTargetMarksOnNonHostile>
 			<label>自动瞄准非敌对目标上的火炮标记</label>
 			<description>是否允许火炮和迫击炮自动攻击带有火炮标记的非敌对目标，例如中立动物或访客。</description>
 		</AutoTargetMarksOnNonHostile>
+		<EmergencyJobInterruptOngoingWork>
+			<label>紧急情况打断正在进行的工作</label>
+			<description>当有紧急情况需要时，也会打断殖民者当前的工作（采矿、搬运、建造等）。禁用时（默认），仅打断休息、娱乐、闲逛和其他休闲工作。</description>
+		</EmergencyJobInterruptOngoingWork>
 	</Rimsonable.Settings>
 	<Rimsonable.Migration>
 		<WindowTitle>理智边缘迁移通知</WindowTitle>

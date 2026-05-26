@@ -22,11 +22,19 @@
 				<label>벽 모서리에서 건설</label>
 				<description>벽 모서리(+자 모양의 중앙 칸)에 놓인 청사진과 골조를 건설할 수 있게 합니다. 기본 게임에서는 이런 청사진에 자재는 운반할 수 있지만, 대각선 방향으로 접근할 수 없어 끝내 완성할 수 없습니다.</description>
 			</BuildAtCorners>
+			<EmergencyJobOverride>
+				<label>긴급 작업 시 일정 무시</label>
+				<description>긴급 작업(“[E]” 표시가 붙은 모든 WorkGiver - 기본 게임의 소방 및 긴급 치료 포함, 모드 추가 가능)의 경우, 일정에 관계없이 가장 가까운 유효한 정착민을 파견하며, 필요에 따라 잠에서 깨우거나 오락 활동을 중단시킵니다. 각 긴급 대상은 최대 한 명의 정착민만 처리하므로 온 정착지가 하나의 화재에 몰려드는 일을 방지합니다.</description>
+			</EmergencyJobOverride>
 		</Features>
 		<AutoTargetMarksOnNonHostile>
 			<label>비적대 대상 포격 표식 자동 조준</label>
 			<description>포병과 박격포가 중립 동물이나 방문객처럼 비적대 대상에 찍힌 포격 표식을 자동으로 조준할지 설정합니다.</description>
 		</AutoTargetMarksOnNonHostile>
+		<EmergencyJobInterruptOngoingWork>
+			<label>긴급 상황 시 진행 중인 작업 중단</label>
+			<description>긴급 상황이 발생했을 때 정착민이 현재 진행 중인 작업(채굴, 운반, 건설 등)도 중단하고 파견합니다. 비활성화 시(기본값) 휴식, 오락, 대기 및 기타 일상적인 작업만 중단됩니다.</description>
+		</EmergencyJobInterruptOngoingWork>
 	</Rimsonable.Settings>
 	<Rimsonable.Migration>
 		<WindowTitle>Rimsonable 마이그레이션 알림</WindowTitle>
