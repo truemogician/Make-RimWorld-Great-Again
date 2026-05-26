@@ -15,5 +15,4 @@ Directory.Build.user.props
 *.code-workspace
 *.dll
 *.pdb
-Ideas.md
-Overview.md
+*.log
