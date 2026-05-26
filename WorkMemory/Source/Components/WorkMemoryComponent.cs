@@ -12,7 +12,9 @@ namespace TrueMogician.RimWorld.WorkMemory.Components;
 using WorkMemoryTuple = (int PawnId, string MemoryKey, WorkMemoryRecord Record);
 
 public sealed class WorkMemoryComponent : GameComponent {
-	private const float _RECIPE_WEIGHT = 0.7f;
+	private const float _RECIPE_WEIGHT = 0.4f;
+
+	private const float _PRODUCT_WEIGHT = 0.3f;
 
 	private const float _CATEGORY_WEIGHT = 0.2f;
 
@@ -25,17 +27,25 @@ public sealed class WorkMemoryComponent : GameComponent {
 	public float GetMultiplier(Pawn pawn, WorkMemoryContext context, int delta) {
 		int now = Find.TickManager.TicksGame;
 		int pawnId = pawn.thingIDNumber;
-		float recipeMomentum = GetMomentum(pawnId, context.Recipe.defName, now, delta);
-		float referenceWorkAmount = WorkMemoryCurve.GetReferenceWorkAmount(context.Recipe);
-		float categoryMomentum = context.Categories.Count == 0
-			? 0f
-			: context.Categories.Average(category => GetMomentum(pawnId, category.defName, now, delta));
-		categoryMomentum = Mathf.Min(categoryMomentum, referenceWorkAmount);
-		float workbenchMomentum = context.Workbench is null
-			? 0f
-			: Mathf.Min(GetMomentum(pawnId, context.Workbench.defName, now, delta), referenceWorkAmount);
-		float momentum = recipeMomentum * _RECIPE_WEIGHT + categoryMomentum * _CATEGORY_WEIGHT + workbenchMomentum * _WORKBENCH_WEIGHT;
-		return WorkMemoryCurve.GetMultiplier(momentum, context.Recipe);
+		float workAmount = WorkMemoryCurve.GetReferenceWorkAmount(context.Recipe);
+		float momentum = _RECIPE_WEIGHT * GetMomentum(pawnId, context.Recipe.defName, now, delta);
+		float totalWeight = _RECIPE_WEIGHT;
+		if (context.Product is { } product) {
+			momentum += _PRODUCT_WEIGHT * Mathf.Min(GetMomentum(pawnId, product.defName, now, delta), workAmount);
+			totalWeight += _PRODUCT_WEIGHT;
+		}
+		if (context.Categories.Count > 0) {
+			momentum += _CATEGORY_WEIGHT * Mathf.Min(
+				context.Categories.Average(category => GetMomentum(pawnId, category.defName, now, delta)),
+				workAmount
+			);
+			totalWeight += _CATEGORY_WEIGHT;
+		}
+		if (context.Workbench is { } workbench) {
+			momentum += _WORKBENCH_WEIGHT * Mathf.Min(GetMomentum(pawnId, workbench.defName, now, delta), workAmount);
+			totalWeight += _WORKBENCH_WEIGHT;
+		}
+		return WorkMemoryCurve.GetMultiplier(momentum / totalWeight, context.Recipe);
 	}
 
 	public void RecordWork(Pawn pawn, WorkMemoryContext context, int delta) {
@@ -43,6 +53,8 @@ public sealed class WorkMemoryComponent : GameComponent {
 		int pawnId = pawn.thingIDNumber;
 		int now = Find.TickManager.TicksGame;
 		RecordWork(pawnId, context.Recipe.defName, now, delta, delta, WorkMemoryCurve.GetMomentumCap(context.Recipe));
+		if (context.Product is { } product)
+			RecordWork(pawnId, product.defName, now, delta, delta, null);
 		if (context.Categories.Count > 0) {
 			float categoryDelta = (float)delta / context.Categories.Count;
 			foreach (var category in context.Categories)
@@ -97,11 +109,13 @@ public sealed class WorkMemoryComponent : GameComponent {
 
 public readonly record struct WorkMemoryContext(
 	RecipeDef Recipe,
+	ThingDef? Product,
 	IReadOnlyList<ThingCategoryDef> Categories,
 	ThingDef? Workbench
 ) {
 	public WorkMemoryContext(Job job, RecipeDef recipe) : this(
 		recipe,
+		recipe.products?.Select(product => product.thingDef).FirstOrDefault(def => def != null),
 		recipe.products?
 			.Select(product => product.thingDef)
 			.Where(def => def?.thingCategories != null)
