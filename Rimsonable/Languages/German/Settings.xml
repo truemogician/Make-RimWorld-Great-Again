@@ -35,6 +35,10 @@
 			<label>Laufende Arbeit für Notfälle unterbrechen</label>
 			<description>Zieht Kolonisten auch von ihrer aktuellen Arbeit (Bergbau, Transport, Bauarbeiten usw.) ab, wenn ein Notfall sie erfordert. Wenn deaktiviert (Standard), werden nur vom Tagesplan vorgegebene Aktivitäten (z. B. Schlaf, Freizeit) unterbrochen.</description>
 		</EmergencyJobInterruptOngoingWork>
+		<EmergencyJobIgnoreAllowedArea>
+			<label>Erlaubtes Gebiet bei Notfällen ignorieren</label>
+			<description>Erlaubt es, Kolonisten bei Notfällen auch außerhalb ihres zugewiesenen erlaubten Gebiets einzusetzen.</description>
+		</EmergencyJobIgnoreAllowedArea>
 	</Rimsonable.Settings>
 	<Rimsonable.Migration>
 		<WindowTitle>Rimsonable Migrationshinweise</WindowTitle>

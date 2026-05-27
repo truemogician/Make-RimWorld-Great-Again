@@ -36,6 +36,10 @@
 			<label>緊急情況打斷正在進行的工作</label>
 			<description>當有緊急情況需要時，也會打斷殖民者目前的工作（採礦、搬運、建造等）。停用時（預設），僅打斷日程相關的活動（如休息、娛樂等）。</description>
 		</EmergencyJobInterruptOngoingWork>
+		<EmergencyJobIgnoreAllowedArea>
+			<label>緊急情況無視活動區限制</label>
+			<description>允許緊急派遣將殖民者派往其指定的活動區之外。</description>
+		</EmergencyJobIgnoreAllowedArea>
 	</Rimsonable.Settings>
 	<Rimsonable.Migration>
 		<WindowTitle>理智邊緣遷移通知</WindowTitle>

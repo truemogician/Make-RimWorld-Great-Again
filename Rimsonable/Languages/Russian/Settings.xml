@@ -35,6 +35,10 @@
 			<label>Прерывать текущую работу ради срочных задач</label>
 			<description>Также отвлекает колонистов от их текущей работы (добыча ресурсов, переноска, строительство и т. д.), когда требуется их участие в срочной задаче. Если отключено (по умолчанию), прерываются только связанные с расписанием действия (например, сон и развлечения).</description>
 		</EmergencyJobInterruptOngoingWork>
+		<EmergencyJobIgnoreAllowedArea>
+			<label>Игнорировать разрешённую область для срочных задач</label>
+			<description>Разрешает отправлять колонистов на выполнение срочных задач за пределы назначенной им разрешённой области.</description>
+		</EmergencyJobIgnoreAllowedArea>
 	</Rimsonable.Settings>
 	<Rimsonable.Migration>
 		<WindowTitle>Уведомления о переносе функций Rimsonable</WindowTitle>

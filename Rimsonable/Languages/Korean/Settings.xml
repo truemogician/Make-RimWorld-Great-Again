@@ -35,6 +35,10 @@
 			<label>긴급 상황 시 진행 중인 작업 중단</label>
 			<description>긴급 상황이 발생했을 때 정착민이 현재 진행 중인 작업(채굴, 운반, 건설 등)도 중단하고 파견합니다. 비활성화 시(기본값) 일정에 따른 활동(예: 휴식, 오락)만 중단됩니다.</description>
 		</EmergencyJobInterruptOngoingWork>
+		<EmergencyJobIgnoreAllowedArea>
+			<label>긴급 작업 시 허가 구역 무시</label>
+			<description>긴급 상황 발생 시 정착민을 지정된 허가 구역 외부로도 파견할 수 있도록 허용합니다.</description>
+		</EmergencyJobIgnoreAllowedArea>
 	</Rimsonable.Settings>
 	<Rimsonable.Migration>
 		<WindowTitle>Rimsonable 마이그레이션 알림</WindowTitle>
