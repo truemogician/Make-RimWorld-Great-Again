@@ -3,18 +3,19 @@ using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using TrueMogician.RimWorld.Rimsonable.Components;
+using TrueMogician.RimWorld.Utility;
 using TrueMogician.RimWorld.Utility.Attributes;
 using Verse;
 
 namespace TrueMogician.RimWorld.Rimsonable.Patches;
 
+using Trackers = CachedMapComponent<EmergencyJobDispatchTracker>;
+
 public static class EmergencyJobOverride {
 	private const float _OVERRIDE_PRIORITY = 10f;
 
-	private static List<WorkGiverDef>? _emergencyWorkGivers;
-
 	internal static List<WorkGiverDef> EmergencyWorkGivers =>
-		_emergencyWorkGivers ??= DefDatabase<WorkGiverDef>.AllDefsListForReading.Where(d => d.emergency).ToList();
+		field ??= DefDatabase<WorkGiverDef>.AllDefsListForReading.Where(d => d.emergency).ToList();
 
 	[HarmonyPatch(typeof(JobGiver_Work), nameof(JobGiver_Work.GetPriority))]
 	[HarmonyPriority(Priority.Last)]
@@ -51,7 +52,7 @@ public static class EmergencyJobOverride {
 		if (Find.Maps is null)
 			return;
 		foreach (var map in Find.Maps)
-			map.GetComponent<EmergencyJobDispatchTracker>()?.Refresh();
+			Trackers.Get(map)?.Refresh();
 	}
 
 	[PatchHook(PatchHookTiming.AfterUnpatch)]
@@ -59,9 +60,11 @@ public static class EmergencyJobOverride {
 		if (Find.Maps is null)
 			return;
 		foreach (var map in Find.Maps)
-			map.GetComponent<EmergencyJobDispatchTracker>()?.Clear();
+			Trackers.Get(map)?.DispatchedPawnIds.Clear();
 	}
 
 	internal static bool ShouldOverride(Pawn? pawn) =>
-		pawn?.Map is { } map && map.GetComponent<EmergencyJobDispatchTracker>() is { } tracker && tracker.IsDispatched(pawn);
+		pawn?.Map is { } map
+		&& Trackers.Get(map) is { } tracker
+		&& tracker.DispatchedPawnIds.Contains(pawn.thingIDNumber);
 }

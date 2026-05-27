@@ -95,6 +95,6 @@ public class Settings : FeatureSettings<Features> {
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static string? Translate(string memberName, string? subField = null)
-		=> typeof(Settings).TranslateMember(memberName, subField);
+	private static string? Translate(string memberName, string? subField = null) =>
+		typeof(Settings).TranslateMember(memberName, subField);
 }

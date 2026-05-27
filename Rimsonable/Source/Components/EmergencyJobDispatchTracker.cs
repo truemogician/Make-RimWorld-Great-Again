@@ -10,16 +10,18 @@ namespace TrueMogician.RimWorld.Rimsonable.Components;
 public sealed class EmergencyJobDispatchTracker(Map map) : MapComponent(map) {
 	private const int _REFRESH_INTERVAL_TICKS = 60;
 
-	private readonly HashSet<int> _dispatchedPawnIds = [];
+	internal HashSet<int> DispatchedPawnIds { get; } = [];
 
-	public bool IsDispatched(Pawn pawn) => _dispatchedPawnIds.Contains(pawn.thingIDNumber);
-
-	public void Clear() => _dispatchedPawnIds.Clear();
+	private List<WorkGiver_Scanner> EmergencyWorkGiverScanners =>
+		field ??= EmergencyJobOverride.EmergencyWorkGivers
+			.Select(wg => wg.Worker)
+			.OfType<WorkGiver_Scanner>()
+			.ToList();
 
 	public override void MapComponentTick() {
 		if (!Settings.Default[Features.EmergencyJobOverride]) {
-			if (_dispatchedPawnIds.Count > 0)
-				_dispatchedPawnIds.Clear();
+			if (DispatchedPawnIds.Count > 0)
+				DispatchedPawnIds.Clear();
 			return;
 		}
 		// Stagger refresh across maps so they don't all recompute on the same tick.
@@ -30,33 +32,27 @@ public sealed class EmergencyJobDispatchTracker(Map map) : MapComponent(map) {
 	}
 
 	public void Refresh() {
-		_dispatchedPawnIds.Clear();
-		var emergencyWGs = EmergencyJobOverride.EmergencyWorkGivers;
-		if (emergencyWGs.Count == 0)
+		DispatchedPawnIds.Clear();
+		if (EmergencyJobOverride.EmergencyWorkGivers.Count == 0)
 			return;
 		var candidates = map.mapPawns.FreeColonistsSpawned
-			.Where(pawn => pawn is { Drafted: false, Downed: false, InMentalState: false } && !pawn.IsBurning())
+			.Where(pawn => pawn is { Drafted: false, Downed: false, InMentalState: false } && !pawn.IsBurning() && IsInterruptible(pawn))
 			.ToList();
 		if (candidates.Count == 0)
 			return;
 		// Defer override triggers until after the read phase: StartJob side-effects can mutate listerThings / mapPawns.
-		var scanners = emergencyWGs
-			.Select(wg => wg.Worker)
-			.OfType<WorkGiver_Scanner>()
-			.ToList();
-		var pendingOverrides = scanners.SelectMany(scanner => DispatchForWorkGiver(scanner, candidates)).ToList();
+		var pendingOverrides = EmergencyWorkGiverScanners.SelectMany(scanner => DispatchForWorkGiver(scanner, candidates)).ToList();
 		foreach (var pawn in pendingOverrides)
 			pawn.jobs?.CheckForJobOverride();
 	}
 
-	internal static bool IsInterruptible(Pawn pawn) {
-		if (pawn.CurJob is not { } job
-			|| pawn.mindState.IsIdle                                              // wandering / idle waits (vanilla JobTag.Idle)
-			|| job.def.joyKind is not null                                        // joy + meditation
-			|| (pawn.GetPosture() != PawnPosture.Standing && !pawn.Deathresting)) // sleeping, resting, sitting; exempt deathrest
-			return true;
-		return Settings.Default.EmergencyJobInterruptOngoingWork && job.def.casualInterruptible;
-	}
+	internal static bool IsInterruptible(Pawn pawn) =>
+		pawn.CurJob is not { } job
+		|| pawn.mindState.IsIdle                                             // wandering / idle waits (vanilla JobTag.Idle)
+		|| job.def.joyKind is not null                                       // joy + meditation
+		|| (pawn.GetPosture() != PawnPosture.Standing && !pawn.Deathresting) // sleeping, resting, sitting; exempt deathrest
+		|| job.jobGiver is JobGiver_SeekAllowedArea                          // the "go home" job is itself only there because we sent them out
+		|| (Settings.Default.EmergencyJobInterruptOngoingWork && job.def.casualInterruptible);
 
 	private static bool PawnCanUseWorkGiver(Pawn pawn, WorkGiver_Scanner scanner) {
 		var def = scanner.def;
@@ -74,7 +70,7 @@ public sealed class EmergencyJobDispatchTracker(Map map) : MapComponent(map) {
 	}
 
 	private IEnumerable<Pawn> DispatchForWorkGiver(WorkGiver_Scanner scanner, List<Pawn> candidates) {
-		var eligible = candidates.Where(c => IsInterruptible(c) && PawnCanUseWorkGiver(c, scanner)).ToList();
+		var eligible = candidates.Where(c => PawnCanUseWorkGiver(c, scanner)).ToList();
 		if (eligible.Count == 0)
 			yield break;
 		if (scanner.def.scanThings) {
@@ -89,13 +85,13 @@ public sealed class EmergencyJobDispatchTracker(Map map) : MapComponent(map) {
 				var closest = FindClosestCapable(scanner, target, eligible);
 				if (closest is null)
 					continue;
-				if (_dispatchedPawnIds.Add(closest.thingIDNumber))
+				if (DispatchedPawnIds.Add(closest.thingIDNumber))
 					yield return closest;
 			}
 		}
 		else { // NonScanJob-only WGs (e.g. WorkGiver_PatientGoToBedEmergencyTreatment): the calling pawn IS the target.
 			foreach (var candidate in eligible) {
-				if (_dispatchedPawnIds.Contains(candidate.thingIDNumber))
+				if (DispatchedPawnIds.Contains(candidate.thingIDNumber))
 					continue;
 				Job? job = null;
 				try {
@@ -104,7 +100,7 @@ public sealed class EmergencyJobDispatchTracker(Map map) : MapComponent(map) {
 				catch {
 					// Swallow WorkGiver-internal exceptions; vanilla logs its own.
 				}
-				if (job is not null && _dispatchedPawnIds.Add(candidate.thingIDNumber))
+				if (job is not null && DispatchedPawnIds.Add(candidate.thingIDNumber))
 					yield return candidate;
 			}
 		}
@@ -114,7 +110,7 @@ public sealed class EmergencyJobDispatchTracker(Map map) : MapComponent(map) {
 		Pawn? best = null;
 		var bestDistSq = int.MaxValue;
 		foreach (var candidate in eligible) {
-			if (_dispatchedPawnIds.Contains(candidate.thingIDNumber))
+			if (DispatchedPawnIds.Contains(candidate.thingIDNumber))
 				continue;
 			try {
 				if (!scanner.HasJobOnThing(candidate, target))
