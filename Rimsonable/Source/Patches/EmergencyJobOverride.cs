@@ -56,13 +56,6 @@ public static class EmergencyJobOverride {
 			return false;
 		if (map.GetComponent<EmergencyJobDispatchTracker>() is { } tracker && !tracker.IsDispatched(pawn))
 			return false;
-		if (IsInterruptibleByDefault(pawn))
-			return true;
-		return Settings.Default.EmergencyJobInterruptOngoingWork && pawn.CurJob is { def.casualInterruptible: true };
+		return EmergencyJobDispatchTracker.IsInterruptible(pawn);
 	}
-
-	private static bool IsInterruptibleByDefault(Pawn pawn) =>
-		pawn.CurJob is not { } job
-		|| job.def.joyKind is not null
-		|| pawn.GetPosture() != PawnPosture.Standing; // sleeping, resting, etc
 }

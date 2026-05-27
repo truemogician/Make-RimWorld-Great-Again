@@ -46,7 +46,16 @@ public sealed class EmergencyJobDispatchTracker(Map map) : MapComponent(map) {
 			.ToList();
 		var pendingOverrides = scanners.SelectMany(scanner => DispatchForWorkGiver(scanner, candidates)).ToList();
 		foreach (var pawn in pendingOverrides)
-			TryTriggerOverride(pawn);
+			pawn.jobs?.CheckForJobOverride();
+	}
+
+	internal static bool IsInterruptible(Pawn pawn) {
+		if (pawn.CurJob is not { } job
+			|| pawn.mindState.IsIdle                                              // wandering / idle waits (vanilla JobTag.Idle)
+			|| job.def.joyKind is not null                                        // joy + meditation
+			|| (pawn.GetPosture() != PawnPosture.Standing && !pawn.Deathresting)) // sleeping, resting, sitting; exempt deathrest
+			return true;
+		return Settings.Default.EmergencyJobInterruptOngoingWork && job.def.casualInterruptible;
 	}
 
 	private static bool PawnCanUseWorkGiver(Pawn pawn, WorkGiver_Scanner scanner) {
@@ -64,15 +73,8 @@ public sealed class EmergencyJobDispatchTracker(Map map) : MapComponent(map) {
 		return true;
 	}
 
-	// Force a think-tree re-query: pawns on non-emergency jobs never re-evaluate on their own.
-	private static void TryTriggerOverride(Pawn pawn) {
-		if (!EmergencyJobOverride.ShouldOverride(pawn))
-			return;
-		pawn.jobs?.CheckForJobOverride();
-	}
-
 	private IEnumerable<Pawn> DispatchForWorkGiver(WorkGiver_Scanner scanner, List<Pawn> candidates) {
-		var eligible = candidates.Where(c => PawnCanUseWorkGiver(c, scanner)).ToList();
+		var eligible = candidates.Where(c => IsInterruptible(c) && PawnCanUseWorkGiver(c, scanner)).ToList();
 		if (eligible.Count == 0)
 			yield break;
 		if (scanner.def.scanThings) {
