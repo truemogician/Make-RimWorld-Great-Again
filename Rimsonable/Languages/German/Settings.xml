@@ -33,7 +33,7 @@
 		</AutoTargetMarksOnNonHostile>
 		<EmergencyJobInterruptOngoingWork>
 			<label>Laufende Arbeit für Notfälle unterbrechen</label>
-			<description>Zieht Kolonisten auch von ihrer aktuellen Arbeit (Bergbau, Transport, Bauarbeiten usw.) ab, wenn ein Notfall sie erfordert. Wenn deaktiviert (Standard), werden nur Schlaf, Freizeit, Untätigkeit und andere alltägliche Aufgaben unterbrochen.</description>
+			<description>Zieht Kolonisten auch von ihrer aktuellen Arbeit (Bergbau, Transport, Bauarbeiten usw.) ab, wenn ein Notfall sie erfordert. Wenn deaktiviert (Standard), werden nur vom Tagesplan vorgegebene Aktivitäten (z. B. Schlaf, Freizeit) unterbrochen.</description>
 		</EmergencyJobInterruptOngoingWork>
 	</Rimsonable.Settings>
 	<Rimsonable.Migration>

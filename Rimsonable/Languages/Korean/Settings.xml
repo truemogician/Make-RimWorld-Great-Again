@@ -33,7 +33,7 @@
 		</AutoTargetMarksOnNonHostile>
 		<EmergencyJobInterruptOngoingWork>
 			<label>긴급 상황 시 진행 중인 작업 중단</label>
-			<description>긴급 상황이 발생했을 때 정착민이 현재 진행 중인 작업(채굴, 운반, 건설 등)도 중단하고 파견합니다. 비활성화 시(기본값) 휴식, 오락, 대기 및 기타 일상적인 작업만 중단됩니다.</description>
+			<description>긴급 상황이 발생했을 때 정착민이 현재 진행 중인 작업(채굴, 운반, 건설 등)도 중단하고 파견합니다. 비활성화 시(기본값) 일정에 따른 활동(예: 휴식, 오락)만 중단됩니다.</description>
 		</EmergencyJobInterruptOngoingWork>
 	</Rimsonable.Settings>
 	<Rimsonable.Migration>

@@ -34,7 +34,7 @@
 		</AutoTargetMarksOnNonHostile>
 		<EmergencyJobInterruptOngoingWork>
 			<label>紧急情况打断正在进行的工作</label>
-			<description>当有紧急情况需要时，也会打断殖民者当前的工作（采矿、搬运、建造等）。禁用时（默认），仅打断休息、娱乐、闲逛和其他休闲工作。</description>
+			<description>当有紧急情况需要时，也会打断殖民者当前的工作（采矿、搬运、建造等）。禁用时（默认），仅打断日程相关的活动（如休息、娱乐等）。</description>
 		</EmergencyJobInterruptOngoingWork>
 	</Rimsonable.Settings>
 	<Rimsonable.Migration>
