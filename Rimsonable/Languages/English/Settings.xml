@@ -36,6 +36,10 @@
 			<label>Interrupt Ongoing Work for Emergencies</label>
 			<description>Also pull colonists off their current work job (mining, hauling, construction, etc.) when an emergency needs them. When disabled (default), only schedule-specific activities (e.g. resting, recreation) are interrupted.</description>
 		</EmergencyJobInterruptOngoingWork>
+		<EmergencyJobIgnoreAllowedArea>
+			<label>Ignore Allowed Area for Emergencies</label>
+			<description>Allow emergency dispatch to send colonists outside their assigned allowed area.</description>
+		</EmergencyJobIgnoreAllowedArea>
 	</Rimsonable.Settings>
 	<Rimsonable.Migration>
 		<WindowTitle>Rimsonable Migration Notices</WindowTitle>

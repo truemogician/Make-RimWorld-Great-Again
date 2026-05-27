@@ -78,16 +78,19 @@ public static class EmergencyJobOverride {
 		}
 
 		private IEnumerable<Pawn> DispatchForWorkGiver(WorkGiver_Scanner scanner, List<Pawn> candidates) {
+			var eligible = candidates.Where(c => PawnCanUseWorkGiver(c, scanner)).ToList();
+			if (eligible.Count == 0)
+				yield break;
 			if (scanner.def.scanThings) {
 				// Mirror JobGiver_Work: prefer PotentialWorkThingsGlobal, fall back to ListerThings; both can return live lists, so snapshot below.
-				var targets = scanner.PotentialWorkThingsGlobal(candidates[0]);
+				var targets = scanner.PotentialWorkThingsGlobal(eligible[0]);
 				if (targets is null) {
 					if (scanner.PotentialWorkThingRequest.IsUndefined)
 						yield break;
 					targets = map.listerThings.ThingsMatching(scanner.PotentialWorkThingRequest);
 				}
 				foreach (var target in targets.ToList()) {
-					var closest = FindClosestCapable(scanner, target, candidates);
+					var closest = FindClosestCapable(scanner, target, eligible);
 					if (closest is null)
 						continue;
 					if (_dispatchedPawnIds.Add(closest.thingIDNumber))
@@ -95,8 +98,8 @@ public static class EmergencyJobOverride {
 				}
 			}
 			else { // NonScanJob-only WGs (e.g. WorkGiver_PatientGoToBedEmergencyTreatment): the calling pawn IS the target.
-				foreach (var candidate in candidates) {
-					if (_dispatchedPawnIds.Contains(candidate.thingIDNumber) || !PawnCanUseWorkGiver(candidate, scanner))
+				foreach (var candidate in eligible) {
+					if (_dispatchedPawnIds.Contains(candidate.thingIDNumber))
 						continue;
 					Job? job = null;
 					try {
@@ -111,11 +114,11 @@ public static class EmergencyJobOverride {
 			}
 		}
 
-		private Pawn? FindClosestCapable(WorkGiver_Scanner scanner, Thing target, List<Pawn> candidates) {
+		private Pawn? FindClosestCapable(WorkGiver_Scanner scanner, Thing target, List<Pawn> eligible) {
 			Pawn? best = null;
 			var bestDistSq = int.MaxValue;
-			foreach (var candidate in candidates) {
-				if (_dispatchedPawnIds.Contains(candidate.thingIDNumber) || !PawnCanUseWorkGiver(candidate, scanner))
+			foreach (var candidate in eligible) {
+				if (_dispatchedPawnIds.Contains(candidate.thingIDNumber))
 					continue;
 				try {
 					if (!scanner.HasJobOnThing(candidate, target))
@@ -124,6 +127,10 @@ public static class EmergencyJobOverride {
 				catch {
 					continue;
 				}
+				if (!Settings.Default.EmergencyJobIgnoreAllowedArea
+					&& candidate.playerSettings?.AreaRestrictionInPawnCurrentMap is { } area
+					&& !area[target.Position])
+					continue;
 				int distSq = (candidate.Position - target.Position).LengthHorizontalSquared;
 				if (distSq < bestDistSq) {
 					best = candidate;

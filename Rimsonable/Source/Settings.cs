@@ -42,6 +42,8 @@ public class Settings : FeatureSettings<Features> {
 
 	private bool _emergencyJobInterruptOngoingWork;
 
+	private bool _emergencyJobIgnoreAllowedArea;
+
 	public Settings() : base(Helper.Logger) {
 		AfterDrawFeatureRow += (_, args) => {
 			var conf = args.Config;
@@ -49,7 +51,9 @@ public class Settings : FeatureSettings<Features> {
 				case { Feature: Features.EnhanceArtilleryMarkers, Enabled: true }:
 					DrawSubSetting(args, conf, nameof(AutoTargetMarksOnNonHostile), ref _autoTargetMarksOnNonHostile); break;
 				case { Feature: Features.EmergencyJobOverride, Enabled: true }:
-					DrawSubSetting(args, conf, nameof(EmergencyJobInterruptOngoingWork), ref _emergencyJobInterruptOngoingWork); break;
+					DrawSubSetting(args, conf, nameof(EmergencyJobInterruptOngoingWork), ref _emergencyJobInterruptOngoingWork);
+					DrawSubSetting(args, conf, nameof(EmergencyJobIgnoreAllowedArea), ref _emergencyJobIgnoreAllowedArea);
+					break;
 			}
 		};
 	}
@@ -72,10 +76,14 @@ public class Settings : FeatureSettings<Features> {
 	[Translation]
 	public bool EmergencyJobInterruptOngoingWork => _emergencyJobInterruptOngoingWork;
 
+	[Translation]
+	public bool EmergencyJobIgnoreAllowedArea => _emergencyJobIgnoreAllowedArea;
+
 	public override void ExposeData() {
 		base.ExposeData();
 		Scribe_Values.Look(ref _autoTargetMarksOnNonHostile, nameof(AutoTargetMarksOnNonHostile).ToCamelCase());
 		Scribe_Values.Look(ref _emergencyJobInterruptOngoingWork, nameof(EmergencyJobInterruptOngoingWork).ToCamelCase());
+		Scribe_Values.Look(ref _emergencyJobIgnoreAllowedArea, nameof(EmergencyJobIgnoreAllowedArea).ToCamelCase());
 		Notices.ExposeData();
 	}
 
