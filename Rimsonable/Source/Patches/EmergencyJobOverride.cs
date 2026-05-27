@@ -34,6 +34,17 @@ public static class EmergencyJobOverride {
 		__result = false;
 	}
 
+	[HarmonyPatch(typeof(ForbidUtility), nameof(ForbidUtility.InAllowedArea))]
+	[HarmonyPriority(Priority.Last)]
+	[HarmonyPostfix]
+	internal static void InAllowedArea_Postfix(Pawn forPawn, ref bool __result) {
+		if (__result || !Settings.Default.EmergencyJobIgnoreAllowedArea)
+			return;
+		if (!ShouldOverride(forPawn))
+			return;
+		__result = true;
+	}
+
 	[PatchHook(PatchHookTiming.AfterPatch)]
 	internal static void AfterPatch() {
 		_ = EmergencyWorkGivers;
@@ -51,11 +62,6 @@ public static class EmergencyJobOverride {
 			map.GetComponent<EmergencyJobDispatchTracker>()?.Clear();
 	}
 
-	internal static bool ShouldOverride(Pawn? pawn) {
-		if (pawn?.Map is not { } map)
-			return false;
-		if (map.GetComponent<EmergencyJobDispatchTracker>() is { } tracker && !tracker.IsDispatched(pawn))
-			return false;
-		return EmergencyJobDispatchTracker.IsInterruptible(pawn);
-	}
+	internal static bool ShouldOverride(Pawn? pawn) =>
+		pawn?.Map is { } map && map.GetComponent<EmergencyJobDispatchTracker>() is { } tracker && tracker.IsDispatched(pawn);
 }
