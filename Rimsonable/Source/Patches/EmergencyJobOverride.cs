@@ -174,16 +174,15 @@ public static class EmergencyJobOverride {
 			return false;
 		if (map.GetComponent<DispatchTracker>() is { } tracker && !tracker.IsDispatched(pawn))
 			return false;
-		return Settings.Default.EmergencyJobInterruptOngoingWork || IsInterruptibleByDefault(pawn);
+		if (IsInterruptibleByDefault(pawn))
+			return true;
+		return Settings.Default.EmergencyJobInterruptOngoingWork && pawn.CurJob is { def.casualInterruptible: true };
 	}
 
-	private static bool IsInterruptibleByDefault(Pawn pawn) {
-		var job = pawn.CurJob;
-		return job is null
-			|| job.def.joyKind is not null
-			|| job.def.casualInterruptible
-			|| pawn.GetPosture() != PawnPosture.Standing; // sleeping, resting, or downed
-	}
+	private static bool IsInterruptibleByDefault(Pawn pawn) =>
+		pawn.CurJob is not { } job
+		|| job.def.joyKind is not null
+		|| pawn.GetPosture() != PawnPosture.Standing; // sleeping, resting, etc
 
 	private static void EnsureEmergencyWorkGiversCached() {
 		if (_emergencyWorkGivers != null)
