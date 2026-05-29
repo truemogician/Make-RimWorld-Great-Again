@@ -29,6 +29,21 @@ public static class MainPatch {
 		return false;
 	}
 
+	/**
+	 * Prevent animals from taking construction-blocking jobs that aren't hauling the blocking thing aside.
+	 */
+	[HarmonyPatch(typeof(GenConstruct), nameof(GenConstruct.HandleBlockingThingJob))]
+	[HarmonyPrefix]
+	internal static bool GenConstruct_HandleBlockingThingJob_Prefix(Thing constructible, Pawn worker, ref Job? __result) {
+		if (!worker.RaceProps.Animal)
+			return true;
+		var blocker = GenConstruct.FirstBlockingThing(constructible, worker);
+		if (blocker is { def: { category: ThingCategory.Item, EverHaulable: true } })
+			return true;
+		__result = null;
+		return false;
+	}
+
 	[HarmonyPatch(typeof(JobGiver_Haul), "TryGiveJob")]
 	[HarmonyPrefix]
 	internal static bool JobGiver_Haul_TryGiveJob_Prefix(Pawn pawn, ref Job? __result) {
