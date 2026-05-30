@@ -42,8 +42,11 @@ public sealed class EmergencyJobDispatchTracker(Map map) : MapComponent(map) {
 			return;
 		// Defer override triggers until after the read phase: StartJob side-effects can mutate listerThings / mapPawns.
 		var pendingOverrides = EmergencyWorkGiverScanners.SelectMany(scanner => DispatchForWorkGiver(scanner, candidates)).ToList();
-		foreach (var pawn in pendingOverrides)
+		foreach (var pawn in pendingOverrides) {
+			if (pawn.CurJob?.workGiverDef?.emergency == true)
+				continue;
 			pawn.jobs?.CheckForJobOverride();
+		}
 	}
 
 	internal static bool IsInterruptible(Pawn pawn) =>
@@ -70,7 +73,7 @@ public sealed class EmergencyJobDispatchTracker(Map map) : MapComponent(map) {
 	}
 
 	private IEnumerable<Pawn> DispatchForWorkGiver(WorkGiver_Scanner scanner, List<Pawn> candidates) {
-		var eligible = candidates.Where(c => PawnCanUseWorkGiver(c, scanner)).ToList();
+		var eligible = candidates.Where(c => !DispatchedPawnIds.Contains(c.thingIDNumber) && PawnCanUseWorkGiver(c, scanner)).ToList();
 		if (eligible.Count == 0)
 			yield break;
 		if (scanner.def.scanThings) {
@@ -91,8 +94,6 @@ public sealed class EmergencyJobDispatchTracker(Map map) : MapComponent(map) {
 		}
 		else { // NonScanJob-only WGs (e.g. WorkGiver_PatientGoToBedEmergencyTreatment): the calling pawn IS the target.
 			foreach (var candidate in eligible) {
-				if (DispatchedPawnIds.Contains(candidate.thingIDNumber))
-					continue;
 				Job? job = null;
 				try {
 					job = scanner.NonScanJob(candidate);
@@ -107,11 +108,8 @@ public sealed class EmergencyJobDispatchTracker(Map map) : MapComponent(map) {
 	}
 
 	private Pawn? FindClosestCapable(WorkGiver_Scanner scanner, Thing target, List<Pawn> eligible) {
-		Pawn? best = null;
-		var bestDistSq = int.MaxValue;
-		foreach (var candidate in eligible) {
-			if (DispatchedPawnIds.Contains(candidate.thingIDNumber))
-				continue;
+		var respectAllowedArea = !Settings.Default.EmergencyJobIgnoreAllowedArea;
+		foreach (var candidate in eligible.OrderBy(c => (c.Position - target.Position).LengthHorizontalSquared)) {
 			try {
 				if (!scanner.HasJobOnThing(candidate, target))
 					continue;
@@ -119,16 +117,12 @@ public sealed class EmergencyJobDispatchTracker(Map map) : MapComponent(map) {
 			catch {
 				continue;
 			}
-			if (!Settings.Default.EmergencyJobIgnoreAllowedArea
+			if (respectAllowedArea
 				&& candidate.playerSettings?.AreaRestrictionInPawnCurrentMap is { } area
 				&& !area[target.Position])
 				continue;
-			int distSq = (candidate.Position - target.Position).LengthHorizontalSquared;
-			if (distSq < bestDistSq) {
-				best = candidate;
-				bestDistSq = distSq;
-			}
+			return candidate;
 		}
-		return best;
+		return null;
 	}
 }
