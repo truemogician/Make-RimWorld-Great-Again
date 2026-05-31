@@ -27,5 +27,9 @@
 				<label>{0} s</label>
 			</slider>
 		</WildAnimalFoodSearchStarvingCacheTtl>
+		<TendTargetCache>
+			<label>Tend Target Cache</label>
+			<description>Replace the O(N) medical-target rebuild and triple-iterated tend predicates with incremental caches.</description>
+		</TendTargetCache>
 	</RemedialAlgorithms.Settings>
 </LanguageData>

@@ -23,7 +23,9 @@ public enum Optimizations : ulong {
 
 	ThingFilterToggle = 1 << 1,
 
-	WildAnimalFoodSearch = 1 << 2
+	WildAnimalFoodSearch = 1 << 2,
+
+	TendTargetCache = 1 << 3
 }
 
 [Translation("RemedialAlgorithms.Settings")]
@@ -51,6 +53,7 @@ public class Settings : FeatureSettings<Optimizations> {
 		AddFeaturePatches(Optimizations.TradeSetup, typeof(TradeDealPatches));
 		AddFeaturePatches(Optimizations.ThingFilterToggle, typeof(ThingFilterPatches));
 		AddFeaturePatches(Optimizations.WildAnimalFoodSearch, typeof(FoodSearchOptimizationPatches));
+		AddFeaturePatches(Optimizations.TendTargetCache, typeof(TendTargetCachePatches));
 	}
 
 	public static Settings Default { get; internal set; } = null!;
