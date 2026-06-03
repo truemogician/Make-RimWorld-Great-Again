@@ -46,7 +46,7 @@
 
 [h2]設定[/h2]
 
-[url=https://postimg.cc/ZCYVV96N][img]https://i.postimg.cc/15w2Rwtv/WorkMemory-Settings.gif[/img][/url]
+[url=https://postimg.cc/Mfc26kb3][img]https://i.postimg.cc/HnzptdJm/Work-Memory-Settings-2.gif[/img][/url]
 
 設定選單分成三個分頁：
 
@@ -86,6 +86,17 @@
 [/list]
 
 如果安裝了 RimHUD，[b]工作手感[/b]會把目前倍率加入 RimHUD 的「目前活動」欄位和提示文字裡。
+
+[h2]支援語言[/h2]
+
+[list]
+[*]英文（人工校對）
+[*]簡體中文（人工校對）
+[*]繁體中文（人工校對）
+[*]德文（LLM 翻譯）
+[*]韓文（LLM 翻譯）
+[*]俄文（LLM 翻譯）
+[/list]
 
 [h2]我的其他模組[/h2]
 

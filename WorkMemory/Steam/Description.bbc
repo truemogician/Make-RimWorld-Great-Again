@@ -46,7 +46,7 @@ The current multiplier appears in the pawn info panel while they work, so you ca
 
 [h2]Settings[/h2]
 
-[url=https://postimg.cc/ZCYVV96N][img]https://i.postimg.cc/15w2Rwtv/WorkMemory-Settings.gif[/img][/url]
+[url=https://postimg.cc/Mfc26kb3][img]https://i.postimg.cc/HnzptdJm/Work-Memory-Settings-2.gif[/img][/url]
 
 The settings menu is split into three tabs:
 
@@ -86,6 +86,17 @@ If you miss the old numbers, you can set them back yourself; if you wanna contin
 [/list]
 
 If RimHUD is installed, [b]Work Memory[/b] adds the current multiplier to RimHUD's Activity row.
+
+[h2]Supported Languages[/h2]
+
+[list]
+[*]English (manually curated)
+[*]Simplified Chinese (manually curated)
+[*]Traditional Chinese (manually curated)
+[*]German (LLM translated)
+[*]Korean (LLM translated)
+[*]Russian (LLM translated)
+[/list]
 
 [h2]Other Mods by Me[/h2]
 
