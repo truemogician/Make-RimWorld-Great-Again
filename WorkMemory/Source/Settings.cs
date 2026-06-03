@@ -8,7 +8,6 @@ using TrueMogician.Extensions.List;
 using TrueMogician.RimWorld.Utility.Attributes;
 using TrueMogician.RimWorld.Utility.Extensions;
 using TrueMogician.RimWorld.Utility.GUI;
-using TrueMogician.RimWorld.WorkMemory.Components;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Verse;
