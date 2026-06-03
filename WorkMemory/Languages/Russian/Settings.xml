@@ -27,8 +27,8 @@
 				<description>Определяет, как быстро забывается рабочая память после задержки (относительно скорости разминки).</description>
 				<slider.label>{0}x</slider.label>
 			</DecaySpeed>
-			<TransientChart>
-				<title>Предпросмотр кривой</title>
+			<ShortTermChart>
+				<title>Предпросмотр кратковременной кривой</title>
 				<workAmount>Объем работы рецепта</workAmount>
 				<ticksTo100>Скорость 100%: {0}</ticksTo100>
 				<ticksToMaximum>Максимальная скорость: {0}</ticksToMaximum>
@@ -36,7 +36,7 @@
 				<ticksToFadeEnd>Полное затухание: {0}</ticksToFadeEnd>
 				<tickFormat>{0} тиков ({1})</tickFormat>
 				<axisTickFormat>{0} тиков</axisTickFormat>
-			</TransientChart>
+			</ShortTermChart>
 		</Settings>
 		<InspectLine>Рабочая память: скорость {0}</InspectLine>
 		<InspectPostfix> (скорость {0})</InspectPostfix>

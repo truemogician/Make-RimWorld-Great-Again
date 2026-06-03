@@ -27,8 +27,8 @@
 				<description>在上述延迟过后工作记忆衰退的速度（相对于预热速度的比例）。</description>
 				<slider.label>{0}x</slider.label>
 			</DecaySpeed>
-			<TransientChart>
-				<title>曲线预览</title>
+			<ShortTermChart>
+				<title>短期曲线预览</title>
 				<workAmount>配方工作量</workAmount>
 				<ticksTo100>达到 100% 速度：{0}</ticksTo100>
 				<ticksToMaximum>达到最高速度：{0}</ticksToMaximum>
@@ -36,7 +36,7 @@
 				<ticksToFadeEnd>完全衰退：{0}</ticksToFadeEnd>
 				<tickFormat>{0} 刻（{1}）</tickFormat>
 				<axisTickFormat>{0} 刻</axisTickFormat>
-			</TransientChart>
+			</ShortTermChart>
 		</Settings>
 		<InspectLine>工作记忆：速度 {0}</InspectLine>
 		<InspectPostfix>（速度 {0}）</InspectPostfix>

@@ -22,11 +22,11 @@ public static class WorkMemoryCurve {
 
 	public const float MOMENTUM_CAP_FACTOR = 2f;
 
-	public const float DEFAULT_PERMANENT_SCALE = 4f;
+	public const float DEFAULT_LONG_TERM_SCALE = 4f;
 
-	public const float DEFAULT_PERMANENT_CURVATURE = 0.5f;
+	public const float DEFAULT_LONG_TERM_CURVATURE = 0.5f;
 
-	public const float DEFAULT_PERMANENT_MAX_FRACTION = 1f;
+	public const float DEFAULT_LONG_TERM_MAX_FRACTION = 1f;
 
 	public static float MinMultiplier => Settings.Default is { } settings ? settings.MinMultiplier : 1f - DEFAULT_PENALTY;
 
@@ -38,11 +38,11 @@ public static class WorkMemoryCurve {
 
 	public static float DecayPerTick => Mathf.Max(0f, Settings.Default is { } settings ? settings.DecaySpeed : DEFAULT_DECAY_SPEED);
 
-	public static float PermanentScale => Settings.Default is { } settings ? settings.PermanentScale : DEFAULT_PERMANENT_SCALE;
+	public static float LongTermScale => Settings.Default is { } settings ? settings.LongTermScale : DEFAULT_LONG_TERM_SCALE;
 
-	public static float PermanentCurvature => Settings.Default is { } settings ? settings.PermanentCurvature : DEFAULT_PERMANENT_CURVATURE;
+	public static float LongTermCurvature => Settings.Default is { } settings ? settings.LongTermCurvature : DEFAULT_LONG_TERM_CURVATURE;
 
-	public static float PermanentMaxFraction => Settings.Default is { } settings ? settings.PermanentMaxFraction : DEFAULT_PERMANENT_MAX_FRACTION;
+	public static float LongTermMaxFraction => Settings.Default is { } settings ? settings.LongTermMaxFraction : DEFAULT_LONG_TERM_MAX_FRACTION;
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static float GetMultiplier(float momentum, RecipeDef recipe) =>
@@ -80,11 +80,11 @@ public static class WorkMemoryCurve {
 	///     Non-decaying momentum floor built from lifetime cumulative work, following the power law of forgetting/practice:
 	///     <c>floor = cap * pMax * (1 - (1 + W / tau)^(-beta))</c>. Big early gains with a heavy tail toward full mastery.
 	/// </summary>
-	public static float GetPermanentMomentum(float cumulativeWork, float referenceWorkAmount) =>
-		GetPermanentMomentum(cumulativeWork, referenceWorkAmount, PermanentScale, PermanentCurvature, PermanentMaxFraction);
+	public static float GetLongTermMomentum(float cumulativeWork, float referenceWorkAmount) =>
+		GetLongTermMomentum(cumulativeWork, referenceWorkAmount, LongTermScale, LongTermCurvature, LongTermMaxFraction);
 
-	/// <inheritdoc cref="GetPermanentMomentum(float,float)" />
-	public static float GetPermanentMomentum(float cumulativeWork, float referenceWorkAmount, float scale, float curvature, float maxFraction) {
+	/// <inheritdoc cref="GetLongTermMomentum(float,float)" />
+	public static float GetLongTermMomentum(float cumulativeWork, float referenceWorkAmount, float scale, float curvature, float maxFraction) {
 		if (cumulativeWork <= 0f)
 			return 0f;
 		float tau = referenceWorkAmount * scale;

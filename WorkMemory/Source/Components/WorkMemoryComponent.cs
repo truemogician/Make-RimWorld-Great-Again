@@ -163,7 +163,7 @@ public sealed class WorkMemoryRecord : IExposable {
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public float GetMomentum(int now, int delta, float referenceWorkAmount) =>
-		Mathf.Max(GetDecayingMomentum(now, delta), WorkMemoryCurve.GetPermanentMomentum(_cumulativeWork, referenceWorkAmount));
+		Mathf.Max(GetDecayingMomentum(now, delta), WorkMemoryCurve.GetLongTermMomentum(_cumulativeWork, referenceWorkAmount));
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public bool IsExpired(int now) => _lastWorkedTick < 0 || (_cumulativeWork <= 0f && GetDecayingMomentum(now, 0) <= 0f);

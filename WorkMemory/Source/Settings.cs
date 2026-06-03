@@ -48,11 +48,11 @@ public class Settings : ModSettings {
 
 	private float _decaySpeed = WorkMemoryCurve.DEFAULT_DECAY_SPEED;
 
-	private float _permanentScale = WorkMemoryCurve.DEFAULT_PERMANENT_SCALE;
+	private float _longTermScale = WorkMemoryCurve.DEFAULT_LONG_TERM_SCALE;
 
-	private float _permanentCurvature = WorkMemoryCurve.DEFAULT_PERMANENT_CURVATURE;
+	private float _longTermCurvature = WorkMemoryCurve.DEFAULT_LONG_TERM_CURVATURE;
 
-	private float _permanentMaxFraction = WorkMemoryCurve.DEFAULT_PERMANENT_MAX_FRACTION;
+	private float _longTermMaxFraction = WorkMemoryCurve.DEFAULT_LONG_TERM_MAX_FRACTION;
 
 	private SettingsTab _selectedTab;
 
@@ -68,21 +68,21 @@ public class Settings : ModSettings {
 
 	private readonly float[] _decaySpeedChoices = [0.1f, 0.2f, 0.25f, 1f / 3, 0.5f, 0.75f, 1f, 1.5f, 2f, 3f];
 
-	private readonly float[] _permanentScaleChoices = [1f, 2f, 3f, 4f, 6f, 8f, 12f, 16f, 24f, 32f];
+	private readonly float[] _longTermScaleChoices = [1f, 2f, 3f, 4f, 6f, 8f, 12f, 16f, 24f, 32f];
 
-	private readonly float[] _permanentCurvatureChoices = [0.25f, 1f / 3, 0.5f, 0.75f, 1f, 1.5f, 2f];
+	private readonly float[] _longTermCurvatureChoices = [0.25f, 1f / 3, 0.5f, 0.75f, 1f, 1.5f, 2f];
 
-	private readonly float[] _permanentMaxFractionChoices = [0f, 0.25f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1f];
+	private readonly float[] _longTermMaxFractionChoices = [0f, 0.25f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1f];
 
 	private readonly float[] _workAmountChoices = [200f, 400f, 600f, 800f, 1000f, 1500f, 2000f, 3000f, 4000f, 6000f, 8000f];
 
 	private enum SettingsTab : byte {
 		General,
-		TransientCurve,
-		PermanentCurve
+		ShortTermCurve,
+		LongTermCurve
 	}
 
-	private readonly record struct CurvePreview(
+	private readonly record struct ShortTermPreview(
 		float ReferenceWorkAmount,
 		float MomentumCap,
 		float NormalTick,
@@ -90,7 +90,7 @@ public class Settings : ModSettings {
 		float FadeEndTick
 	);
 
-	private readonly record struct PermanentPreview(float NeutralReps, float MasteryReps);
+	private readonly record struct LongTermPreview(float NeutralReps, float MasteryReps);
 
 	public static Settings Default { get; internal set; } = null!;
 
@@ -110,13 +110,13 @@ public class Settings : ModSettings {
 	public float DecaySpeed => _decaySpeed;
 
 	[Translation]
-	public float PermanentScale => _permanentScale;
+	public float LongTermScale => _longTermScale;
 
 	[Translation]
-	public float PermanentCurvature => _permanentCurvature;
+	public float LongTermCurvature => _longTermCurvature;
 
 	[Translation]
-	public float PermanentMaxFraction => _permanentMaxFraction;
+	public float LongTermMaxFraction => _longTermMaxFraction;
 
 	public float MinMultiplier => 1f - _penalty;
 
@@ -133,9 +133,9 @@ public class Settings : ModSettings {
 		var listing = new Listing_Standard { maxOneColumn = true };
 		listing.Begin(contentRect);
 		switch (_selectedTab) {
-			case SettingsTab.General:        DrawGeneralTab(listing); break;
-			case SettingsTab.TransientCurve: DrawTransientTab(listing); break;
-			case SettingsTab.PermanentCurve: DrawPermanentTab(listing); break;
+			case SettingsTab.General:       DrawGeneralTab(listing); break;
+			case SettingsTab.ShortTermCurve: DrawShortTermTab(listing); break;
+			case SettingsTab.LongTermCurve:  DrawLongTermTab(listing); break;
 		}
 		listing.End();
 	}
@@ -147,9 +147,9 @@ public class Settings : ModSettings {
 		Scribe_Values.Look(ref _warmupSpeed, nameof(WarmupSpeed).ToCamelCase(), WorkMemoryCurve.DEFAULT_WARMUP_SPEED);
 		Scribe_Values.Look(ref _decayDelay, nameof(DecayDelay).ToCamelCase(), WorkMemoryCurve.DEFAULT_DECAY_DELAY);
 		Scribe_Values.Look(ref _decaySpeed, nameof(DecaySpeed).ToCamelCase(), WorkMemoryCurve.DEFAULT_DECAY_SPEED);
-		Scribe_Values.Look(ref _permanentScale, nameof(PermanentScale).ToCamelCase(), WorkMemoryCurve.DEFAULT_PERMANENT_SCALE);
-		Scribe_Values.Look(ref _permanentCurvature, nameof(PermanentCurvature).ToCamelCase(), WorkMemoryCurve.DEFAULT_PERMANENT_CURVATURE);
-		Scribe_Values.Look(ref _permanentMaxFraction, nameof(PermanentMaxFraction).ToCamelCase(), WorkMemoryCurve.DEFAULT_PERMANENT_MAX_FRACTION);
+		Scribe_Values.Look(ref _longTermScale, nameof(LongTermScale).ToCamelCase(), WorkMemoryCurve.DEFAULT_LONG_TERM_SCALE);
+		Scribe_Values.Look(ref _longTermCurvature, nameof(LongTermCurvature).ToCamelCase(), WorkMemoryCurve.DEFAULT_LONG_TERM_CURVATURE);
+		Scribe_Values.Look(ref _longTermMaxFraction, nameof(LongTermMaxFraction).ToCamelCase(), WorkMemoryCurve.DEFAULT_LONG_TERM_MAX_FRACTION);
 	}
 
 	private static void DrawCheckbox(Listing_Standard listing, string memberName, ref bool value) {
@@ -198,18 +198,18 @@ public class Settings : ModSettings {
 
 	private static string FormatTicks(float ticks) {
 		int rounded = Mathf.CeilToInt(Mathf.Max(0f, ticks));
-		return FormatKey("TransientChart.tickFormat", rounded, rounded.ToStringTicksToPeriod());
+		return FormatKey("ShortTermChart.tickFormat", rounded, rounded.ToStringTicksToPeriod());
 	}
 
 	private static string FormatAxisTicks(float ticks) {
 		int rounded = Mathf.CeilToInt(Mathf.Max(0f, ticks));
-		return FormatKey("TransientChart.axisTickFormat", rounded);
+		return FormatKey("ShortTermChart.axisTickFormat", rounded);
 	}
 
 	private static string FormatReps(float reps) {
 		if (reps < 0f)
-			return TranslateKey("PermanentChart.unreachable");
-		return FormatKey("PermanentChart.workFormat", Mathf.CeilToInt(Mathf.Max(0f, reps)));
+			return TranslateKey("LongTermChart.unreachable");
+		return FormatKey("LongTermChart.workFormat", Mathf.CeilToInt(Mathf.Max(0f, reps)));
 	}
 
 	private static void DrawPreviewMetric(Rect rect, int index, string label) {
@@ -264,7 +264,7 @@ public class Settings : ModSettings {
 		);
 	}
 
-	private void DrawTransientTab(Listing_Standard listing) {
+	private void DrawShortTermTab(Listing_Standard listing) {
 		DrawSlider(listing, nameof(WarmupSpeed), ref _warmupSpeed, _warmupSpeedChoices, v => [v.ToString("0.##")]);
 		DrawSlider(
 			listing,
@@ -275,24 +275,24 @@ public class Settings : ModSettings {
 		);
 		DrawSlider(listing, nameof(DecaySpeed), ref _decaySpeed, _decaySpeedChoices, v => [v.ToString("0.##")]);
 		listing.Gap(16f);
-		DrawCurvePreview(listing);
+		DrawShortTermPreview(listing);
 	}
 
-	private void DrawPermanentTab(Listing_Standard listing) {
-		DrawSlider(listing, nameof(PermanentScale), ref _permanentScale, _permanentScaleChoices, v => [v.ToString("0.##")]);
-		DrawSlider(listing, nameof(PermanentCurvature), ref _permanentCurvature, _permanentCurvatureChoices, v => [v.ToString("0.##")]);
+	private void DrawLongTermTab(Listing_Standard listing) {
+		DrawSlider(listing, nameof(LongTermScale), ref _longTermScale, _longTermScaleChoices, v => [v.ToString("0.##")]);
+		DrawSlider(listing, nameof(LongTermCurvature), ref _longTermCurvature, _longTermCurvatureChoices, v => [v.ToString("0.##")]);
 		DrawSlider(
 			listing,
-			nameof(PermanentMaxFraction),
-			ref _permanentMaxFraction,
-			_permanentMaxFractionChoices,
-			v => [v <= 0f ? TranslateKey($"{nameof(PermanentMaxFraction)}.disabled") : PermanentFractionToMultiplier(v).ToStringPercent()]
+			nameof(LongTermMaxFraction),
+			ref _longTermMaxFraction,
+			_longTermMaxFractionChoices,
+			v => [v <= 0f ? TranslateKey($"{nameof(LongTermMaxFraction)}.disabled") : LongTermFractionToMultiplier(v).ToStringPercent()]
 		);
 		listing.Gap(16f);
-		DrawPermanentPreview(listing);
+		DrawLongTermPreview(listing);
 	}
 
-	private float PermanentFractionToMultiplier(float fraction) =>
+	private float LongTermFractionToMultiplier(float fraction) =>
 		WorkMemoryCurve.GetMultiplier(
 			WorkMemoryCurve.GetMomentumCap(WorkMemoryCurve.MIN_REFERENCE_WORK_AMOUNT) * fraction,
 			WorkMemoryCurve.MIN_REFERENCE_WORK_AMOUNT,
@@ -315,50 +315,50 @@ public class Settings : ModSettings {
 		yield return plotRect.yMax;
 	}
 
-	private void DrawCurvePreview(Listing_Standard listing) {
+	private void DrawShortTermPreview(Listing_Standard listing) {
 		var rect = listing.GetRect(_PREVIEW_HEIGHT);
 		Widgets.DrawMenuSection(rect);
 		var inner = rect.Padding(12f);
 		var rows = inner.ToFlexbox(FlexDirection.Column, [24, _LINE_HEIGHT, 48, "1fr"], 4f, JustifyContent.SpaceBetween).ToArray();
 
 		using (new TextBlock(GameFont.Medium, TextAnchor.MiddleCenter))
-			Widgets.Label(rows[0], TranslateKey("TransientChart.title"));
+			Widgets.Label(rows[0], TranslateKey("ShortTermChart.title"));
 		var cols = rows[1].ToFlexbox([Flexbox.Length.Auto, _SLIDER_LABEL_WIDTH, _SLIDER_WIDTH], 10f).ToArray();
 		using (new TextBlock(TextAnchor.MiddleLeft))
-			Widgets.Label(cols[0], TranslateKey("TransientChart.workAmount"));
+			Widgets.Label(cols[0], TranslateKey("ShortTermChart.workAmount"));
 		using (new TextBlock(TextAnchor.MiddleRight))
 			Widgets.Label(cols[1], _workAmount.ToString("F0"));
 		_workAmount = WidgetsExtension.HorizontalSlider(cols[2], _workAmount, _workAmountChoices, v => v.ToString("F0"), true, false);
 
-		var preview = BuildCurvePreview();
-		DrawPreviewMetric(rows[2], 0, FormatKey("TransientChart.ticksTo100", FormatTicks(preview.NormalTick)));
-		DrawPreviewMetric(rows[2], 1, FormatKey("TransientChart.ticksToMaximum", FormatTicks(preview.MomentumCap)));
-		DrawPreviewMetric(rows[2], 2, FormatKey("TransientChart.ticksToFadeStart", FormatTicks(preview.FadeStartTick)));
-		DrawPreviewMetric(rows[2], 3, FormatKey("TransientChart.ticksToFadeEnd", FormatTicks(preview.FadeEndTick)));
+		var preview = BuildShortTermPreview();
+		DrawPreviewMetric(rows[2], 0, FormatKey("ShortTermChart.ticksTo100", FormatTicks(preview.NormalTick)));
+		DrawPreviewMetric(rows[2], 1, FormatKey("ShortTermChart.ticksToMaximum", FormatTicks(preview.MomentumCap)));
+		DrawPreviewMetric(rows[2], 2, FormatKey("ShortTermChart.ticksToFadeStart", FormatTicks(preview.FadeStartTick)));
+		DrawPreviewMetric(rows[2], 3, FormatKey("ShortTermChart.ticksToFadeEnd", FormatTicks(preview.FadeEndTick)));
 
-		DrawCurveChart(rows[3], preview);
+		DrawShortTermChart(rows[3], preview);
 	}
 
-	private CurvePreview BuildCurvePreview() {
+	private ShortTermPreview BuildShortTermPreview() {
 		float referenceWorkAmount = WorkMemoryCurve.GetReferenceWorkAmount(_workAmount, _warmupSpeed);
 		float momentumCap = WorkMemoryCurve.GetMomentumCap(referenceWorkAmount);
 		float normalTick = WorkMemoryCurve.GetMomentumForMultiplier(1f, referenceWorkAmount, MinMultiplier, MaxMultiplier);
 		float fadeStartTick = momentumCap + _decayDelay;
 		float fadeEndTick = fadeStartTick + momentumCap / Mathf.Max(_decaySpeed, 0.0001f);
-		return new CurvePreview(referenceWorkAmount, momentumCap, normalTick, fadeStartTick, fadeEndTick);
+		return new ShortTermPreview(referenceWorkAmount, momentumCap, normalTick, fadeStartTick, fadeEndTick);
 	}
 
-	private void DrawCurveChart(Rect rect, CurvePreview preview) {
+	private void DrawShortTermChart(Rect rect, ShortTermPreview preview) {
 		Widgets.DrawBoxSolidWithOutline(rect, _chartBackground, _chartBorder);
 		var plotRect = rect.Padding(14f, 14f, 26f, 44f);
 		DrawChartGrid(plotRect);
 		float xMax = Mathf.Max(1f, preview.FadeEndTick);
 		float yMin = MinMultiplier;
 		float yMax = MaxMultiplier;
-		var prev = GetCurvePoint(0f, plotRect, preview, xMax, yMin, yMax);
+		var prev = GetShortTermPoint(0f, plotRect, preview, xMax, yMin, yMax);
 		for (var i = 1; i <= _CHART_SEGMENTS; i++) {
 			float tick = xMax * i / _CHART_SEGMENTS;
-			var current = GetCurvePoint(tick, plotRect, preview, xMax, yMin, yMax);
+			var current = GetShortTermPoint(tick, plotRect, preview, xMax, yMin, yMax);
 			Widgets.DrawLine(prev, current, _chartLine, 1.6f);
 			prev = current;
 		}
@@ -369,7 +369,7 @@ public class Settings : ModSettings {
 		DrawChartLabels(rect, plotRect);
 	}
 
-	private Vector2 GetCurvePoint(float tick, Rect plotRect, CurvePreview preview, float xMax, float yMin, float yMax) {
+	private Vector2 GetShortTermPoint(float tick, Rect plotRect, ShortTermPreview preview, float xMax, float yMin, float yMax) {
 		float momentum = tick <= preview.MomentumCap
 			? tick
 			: tick <= preview.FadeStartTick
@@ -390,23 +390,23 @@ public class Settings : ModSettings {
 		}
 	}
 
-	private void DrawPermanentPreview(Listing_Standard listing) {
+	private void DrawLongTermPreview(Listing_Standard listing) {
 		var rect = listing.GetRect(_PREVIEW_HEIGHT);
 		Widgets.DrawMenuSection(rect);
 		var inner = rect.Padding(12f);
 		var rows = inner.ToFlexbox(FlexDirection.Column, [24, 24, "1fr"], 4f, JustifyContent.SpaceBetween).ToArray();
 
 		using (new TextBlock(GameFont.Medium, TextAnchor.MiddleCenter))
-			Widgets.Label(rows[0], TranslateKey("PermanentChart.title"));
+			Widgets.Label(rows[0], TranslateKey("LongTermChart.title"));
 
-		var preview = BuildPermanentPreview();
-		DrawPreviewMetric(rows[1], 0, FormatKey("PermanentChart.neutralWork", FormatReps(preview.NeutralReps)));
-		DrawPreviewMetric(rows[1], 1, FormatKey("PermanentChart.masteryWork", FormatReps(preview.MasteryReps)));
+		var preview = BuildLongTermPreview();
+		DrawPreviewMetric(rows[1], 0, FormatKey("LongTermChart.neutralWork", FormatReps(preview.NeutralReps)));
+		DrawPreviewMetric(rows[1], 1, FormatKey("LongTermChart.masteryWork", FormatReps(preview.MasteryReps)));
 
-		DrawPermanentChart(rows[2], preview);
+		DrawLongTermChart(rows[2], preview);
 	}
 
-	private PermanentPreview BuildPermanentPreview() {
+	private LongTermPreview BuildLongTermPreview() {
 		float neutralMomentum = WorkMemoryCurve.GetMomentumForMultiplier(
 			1f,
 			WorkMemoryCurve.MIN_REFERENCE_WORK_AMOUNT,
@@ -414,28 +414,28 @@ public class Settings : ModSettings {
 			MaxMultiplier
 		);
 		float momentumCap = WorkMemoryCurve.GetMomentumCap(WorkMemoryCurve.MIN_REFERENCE_WORK_AMOUNT);
-		float ceilingMomentum = momentumCap * _permanentMaxFraction;
+		float ceilingMomentum = momentumCap * _longTermMaxFraction;
 		float neutralReps = ceilingMomentum > 0f && neutralMomentum < ceilingMomentum
 			? RepsForFraction(neutralMomentum / ceilingMomentum)
 			: -1f;
 		float masteryReps = RepsForFraction(0.9f);
-		return new PermanentPreview(neutralReps, masteryReps);
+		return new LongTermPreview(neutralReps, masteryReps);
 	}
 
 	private float RepsForFraction(float fraction) {
 		fraction = Mathf.Clamp(fraction, 0f, 0.999f);
-		return _permanentScale * (Mathf.Pow(1f - fraction, -1f / Mathf.Max(_permanentCurvature, 0.01f)) - 1f);
+		return _longTermScale * (Mathf.Pow(1f - fraction, -1f / Mathf.Max(_longTermCurvature, 0.01f)) - 1f);
 	}
 
-	private void DrawPermanentChart(Rect rect, PermanentPreview preview) {
+	private void DrawLongTermChart(Rect rect, LongTermPreview preview) {
 		Widgets.DrawBoxSolidWithOutline(rect, _chartBackground, _chartBorder);
 		var plotRect = rect.Padding(14f, 14f, 26f, 44f);
 		DrawChartGrid(plotRect);
 		float xMax = Mathf.Max(1f, preview.MasteryReps, preview.NeutralReps * 1.25f);
-		var prev = GetPermanentPoint(0f, plotRect, xMax);
+		var prev = GetLongTermPoint(0f, plotRect, xMax);
 		for (var i = 1; i <= _CHART_SEGMENTS; i++) {
 			float reps = xMax * i / _CHART_SEGMENTS;
-			var current = GetPermanentPoint(reps, plotRect, xMax);
+			var current = GetLongTermPoint(reps, plotRect, xMax);
 			Widgets.DrawLine(prev, current, _chartLine, 1.6f);
 			prev = current;
 		}
@@ -445,13 +445,13 @@ public class Settings : ModSettings {
 		DrawChartLabels(rect, plotRect);
 	}
 
-	private Vector2 GetPermanentPoint(float reps, Rect plotRect, float xMax) {
-		float momentum = WorkMemoryCurve.GetPermanentMomentum(
+	private Vector2 GetLongTermPoint(float reps, Rect plotRect, float xMax) {
+		float momentum = WorkMemoryCurve.GetLongTermMomentum(
 			reps * WorkMemoryCurve.MIN_REFERENCE_WORK_AMOUNT,
 			WorkMemoryCurve.MIN_REFERENCE_WORK_AMOUNT,
-			_permanentScale,
-			_permanentCurvature,
-			_permanentMaxFraction
+			_longTermScale,
+			_longTermCurvature,
+			_longTermMaxFraction
 		);
 		float multiplier = WorkMemoryCurve.GetMultiplier(momentum, WorkMemoryCurve.MIN_REFERENCE_WORK_AMOUNT, MinMultiplier, MaxMultiplier);
 		float x = Mathf.Lerp(plotRect.xMin, plotRect.xMax, reps / xMax);
