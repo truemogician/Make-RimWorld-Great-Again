@@ -28,21 +28,19 @@ public sealed class WorkMemoryComponent : GameComponent {
 		int now = Find.TickManager.TicksGame;
 		int pawnId = pawn.thingIDNumber;
 		float workAmount = WorkMemoryCurve.GetReferenceWorkAmount(context.Recipe);
-		float momentum = _RECIPE_WEIGHT * GetMomentum(pawnId, context.Recipe.defName, now, delta);
+		float momentum = _RECIPE_WEIGHT * GetMomentum(pawnId, context.Recipe.defName, now, delta, workAmount);
 		float totalWeight = _RECIPE_WEIGHT;
 		if (context.Product is { } product) {
-			momentum += _PRODUCT_WEIGHT * Mathf.Min(GetMomentum(pawnId, product.defName, now, delta), workAmount);
+			momentum += _PRODUCT_WEIGHT * Mathf.Min(GetMomentum(pawnId, product.defName, now, delta, workAmount), workAmount);
 			totalWeight += _PRODUCT_WEIGHT;
 		}
 		if (context.Categories.Count > 0) {
-			momentum += _CATEGORY_WEIGHT * Mathf.Min(
-				context.Categories.Average(category => GetMomentum(pawnId, category.defName, now, delta)),
-				workAmount
-			);
+			float avg = context.Categories.Average(category => GetMomentum(pawnId, category.defName, now, delta, workAmount));
+			momentum += _CATEGORY_WEIGHT * Mathf.Min(avg, workAmount);
 			totalWeight += _CATEGORY_WEIGHT;
 		}
 		if (context.Workbench is { } workbench) {
-			momentum += _WORKBENCH_WEIGHT * Mathf.Min(GetMomentum(pawnId, workbench.defName, now, delta), workAmount);
+			momentum += _WORKBENCH_WEIGHT * Mathf.Min(GetMomentum(pawnId, workbench.defName, now, delta, workAmount), workAmount);
 			totalWeight += _WORKBENCH_WEIGHT;
 		}
 		return WorkMemoryCurve.GetMultiplier(momentum / totalWeight, context.Recipe);
@@ -95,8 +93,8 @@ public sealed class WorkMemoryComponent : GameComponent {
 			_records.Remove(pawnId, key);
 	}
 
-	private float GetMomentum(int pawnId, string key, int now, int delta) =>
-		_records.TryGetValue(pawnId, key, out var record) ? record.GetMomentum(now, delta) : 0f;
+	private float GetMomentum(int pawnId, string key, int now, int delta, float referenceWorkAmount) =>
+		_records.TryGetValue(pawnId, key, out var record) ? record.GetMomentum(now, delta, referenceWorkAmount) : 0f;
 
 	private void RecordWork(int pawnId, string key, int now, int elapsedTicks, float momentumDelta, float? momentumCap) {
 		if (!_records.TryGetValue(pawnId, key, out var record)) {
@@ -154,25 +152,32 @@ public sealed class WorkMemoryRecord : IExposable {
 
 	private float _momentum;
 
+	private float _cumulativeWork;
+
 	public void ExposeData() {
 		Scribe_Values.Look(ref _lastWorkedTick, "lastWorkedTick", -1);
 		Scribe_Values.Look(ref _momentum, "momentum");
+		Scribe_Values.Look(ref _cumulativeWork, "cumulativeWork");
 	}
 
-	public float GetMomentum(int now, int delta) {
+	public float GetMomentum(int now, int delta, float referenceWorkAmount) =>
+		Mathf.Max(GetDecayingMomentum(now, delta), WorkMemoryCurve.GetPermanentMomentum(_cumulativeWork, referenceWorkAmount));
+
+	public bool IsExpired(int now) => _lastWorkedTick < 0 || (_cumulativeWork <= 0f && GetDecayingMomentum(now, 0) <= 0f);
+
+	public void RecordWork(int now, int elapsedTicks, float momentumDelta, float? momentumCap) {
+		_momentum = GetDecayingMomentum(now, elapsedTicks) + momentumDelta;
+		if (momentumCap is { } cap)
+			_momentum = Mathf.Min(cap, _momentum);
+		_cumulativeWork += momentumDelta;
+		_lastWorkedTick = now;
+	}
+
+	private float GetDecayingMomentum(int now, int delta) {
 		int gap = _lastWorkedTick < 0
 			? int.MaxValue
 			: Mathf.Max(0, now - _lastWorkedTick - delta - WorkMemoryCurve.DecayDelay);
 		return Mathf.Max(0f, _momentum - gap * WorkMemoryCurve.DecayPerTick);
-	}
-
-	public bool IsExpired(int now) => _lastWorkedTick < 0 || GetMomentum(now, 0) <= 0f;
-
-	public void RecordWork(int now, int elapsedTicks, float momentumDelta, float? momentumCap) {
-		_momentum = GetMomentum(now, elapsedTicks) + momentumDelta;
-		if (momentumCap is { } cap)
-			_momentum = Mathf.Min(cap, _momentum);
-		_lastWorkedTick = now;
 	}
 }
 
@@ -180,6 +185,10 @@ public static class WorkMemoryCurve {
 	public const float DEFAULT_PENALTY = 0.3f;
 
 	public const float DEFAULT_WARMUP_SPEED = 1f;
+
+	public const int DEFAULT_DECAY_DELAY = 1 * GenDate.TicksPerDay;
+
+	public const float DEFAULT_DECAY_SPEED = 0.25f;
 
 	public const float MIN_REFERENCE_WORK_AMOUNT = 200f;
 
@@ -189,9 +198,11 @@ public static class WorkMemoryCurve {
 
 	public const float MOMENTUM_CAP_FACTOR = 2f;
 
-	public const int DEFAULT_DECAY_DELAY = 1 * GenDate.TicksPerDay;
+	public const float PERMANENT_SCALE_FACTOR = 4f;
 
-	public const float DEFAULT_DECAY_SPEED = 0.25f;
+	public const float PERMANENT_CURVATURE = 0.5f;
+
+	public const float PERMANENT_MAX_FRACTION = 1f;
 
 	public static float MinMultiplier => Settings.Default is { } settings ? settings.MinMultiplier : 1f - DEFAULT_PENALTY;
 
@@ -234,6 +245,18 @@ public static class WorkMemoryCurve {
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static float GetMomentumCap(float referenceWorkAmount) => referenceWorkAmount * MOMENTUM_CAP_FACTOR;
+
+	/// <summary>
+	///     Non-decaying momentum floor built from lifetime cumulative work, following the power law of forgetting/practice:
+	///     <c>floor = cap * pMax * (1 - (1 + W / tau)^(-beta))</c>. Big early gains with a heavy tail toward full mastery.
+	/// </summary>
+	public static float GetPermanentMomentum(float cumulativeWork, float referenceWorkAmount) {
+		if (cumulativeWork <= 0f)
+			return 0f;
+		float tau = referenceWorkAmount * PERMANENT_SCALE_FACTOR;
+		float fraction = PERMANENT_MAX_FRACTION * (1f - Mathf.Pow(1f + cumulativeWork / tau, -PERMANENT_CURVATURE));
+		return GetMomentumCap(referenceWorkAmount) * fraction;
+	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static float GetReferenceWorkAmount(float recipeWorkAmount, float warmupSpeed) {
