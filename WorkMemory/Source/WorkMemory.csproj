@@ -8,7 +8,7 @@
 		<Authors>true_mogician</Authors>
 		<Description>Adds short-term work memory to workbench recipes. Pawns warm up as they repeat the same recipe or related work, then lose that rhythm after time away. Defaults are tuned for normal play, with a configurable curve and optional support for non-quality recipes.</Description>
 		<PackageId>TrueMogician.WorkMemory</PackageId>
-		<Version>1.1.0</Version>
+		<Version>1.2.0</Version>
 		<Title>Work Memory</Title>
 		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<RootNamespace>TrueMogician.RimWorld.WorkMemory</RootNamespace>
