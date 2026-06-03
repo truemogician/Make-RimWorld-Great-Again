@@ -27,6 +27,34 @@
 				<description>在上述延遲過後工作手感衰退的速度（相對於暖身速度的比例）。</description>
 				<slider.label>{0}x</slider.label>
 			</DecaySpeed>
+			<LongTermScale>
+				<label>固化規模</label>
+				<description>記憶變為永久所需的重複工作量，以配方基準工作量的倍數表示。數值越高，熟練所需的重複次數越多。</description>
+				<slider.label>{0}x</slider.label>
+			</LongTermScale>
+			<LongTermCurvature>
+				<label>固化曲率</label>
+				<description>決定永久記憶收益遞減的形態。數值越低，尾部越長，即早期的重複更有價值，而完全熟練的過程會變得極為緩慢。</description>
+				<slider.label>{0}</slider.label>
+			</LongTermCurvature>
+			<LongTermMaxFraction>
+				<label>永久上限</label>
+				<description>殖民者僅憑重複就能達到的最高永久速度。設為最低檔時，永久記憶層將被停用。</description>
+				<slider.label>{0}</slider.label>
+				<disabled>已停用</disabled>
+			</LongTermMaxFraction>
+			<Tab>
+				<General>一般</General>
+				<ShortTermCurve>短期曲線</ShortTermCurve>
+				<LongTermCurve>長期曲線</LongTermCurve>
+			</Tab>
+			<LongTermChart>
+				<title>長期曲線預覽</title>
+				<neutralWork>達到 100% 速度：{0}</neutralWork>
+				<masteryWork>90% 熟練：{0}</masteryWork>
+				<workFormat>{0} 次</workFormat>
+				<unreachable>永不</unreachable>
+			</LongTermChart>
 			<ShortTermChart>
 				<title>短期曲線預覽</title>
 				<workAmount>配方工作量</workAmount>

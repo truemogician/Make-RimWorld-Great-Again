@@ -27,6 +27,34 @@
 				<description>在上述延迟过后工作记忆衰退的速度（相对于预热速度的比例）。</description>
 				<slider.label>{0}x</slider.label>
 			</DecaySpeed>
+			<LongTermScale>
+				<label>固化规模</label>
+				<description>记忆变为永久所需的重复工作量，以配方基准工作量的倍数表示。数值越高，掌握所需的重复次数越多。</description>
+				<slider.label>{0}x</slider.label>
+			</LongTermScale>
+			<LongTermCurvature>
+				<label>固化曲率</label>
+				<description>决定永久记忆收益递减的形态。数值越低，尾部越长，即早期的重复更有价值，而完全掌握的过程会变得极为缓慢。</description>
+				<slider.label>{0}</slider.label>
+			</LongTermCurvature>
+			<LongTermMaxFraction>
+				<label>永久上限</label>
+				<description>小人仅凭重复就能达到的最高永久速度。设为最低档时，永久记忆层将被禁用。</description>
+				<slider.label>{0}</slider.label>
+				<disabled>已禁用</disabled>
+			</LongTermMaxFraction>
+			<Tab>
+				<General>通用</General>
+				<ShortTermCurve>短期曲线</ShortTermCurve>
+				<LongTermCurve>长期曲线</LongTermCurve>
+			</Tab>
+			<LongTermChart>
+				<title>长期曲线预览</title>
+				<neutralWork>达到 100% 速度：{0}</neutralWork>
+				<masteryWork>90% 掌握：{0}</masteryWork>
+				<workFormat>{0} 次</workFormat>
+				<unreachable>永不</unreachable>
+			</LongTermChart>
 			<ShortTermChart>
 				<title>短期曲线预览</title>
 				<workAmount>配方工作量</workAmount>

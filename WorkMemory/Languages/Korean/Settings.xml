@@ -27,6 +27,34 @@
 				<description>지연 시간이 지난 후 작업 기억이 얼마나 빨리 감소하는지 설정합니다 (예열 속도에 비례).</description>
 				<slider.label>{0}x</slider.label>
 			</DecaySpeed>
+			<LongTermScale>
+				<label>고착화 규모</label>
+				<description>기억이 영구화되기까지 필요한 반복 작업량으로, 레시피 기준 작업량의 배수로 표시됩니다. 값이 높을수록 숙달에 더 많은 반복이 필요합니다.</description>
+				<slider.label>{0}x</slider.label>
+			</LongTermScale>
+			<LongTermCurvature>
+				<label>고착화 곡률</label>
+				<description>영구 기억의 수확 체감 형태를 결정합니다. 값이 낮을수록 꼬리가 길어져, 초기 반복이 더 중요해지고 완전한 숙달에는 매우 오랜 시간이 걸립니다.</description>
+				<slider.label>{0}</slider.label>
+			</LongTermCurvature>
+			<LongTermMaxFraction>
+				<label>영구 상한</label>
+				<description>주민이 반복만으로 도달할 수 있는 최고 영구 속도입니다. 최저 단계로 설정하면 영구 기억 계층이 비활성화됩니다.</description>
+				<slider.label>{0}</slider.label>
+				<disabled>비활성화됨</disabled>
+			</LongTermMaxFraction>
+			<Tab>
+				<General>일반</General>
+				<ShortTermCurve>단기 곡선</ShortTermCurve>
+				<LongTermCurve>장기 곡선</LongTermCurve>
+			</Tab>
+			<LongTermChart>
+				<title>장기 곡선 미리보기</title>
+				<neutralWork>100% 속도 도달: {0}</neutralWork>
+				<masteryWork>90% 숙달: {0}</masteryWork>
+				<workFormat>{0}회</workFormat>
+				<unreachable>도달 불가</unreachable>
+			</LongTermChart>
 			<ShortTermChart>
 				<title>단기 곡선 미리보기</title>
 				<workAmount>레시피 작업량</workAmount>

@@ -27,6 +27,34 @@
 				<description>Определяет, как быстро забывается рабочая память после задержки (относительно скорости разминки).</description>
 				<slider.label>{0}x</slider.label>
 			</DecaySpeed>
+			<LongTermScale>
+				<label>Масштаб закрепления</label>
+				<description>Сколько повторной работы нужно, чтобы память стала постоянной, в долях от эталонного объема работы рецепта. Чем выше значение, тем больше повторений требуется для мастерства.</description>
+				<slider.label>{0}x</slider.label>
+			</LongTermScale>
+			<LongTermCurvature>
+				<label>Кривизна закрепления</label>
+				<description>Задает форму убывающей отдачи постоянной памяти. Чем ниже значение, тем длиннее «хвост»: ранние повторения значат больше, а полное мастерство достигается крайне медленно.</description>
+				<slider.label>{0}</slider.label>
+			</LongTermCurvature>
+			<LongTermMaxFraction>
+				<label>Постоянный предел</label>
+				<description>Наибольшая постоянная скорость, которую поселенец может достичь одними повторениями. На минимальном значении постоянный слой отключен.</description>
+				<slider.label>{0}</slider.label>
+				<disabled>Отключено</disabled>
+			</LongTermMaxFraction>
+			<Tab>
+				<General>Общие</General>
+				<ShortTermCurve>Кратковременная кривая</ShortTermCurve>
+				<LongTermCurve>Долговременная кривая</LongTermCurve>
+			</Tab>
+			<LongTermChart>
+				<title>Предпросмотр долговременной кривой</title>
+				<neutralWork>Скорость 100% при: {0}</neutralWork>
+				<masteryWork>90% мастерства: {0}</masteryWork>
+				<workFormat>{0} повт.</workFormat>
+				<unreachable>никогда</unreachable>
+			</LongTermChart>
 			<ShortTermChart>
 				<title>Предпросмотр кратковременной кривой</title>
 				<workAmount>Объем работы рецепта</workAmount>

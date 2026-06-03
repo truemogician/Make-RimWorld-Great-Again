@@ -27,6 +27,34 @@
 				<description>Steuert, wie schnell das Arbeitsgedächtnis nach Ablauf der Verzögerung schwindet (relativ zur Aufwärmgeschwindigkeit).</description>
 				<slider.label>{0}x</slider.label>
 			</DecaySpeed>
+			<LongTermScale>
+				<label>Festigungsumfang</label>
+				<description>Wie viel wiederholte Arbeit nötig ist, bis das Gedächtnis dauerhaft wird, als Vielfaches der Referenz-Arbeitsmenge des Rezepts. Höhere Werte bedeuten, dass Meisterschaft mehr Wiederholungen erfordert.</description>
+				<slider.label>{0}x</slider.label>
+			</LongTermScale>
+			<LongTermCurvature>
+				<label>Festigungskrümmung</label>
+				<description>Formt den abnehmenden Ertrag des dauerhaften Gedächtnisses. Niedrigere Werte ergeben einen längeren Ausläufer, bei dem frühe Wiederholungen mehr zählen und volle Meisterschaft nur sehr langsam erreicht wird.</description>
+				<slider.label>{0}</slider.label>
+			</LongTermCurvature>
+			<LongTermMaxFraction>
+				<label>Dauerhafte Obergrenze</label>
+				<description>Die höchste dauerhafte Geschwindigkeit, die ein Kolonist allein durch Wiederholung erreichen kann. Auf der niedrigsten Stufe ist die dauerhafte Ebene deaktiviert.</description>
+				<slider.label>{0}</slider.label>
+				<disabled>Deaktiviert</disabled>
+			</LongTermMaxFraction>
+			<Tab>
+				<General>Allgemein</General>
+				<ShortTermCurve>Kurzzeitkurve</ShortTermCurve>
+				<LongTermCurve>Langzeitkurve</LongTermCurve>
+			</Tab>
+			<LongTermChart>
+				<title>Vorschau der Langzeitkurve</title>
+				<neutralWork>100% Geschwindigkeit bei: {0}</neutralWork>
+				<masteryWork>90% Meisterschaft: {0}</masteryWork>
+				<workFormat>{0} Wdh.</workFormat>
+				<unreachable>nie</unreachable>
+			</LongTermChart>
 			<ShortTermChart>
 				<title>Vorschau der Kurzzeitkurve</title>
 				<workAmount>Rezept-Arbeitsmenge</workAmount>
