@@ -27,7 +27,7 @@
 				<description>지연 시간이 지난 후 작업 기억이 얼마나 빨리 감소하는지 설정합니다 (예열 속도에 비례).</description>
 				<slider.label>{0}x</slider.label>
 			</DecaySpeed>
-			<Illustration>
+			<TransientChart>
 				<title>곡선 미리보기</title>
 				<workAmount>레시피 작업량</workAmount>
 				<ticksTo100>100% 속도 도달: {0}</ticksTo100>
@@ -36,7 +36,7 @@
 				<ticksToFadeEnd>완전히 사라짐: {0}</ticksToFadeEnd>
 				<tickFormat>{0} 틱 ({1})</tickFormat>
 				<axisTickFormat>{0} 틱</axisTickFormat>
-			</Illustration>
+			</TransientChart>
 		</Settings>
 		<InspectLine>작업 기억: 속도 {0}</InspectLine>
 		<InspectPostfix>(속도 {0})</InspectPostfix>

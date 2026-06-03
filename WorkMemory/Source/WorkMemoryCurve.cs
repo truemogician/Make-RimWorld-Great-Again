@@ -22,11 +22,11 @@ public static class WorkMemoryCurve {
 
 	public const float MOMENTUM_CAP_FACTOR = 2f;
 
-	public const float PERMANENT_SCALE_FACTOR = 4f;
+	public const float DEFAULT_PERMANENT_SCALE = 4f;
 
-	public const float PERMANENT_CURVATURE = 0.5f;
+	public const float DEFAULT_PERMANENT_CURVATURE = 0.5f;
 
-	public const float PERMANENT_MAX_FRACTION = 1f;
+	public const float DEFAULT_PERMANENT_MAX_FRACTION = 1f;
 
 	public static float MinMultiplier => Settings.Default is { } settings ? settings.MinMultiplier : 1f - DEFAULT_PENALTY;
 
@@ -37,6 +37,12 @@ public static class WorkMemoryCurve {
 	public static int DecayDelay => Settings.Default is { } settings ? settings.DecayDelay : DEFAULT_DECAY_DELAY;
 
 	public static float DecayPerTick => Mathf.Max(0f, Settings.Default is { } settings ? settings.DecaySpeed : DEFAULT_DECAY_SPEED);
+
+	public static float PermanentScale => Settings.Default is { } settings ? settings.PermanentScale : DEFAULT_PERMANENT_SCALE;
+
+	public static float PermanentCurvature => Settings.Default is { } settings ? settings.PermanentCurvature : DEFAULT_PERMANENT_CURVATURE;
+
+	public static float PermanentMaxFraction => Settings.Default is { } settings ? settings.PermanentMaxFraction : DEFAULT_PERMANENT_MAX_FRACTION;
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static float GetMultiplier(float momentum, RecipeDef recipe) =>
@@ -74,11 +80,15 @@ public static class WorkMemoryCurve {
 	///     Non-decaying momentum floor built from lifetime cumulative work, following the power law of forgetting/practice:
 	///     <c>floor = cap * pMax * (1 - (1 + W / tau)^(-beta))</c>. Big early gains with a heavy tail toward full mastery.
 	/// </summary>
-	public static float GetPermanentMomentum(float cumulativeWork, float referenceWorkAmount) {
+	public static float GetPermanentMomentum(float cumulativeWork, float referenceWorkAmount) =>
+		GetPermanentMomentum(cumulativeWork, referenceWorkAmount, PermanentScale, PermanentCurvature, PermanentMaxFraction);
+
+	/// <inheritdoc cref="GetPermanentMomentum(float,float)" />
+	public static float GetPermanentMomentum(float cumulativeWork, float referenceWorkAmount, float scale, float curvature, float maxFraction) {
 		if (cumulativeWork <= 0f)
 			return 0f;
-		float tau = referenceWorkAmount * PERMANENT_SCALE_FACTOR;
-		float fraction = PERMANENT_MAX_FRACTION * (1f - Mathf.Pow(1f + cumulativeWork / tau, -PERMANENT_CURVATURE));
+		float tau = referenceWorkAmount * scale;
+		float fraction = maxFraction * (1f - Mathf.Pow(1f + cumulativeWork / tau, -curvature));
 		return GetMomentumCap(referenceWorkAmount) * fraction;
 	}
 

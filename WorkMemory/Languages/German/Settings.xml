@@ -27,7 +27,7 @@
 				<description>Steuert, wie schnell das Arbeitsgedächtnis nach Ablauf der Verzögerung schwindet (relativ zur Aufwärmgeschwindigkeit).</description>
 				<slider.label>{0}x</slider.label>
 			</DecaySpeed>
-			<Illustration>
+			<TransientChart>
 				<title>Kurvenvorschau</title>
 				<workAmount>Rezept-Arbeitsmenge</workAmount>
 				<ticksTo100>100% Geschwindigkeit: {0}</ticksTo100>
@@ -36,7 +36,7 @@
 				<ticksToFadeEnd>Vollständig geschwunden: {0}</ticksToFadeEnd>
 				<tickFormat>{0} Ticks ({1})</tickFormat>
 				<axisTickFormat>{0} Ticks</axisTickFormat>
-			</Illustration>
+			</TransientChart>
 		</Settings>
 		<InspectLine>Arbeitsgedaechtnis: {0} Geschwindigkeit</InspectLine>
 		<InspectPostfix> ({0} Geschwindigkeit)</InspectPostfix>

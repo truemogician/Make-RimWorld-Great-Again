@@ -27,7 +27,35 @@
 				<description>Controls how quickly work memory decays after the delay expires, relative to warm-up speed.</description>
 				<slider.label>{0}x</slider.label>
 			</DecaySpeed>
-			<Illustration>
+			<PermanentScale>
+				<label>Consolidation Scale</label>
+				<description>How much repeated work is needed before memory becomes permanent, as a multiple of the recipe's reference work. Higher means mastery takes more repetitions.</description>
+				<slider.label>{0}x</slider.label>
+			</PermanentScale>
+			<PermanentCurvature>
+				<label>Consolidation Curvature</label>
+				<description>Shapes the diminishing returns of permanent memory. Lower values give a heavier tail, where early repetitions count more and full mastery is approached very slowly.</description>
+				<slider.label>{0}</slider.label>
+			</PermanentCurvature>
+			<PermanentMaxFraction>
+				<label>Permanent Ceiling</label>
+				<description>The highest permanent speed a pawn can reach through repetition alone. At the lowest setting the permanent layer is disabled.</description>
+				<slider.label>{0}</slider.label>
+				<disabled>Disabled</disabled>
+			</PermanentMaxFraction>
+			<Tab>
+				<General>General</General>
+				<TransientCurve>Transient Curve</TransientCurve>
+				<PermanentCurve>Permanent Curve</PermanentCurve>
+			</Tab>
+			<PermanentChart>
+				<title>Permanent Curve Preview</title>
+				<neutralWork>Neutral at: {0}</neutralWork>
+				<masteryWork>90% mastery: {0}</masteryWork>
+				<workFormat>{0} reps</workFormat>
+				<unreachable>never</unreachable>
+			</PermanentChart>
+			<TransientChart>
 				<title>Curve Preview</title>
 				<workAmount>Recipe work amount</workAmount>
 				<ticksTo100>100% speed: {0}</ticksTo100>
@@ -36,7 +64,7 @@
 				<ticksToFadeEnd>Completely faded: {0}</ticksToFadeEnd>
 				<tickFormat>{0} ticks ({1})</tickFormat>
 				<axisTickFormat>{0} ticks</axisTickFormat>
-			</Illustration>
+			</TransientChart>
 		</Settings>
 		<InspectLine>Work memory: {0} speed</InspectLine>
 		<InspectPostfix> ({0} speed)</InspectPostfix>

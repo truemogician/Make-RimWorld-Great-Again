@@ -48,9 +48,15 @@ public class Settings : ModSettings {
 
 	private float _decaySpeed = WorkMemoryCurve.DEFAULT_DECAY_SPEED;
 
-	private Vector2 _scrollPosition;
+	private float _permanentScale = WorkMemoryCurve.DEFAULT_PERMANENT_SCALE;
 
-	private float _contentHeight = 1f;
+	private float _permanentCurvature = WorkMemoryCurve.DEFAULT_PERMANENT_CURVATURE;
+
+	private float _permanentMaxFraction = WorkMemoryCurve.DEFAULT_PERMANENT_MAX_FRACTION;
+
+	private SettingsTab _selectedTab;
+
+	private readonly List<TabRecord> _tabs = [];
 
 	private float _workAmount = 1000f;
 
@@ -62,7 +68,19 @@ public class Settings : ModSettings {
 
 	private readonly float[] _decaySpeedChoices = [0.1f, 0.2f, 0.25f, 1f / 3, 0.5f, 0.75f, 1f, 1.5f, 2f, 3f];
 
+	private readonly float[] _permanentScaleChoices = [1f, 2f, 3f, 4f, 6f, 8f, 12f, 16f, 24f, 32f];
+
+	private readonly float[] _permanentCurvatureChoices = [0.25f, 1f / 3, 0.5f, 0.75f, 1f, 1.5f, 2f];
+
+	private readonly float[] _permanentMaxFractionChoices = [0f, 0.25f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1f];
+
 	private readonly float[] _workAmountChoices = [200f, 400f, 600f, 800f, 1000f, 1500f, 2000f, 3000f, 4000f, 6000f, 8000f];
+
+	private enum SettingsTab : byte {
+		General,
+		TransientCurve,
+		PermanentCurve
+	}
 
 	private readonly record struct CurvePreview(
 		float ReferenceWorkAmount,
@@ -71,6 +89,8 @@ public class Settings : ModSettings {
 		float FadeStartTick,
 		float FadeEndTick
 	);
+
+	private readonly record struct PermanentPreview(float NeutralReps, float MasteryReps);
 
 	public static Settings Default { get; internal set; } = null!;
 
@@ -89,38 +109,35 @@ public class Settings : ModSettings {
 	[Translation]
 	public float DecaySpeed => _decaySpeed;
 
+	[Translation]
+	public float PermanentScale => _permanentScale;
+
+	[Translation]
+	public float PermanentCurvature => _permanentCurvature;
+
+	[Translation]
+	public float PermanentMaxFraction => _permanentMaxFraction;
+
 	public float MinMultiplier => 1f - _penalty;
 
 	public float MaxMultiplier => 1f + _penalty * 0.5f;
 
 	public void DrawContents(Rect inRect) {
-		var outerRect = inRect.Padding(_WINDOW_PADDING / 2, _WINDOW_PADDING);
-		var viewRect = new Rect(0f, 0f, outerRect.width - 16f, Mathf.Max(outerRect.height, _contentHeight));
-		Widgets.BeginScrollView(outerRect, ref _scrollPosition, viewRect);
+		if (_tabs.Count == 0)
+			BuildTabs();
+		var tabBase = inRect;
+		tabBase.yMin += TabDrawer.TabHeight;
+		Widgets.DrawMenuSection(tabBase);
+		TabDrawer.DrawTabs(tabBase, _tabs);
+		var contentRect = tabBase.Padding(_WINDOW_PADDING / 2, _WINDOW_PADDING);
 		var listing = new Listing_Standard { maxOneColumn = true };
-		listing.Begin(viewRect);
-		DrawCheckbox(listing, nameof(NonQualityRecipes), ref _nonQualityRecipes);
-		DrawSlider(
-			listing,
-			nameof(Penalty),
-			ref _penalty,
-			_penaltyChoices,
-			v => [v.ToStringPercent(), (v / 2).ToStringPercent()]
-		);
-		DrawSlider(listing, nameof(WarmupSpeed), ref _warmupSpeed, _warmupSpeedChoices, v => [v.ToString("0.##")]);
-		DrawSlider(
-			listing,
-			nameof(DecayDelay),
-			ref _decayDelay,
-			_decayDelayChoices,
-			v => [((float)v / GenDate.TicksPerHour).ToString("0.##")]
-		);
-		DrawSlider(listing, nameof(DecaySpeed), ref _decaySpeed, _decaySpeedChoices, v => [v.ToString("0.##")]);
-		listing.Gap(16f);
-		DrawCurvePreview(listing);
-		_contentHeight = listing.CurHeight + 8f;
+		listing.Begin(contentRect);
+		switch (_selectedTab) {
+			case SettingsTab.General:        DrawGeneralTab(listing); break;
+			case SettingsTab.TransientCurve: DrawTransientTab(listing); break;
+			case SettingsTab.PermanentCurve: DrawPermanentTab(listing); break;
+		}
 		listing.End();
-		Widgets.EndScrollView();
 	}
 
 	public override void ExposeData() {
@@ -130,6 +147,9 @@ public class Settings : ModSettings {
 		Scribe_Values.Look(ref _warmupSpeed, nameof(WarmupSpeed).ToCamelCase(), WorkMemoryCurve.DEFAULT_WARMUP_SPEED);
 		Scribe_Values.Look(ref _decayDelay, nameof(DecayDelay).ToCamelCase(), WorkMemoryCurve.DEFAULT_DECAY_DELAY);
 		Scribe_Values.Look(ref _decaySpeed, nameof(DecaySpeed).ToCamelCase(), WorkMemoryCurve.DEFAULT_DECAY_SPEED);
+		Scribe_Values.Look(ref _permanentScale, nameof(PermanentScale).ToCamelCase(), WorkMemoryCurve.DEFAULT_PERMANENT_SCALE);
+		Scribe_Values.Look(ref _permanentCurvature, nameof(PermanentCurvature).ToCamelCase(), WorkMemoryCurve.DEFAULT_PERMANENT_CURVATURE);
+		Scribe_Values.Look(ref _permanentMaxFraction, nameof(PermanentMaxFraction).ToCamelCase(), WorkMemoryCurve.DEFAULT_PERMANENT_MAX_FRACTION);
 	}
 
 	private static void DrawCheckbox(Listing_Standard listing, string memberName, ref bool value) {
@@ -163,29 +183,34 @@ public class Settings : ModSettings {
 		.ToFlexbox([Flexbox.Length.Auto, _SLIDER_LABEL_WIDTH, _SLIDER_WIDTH], 10f)
 		.ToArray();
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static string TranslateKey(string subField) => $"WorkMemory.Settings.{subField}".Translate();
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static string FormatKey(string subField, params object[] args) => string.Format(TranslateKey(subField), args);
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static string? Translate(string memberName, string? subField = null) => typeof(Settings).TranslateMember(memberName, subField);
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static string? FormatSliderLabel(string memberName, params object[] args) =>
+		Translate(memberName, "slider.label") is not { } fmt ? null : string.Format(fmt, args);
+
 	private static string FormatTicks(float ticks) {
 		int rounded = Mathf.CeilToInt(Mathf.Max(0f, ticks));
-		return FormatIllustration("tickFormat", "{0} ticks ({1})", rounded, rounded.ToStringTicksToPeriod());
+		return FormatKey("TransientChart.tickFormat", rounded, rounded.ToStringTicksToPeriod());
 	}
 
 	private static string FormatAxisTicks(float ticks) {
 		int rounded = Mathf.CeilToInt(Mathf.Max(0f, ticks));
-		return FormatIllustration("axisTickFormat", "{0} ticks", rounded);
+		return FormatKey("TransientChart.axisTickFormat", rounded);
 	}
 
-	private static string TranslateIllustration(string subField, string fallback)
-		=> $"WorkMemory.Settings.Illustration.{subField}".TryTranslate(out var translation) ? translation : fallback;
-
-	private static string FormatIllustration(string subField, string fallback, params object[] args)
-		=> string.Format(TranslateIllustration(subField, fallback), args);
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static string? Translate(string memberName, string? subField = null)
-		=> typeof(Settings).TranslateMember(memberName, subField);
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static string? FormatSliderLabel(string memberName, params object[] args)
-		=> Translate(memberName, "slider.label") is not { } fmt ? null : string.Format(fmt, args);
+	private static string FormatReps(float reps) {
+		if (reps < 0f)
+			return TranslateKey("PermanentChart.unreachable");
+		return FormatKey("PermanentChart.workFormat", Mathf.CeilToInt(Mathf.Max(0f, reps)));
+	}
 
 	private static void DrawPreviewMetric(Rect rect, int index, string label) {
 		float columnWidth = rect.width / 2f;
@@ -195,6 +220,85 @@ public class Settings : ModSettings {
 		using (new TextBlock(TextAnchor.MiddleLeft))
 			Widgets.Label(labelRect, label);
 	}
+
+	private static void DrawMilestone(Rect plotRect, float tick, float xMax, bool drawLabel = true) {
+		float x = Mathf.Lerp(plotRect.xMin, plotRect.xMax, Mathf.Clamp01(tick / xMax));
+		Widgets.DrawLine(new Vector2(x, plotRect.yMin), new Vector2(x, plotRect.yMax), _chartMarker, 0.8f);
+		if (!drawLabel)
+			return;
+		const float labelWidth = 64f;
+		float labelX = Mathf.Clamp(x - labelWidth / 2f, plotRect.xMin, plotRect.xMax - labelWidth);
+		using (new TextBlock(GameFont.Tiny, TextAnchor.UpperCenter))
+			Widgets.Label(new Rect(labelX, plotRect.yMax + 2f, labelWidth, 16f), FormatAxisTicks(tick));
+	}
+
+	private static void DrawRepsMilestone(Rect plotRect, float reps, float xMax) {
+		float x = Mathf.Lerp(plotRect.xMin, plotRect.xMax, Mathf.Clamp01(reps / xMax));
+		Widgets.DrawLine(new Vector2(x, plotRect.yMin), new Vector2(x, plotRect.yMax), _chartMarker, 0.8f);
+		const float labelWidth = 72f;
+		float labelX = Mathf.Clamp(x - labelWidth / 2f, plotRect.xMin, plotRect.xMax - labelWidth);
+		using (new TextBlock(GameFont.Tiny, TextAnchor.UpperCenter))
+			Widgets.Label(new Rect(labelX, plotRect.yMax + 2f, labelWidth, 16f), FormatReps(reps));
+	}
+
+	private void BuildTabs() {
+		foreach (SettingsTab tab in Enum.GetValues(typeof(SettingsTab))) {
+			_tabs.Add(
+				new TabRecord(
+					TranslateKey($"Tab.{tab}"),
+					() => _selectedTab = tab,
+					() => _selectedTab == tab
+				)
+			);
+		}
+	}
+
+	private void DrawGeneralTab(Listing_Standard listing) {
+		DrawCheckbox(listing, nameof(NonQualityRecipes), ref _nonQualityRecipes);
+		DrawSlider(
+			listing,
+			nameof(Penalty),
+			ref _penalty,
+			_penaltyChoices,
+			v => [v.ToStringPercent(), (v / 2).ToStringPercent()]
+		);
+	}
+
+	private void DrawTransientTab(Listing_Standard listing) {
+		DrawSlider(listing, nameof(WarmupSpeed), ref _warmupSpeed, _warmupSpeedChoices, v => [v.ToString("0.##")]);
+		DrawSlider(
+			listing,
+			nameof(DecayDelay),
+			ref _decayDelay,
+			_decayDelayChoices,
+			v => [((float)v / GenDate.TicksPerHour).ToString("0.##")]
+		);
+		DrawSlider(listing, nameof(DecaySpeed), ref _decaySpeed, _decaySpeedChoices, v => [v.ToString("0.##")]);
+		listing.Gap(16f);
+		DrawCurvePreview(listing);
+	}
+
+	private void DrawPermanentTab(Listing_Standard listing) {
+		DrawSlider(listing, nameof(PermanentScale), ref _permanentScale, _permanentScaleChoices, v => [v.ToString("0.##")]);
+		DrawSlider(listing, nameof(PermanentCurvature), ref _permanentCurvature, _permanentCurvatureChoices, v => [v.ToString("0.##")]);
+		DrawSlider(
+			listing,
+			nameof(PermanentMaxFraction),
+			ref _permanentMaxFraction,
+			_permanentMaxFractionChoices,
+			v => [v <= 0f ? TranslateKey($"{nameof(PermanentMaxFraction)}.disabled") : PermanentFractionToMultiplier(v).ToStringPercent()]
+		);
+		listing.Gap(16f);
+		DrawPermanentPreview(listing);
+	}
+
+	private float PermanentFractionToMultiplier(float fraction) =>
+		WorkMemoryCurve.GetMultiplier(
+			WorkMemoryCurve.GetMomentumCap(WorkMemoryCurve.MIN_REFERENCE_WORK_AMOUNT) * fraction,
+			WorkMemoryCurve.MIN_REFERENCE_WORK_AMOUNT,
+			MinMultiplier,
+			MaxMultiplier
+		);
 
 	private void DrawChartGrid(Rect plotRect) {
 		for (var i = 0; i <= 4; i++) {
@@ -211,37 +315,26 @@ public class Settings : ModSettings {
 		yield return plotRect.yMax;
 	}
 
-	private static void DrawMilestone(Rect plotRect, float tick, float xMax, bool drawLabel = true) {
-		float x = Mathf.Lerp(plotRect.xMin, plotRect.xMax, Mathf.Clamp01(tick / xMax));
-		Widgets.DrawLine(new Vector2(x, plotRect.yMin), new Vector2(x, plotRect.yMax), _chartMarker, 0.8f);
-		if (!drawLabel)
-			return;
-		const float labelWidth = 64f;
-		float labelX = Mathf.Clamp(x - labelWidth / 2f, plotRect.xMin, plotRect.xMax - labelWidth);
-		using (new TextBlock(GameFont.Tiny, TextAnchor.UpperCenter))
-			Widgets.Label(new Rect(labelX, plotRect.yMax + 2f, labelWidth, 16f), FormatAxisTicks(tick));
-	}
-
 	private void DrawCurvePreview(Listing_Standard listing) {
 		var rect = listing.GetRect(_PREVIEW_HEIGHT);
 		Widgets.DrawMenuSection(rect);
 		var inner = rect.Padding(12f);
-		var rows = inner.ToFlexbox(FlexDirection.Column, [24, _LINE_HEIGHT, 48, "1fr"], 0f, JustifyContent.SpaceBetween).ToArray();
+		var rows = inner.ToFlexbox(FlexDirection.Column, [24, _LINE_HEIGHT, 48, "1fr"], 4f, JustifyContent.SpaceBetween).ToArray();
 
 		using (new TextBlock(GameFont.Medium, TextAnchor.MiddleCenter))
-			Widgets.Label(rows[0], TranslateIllustration("title", "Curve Preview"));
+			Widgets.Label(rows[0], TranslateKey("TransientChart.title"));
 		var cols = rows[1].ToFlexbox([Flexbox.Length.Auto, _SLIDER_LABEL_WIDTH, _SLIDER_WIDTH], 10f).ToArray();
 		using (new TextBlock(TextAnchor.MiddleLeft))
-			Widgets.Label(cols[0], TranslateIllustration("workAmount", "Recipe work amount"));
+			Widgets.Label(cols[0], TranslateKey("TransientChart.workAmount"));
 		using (new TextBlock(TextAnchor.MiddleRight))
 			Widgets.Label(cols[1], _workAmount.ToString("F0"));
 		_workAmount = WidgetsExtension.HorizontalSlider(cols[2], _workAmount, _workAmountChoices, v => v.ToString("F0"), true, false);
 
 		var preview = BuildCurvePreview();
-		DrawPreviewMetric(rows[2], 0, FormatIllustration("ticksTo100", "100% speed: {0}", FormatTicks(preview.NormalTick)));
-		DrawPreviewMetric(rows[2], 1, FormatIllustration("ticksToMaximum", "Maximum speed: {0}", FormatTicks(preview.MomentumCap)));
-		DrawPreviewMetric(rows[2], 2, FormatIllustration("ticksToFadeStart", "Starts fading: {0}", FormatTicks(preview.FadeStartTick)));
-		DrawPreviewMetric(rows[2], 3, FormatIllustration("ticksToFadeEnd", "Completely faded: {0}", FormatTicks(preview.FadeEndTick)));
+		DrawPreviewMetric(rows[2], 0, FormatKey("TransientChart.ticksTo100", FormatTicks(preview.NormalTick)));
+		DrawPreviewMetric(rows[2], 1, FormatKey("TransientChart.ticksToMaximum", FormatTicks(preview.MomentumCap)));
+		DrawPreviewMetric(rows[2], 2, FormatKey("TransientChart.ticksToFadeStart", FormatTicks(preview.FadeStartTick)));
+		DrawPreviewMetric(rows[2], 3, FormatKey("TransientChart.ticksToFadeEnd", FormatTicks(preview.FadeEndTick)));
 
 		DrawCurveChart(rows[3], preview);
 	}
@@ -295,5 +388,74 @@ public class Settings : ModSettings {
 			Widgets.Label(new Rect(rect.x, normalY - 9f, 38f, 18f), 1f.ToStringPercent());
 			Widgets.Label(new Rect(rect.x, plotRect.yMax - 12f, 38f, 18f), MinMultiplier.ToStringPercent());
 		}
+	}
+
+	private void DrawPermanentPreview(Listing_Standard listing) {
+		var rect = listing.GetRect(_PREVIEW_HEIGHT);
+		Widgets.DrawMenuSection(rect);
+		var inner = rect.Padding(12f);
+		var rows = inner.ToFlexbox(FlexDirection.Column, [24, 24, "1fr"], 4f, JustifyContent.SpaceBetween).ToArray();
+
+		using (new TextBlock(GameFont.Medium, TextAnchor.MiddleCenter))
+			Widgets.Label(rows[0], TranslateKey("PermanentChart.title"));
+
+		var preview = BuildPermanentPreview();
+		DrawPreviewMetric(rows[1], 0, FormatKey("PermanentChart.neutralWork", FormatReps(preview.NeutralReps)));
+		DrawPreviewMetric(rows[1], 1, FormatKey("PermanentChart.masteryWork", FormatReps(preview.MasteryReps)));
+
+		DrawPermanentChart(rows[2], preview);
+	}
+
+	private PermanentPreview BuildPermanentPreview() {
+		float neutralMomentum = WorkMemoryCurve.GetMomentumForMultiplier(
+			1f,
+			WorkMemoryCurve.MIN_REFERENCE_WORK_AMOUNT,
+			MinMultiplier,
+			MaxMultiplier
+		);
+		float momentumCap = WorkMemoryCurve.GetMomentumCap(WorkMemoryCurve.MIN_REFERENCE_WORK_AMOUNT);
+		float ceilingMomentum = momentumCap * _permanentMaxFraction;
+		float neutralReps = ceilingMomentum > 0f && neutralMomentum < ceilingMomentum
+			? RepsForFraction(neutralMomentum / ceilingMomentum)
+			: -1f;
+		float masteryReps = RepsForFraction(0.9f);
+		return new PermanentPreview(neutralReps, masteryReps);
+	}
+
+	private float RepsForFraction(float fraction) {
+		fraction = Mathf.Clamp(fraction, 0f, 0.999f);
+		return _permanentScale * (Mathf.Pow(1f - fraction, -1f / Mathf.Max(_permanentCurvature, 0.01f)) - 1f);
+	}
+
+	private void DrawPermanentChart(Rect rect, PermanentPreview preview) {
+		Widgets.DrawBoxSolidWithOutline(rect, _chartBackground, _chartBorder);
+		var plotRect = rect.Padding(14f, 14f, 26f, 44f);
+		DrawChartGrid(plotRect);
+		float xMax = Mathf.Max(1f, preview.MasteryReps, preview.NeutralReps * 1.25f);
+		var prev = GetPermanentPoint(0f, plotRect, xMax);
+		for (var i = 1; i <= _CHART_SEGMENTS; i++) {
+			float reps = xMax * i / _CHART_SEGMENTS;
+			var current = GetPermanentPoint(reps, plotRect, xMax);
+			Widgets.DrawLine(prev, current, _chartLine, 1.6f);
+			prev = current;
+		}
+		if (preview.NeutralReps >= 0f)
+			DrawRepsMilestone(plotRect, preview.NeutralReps, xMax);
+		DrawRepsMilestone(plotRect, preview.MasteryReps, xMax);
+		DrawChartLabels(rect, plotRect);
+	}
+
+	private Vector2 GetPermanentPoint(float reps, Rect plotRect, float xMax) {
+		float momentum = WorkMemoryCurve.GetPermanentMomentum(
+			reps * WorkMemoryCurve.MIN_REFERENCE_WORK_AMOUNT,
+			WorkMemoryCurve.MIN_REFERENCE_WORK_AMOUNT,
+			_permanentScale,
+			_permanentCurvature,
+			_permanentMaxFraction
+		);
+		float multiplier = WorkMemoryCurve.GetMultiplier(momentum, WorkMemoryCurve.MIN_REFERENCE_WORK_AMOUNT, MinMultiplier, MaxMultiplier);
+		float x = Mathf.Lerp(plotRect.xMin, plotRect.xMax, reps / xMax);
+		float y = Mathf.Lerp(plotRect.yMax, plotRect.yMin, Mathf.InverseLerp(MinMultiplier, MaxMultiplier, multiplier));
+		return new Vector2(x, y);
 	}
 }
