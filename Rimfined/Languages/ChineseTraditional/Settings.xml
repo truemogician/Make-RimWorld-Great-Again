@@ -17,6 +17,10 @@
 				<label>仙饈樹自動收穫</label>
 				<description>仙饈樹可收穫時，會自動將其標記為收穫。</description>
 			</AmbrosiaAutoHarvest>
+			<ShipChunkAutoDeconstruct>
+				<label>飛船殘骸自動拆解</label>
+				<description>飛船殘骸（包括重力飛船墜毀殘骸）出現時，自動將其標記為拆解。</description>
+			</ShipChunkAutoDeconstruct>
 			<DelayedQuestAcceptance>
 				<label>延遲接受任務</label>
 				<description>將任務接受按鈕替換為可設定的延遲接受控制，讓任務可在稍後自動接受。</description>
@@ -25,10 +29,6 @@
 				<label>建造優先級</label>
 				<description>為玩家陣營的建造藍圖與框架新增優先級指令，讓建造者與搬運者優先處理更高優先級的建造目標。</description>
 			</ConstructionPriority>
-			<ShipChunkAutoDeconstruct>
-				<label>飛船殘骸自動拆解</label>
-				<description>飛船殘骸（包括重力飛船墜毀殘骸）出現時，自動將其標記為拆解。</description>
-			</ShipChunkAutoDeconstruct>
 			<PendingPassenger>
 				<label>待搭乘乘客</label>
 				<description>在載具乘員標籤頁中，將正在前往（或排隊等待）搭乘的人物顯示為「待搭乘」項目，並提供取消按鈕。需要載具框架（Vehicle Framework）。</description>

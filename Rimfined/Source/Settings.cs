@@ -27,11 +27,11 @@ public enum Features : ulong {
 
 	AmbrosiaAutoHarvest = 1 << 2,
 
-	DelayedQuestAcceptance = 1 << 3,
+	ShipChunkAutoDeconstruct = 1 << 3,
 
-	ConstructionPriority = 1 << 4,
+	DelayedQuestAcceptance = 1 << 4,
 
-	ShipChunkAutoDeconstruct = 1 << 5,
+	ConstructionPriority = 1 << 5,
 
 	[Feature(ModDependencies = [ModIds.VehicleFramework])]
 	PendingPassenger = 1 << 6
@@ -96,9 +96,9 @@ public class Settings : FeatureSettings<Features> {
 		AddFeaturePatches(Features.NoTarget, typeof(NoTargetPatches), typeof(NoTargetScopePatches));
 		AddFeaturePatches(Features.CaptureAsJob, typeof(CaptureAsJobPatches));
 		AddFeaturePatches(Features.AmbrosiaAutoHarvest, typeof(AmbrosiaAutoHarvestPatches));
+		AddFeaturePatches(Features.ShipChunkAutoDeconstruct, typeof(ShipChunkAutoDeconstructPatches));
 		AddFeaturePatches(Features.DelayedQuestAcceptance, typeof(DelayedQuestAcceptancePatches));
 		AddFeaturePatches(Features.ConstructionPriority, typeof(ConstructionPriorityPatches));
-		AddFeaturePatches(Features.ShipChunkAutoDeconstruct, typeof(ShipChunkAutoDeconstructPatches));
 	}
 
 	public static Settings Default { get; internal set; } = null!;

@@ -17,6 +17,10 @@
 				<label>Ambrosia auto harvest</label>
 				<description>Automatically designates ambrosia bushes for harvest when they become harvestable.</description>
 			</AmbrosiaAutoHarvest>
+			<ShipChunkAutoDeconstruct>
+				<label>Ship chunk auto deconstruct</label>
+				<description>Automatically designates ship chunks (including gravship wreckage) for deconstruction when they appear.</description>
+			</ShipChunkAutoDeconstruct>
 			<DelayedQuestAcceptance>
 				<label>Delayed quest acceptance</label>
 				<description>Replaces quest accept buttons with configurable delayed acceptance controls so offers can be accepted automatically later.</description>
@@ -25,10 +29,6 @@
 				<label>Construction priority</label>
 				<description>Adds a priority gizmo to player-owned construction blueprints and frames so builders and haulers prefer higher-priority construction targets.</description>
 			</ConstructionPriority>
-			<ShipChunkAutoDeconstruct>
-				<label>Ship chunk auto deconstruct</label>
-				<description>Automatically designates ship chunks (including gravship wreckage) for deconstruction when they appear.</description>
-			</ShipChunkAutoDeconstruct>
 			<PendingPassenger>
 				<label>Pending passenger</label>
 				<description>In the vehicle passenger tab, show pawns currently boarding (or queued to board) as pending entries with a cancel button. Requires Vehicle Framework.</description>
