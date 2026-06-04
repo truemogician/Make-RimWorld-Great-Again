@@ -18,14 +18,8 @@
 ### Build Plan Overrides
 - **Description:** Allow new build plans to override existing plans, if the buildings are of the same size and type.
 
-### Designated Creation Inspiration
-- **Description:** Allow players to specify a specific bill for a pawn with creation inspiration. The pawn will not stop before finishing any other items/buildings with quality levels (and thus waste the inspiration).
-
 ### Don't Ignore Equipped Weapons
 - **Description:** The "Drop Undefined" option for loadouts currently applies to equipped weapons as well, meaning enabling it without a weapon in the loadout will make pawns unequip their weapons. Change this behavior to only unequip weapons if there is a weapon in the loadout.
-
-### Ignore Certain Messages
-- **Description:** Allow players to middle-click on message notifications to ignore future messages of the same type.
 
 ### Auto Allowance
 - **Description:** Don't auto-ban corpses of enemies/animals or apparels and items dropped by dead enemies/neutrals. Each category can be toggled separately.
@@ -59,10 +53,16 @@
 - **Mod Requirements:** Vehicle Framework
 - **Completion Date:** 2026-05-04
 
-### Prisoner Passenger
-- **Description:** Allow prisoners to be assigned as passengers to vehicles.
-- **Mod Requirements:** Vehicle Framework
-
 ### UI Improvements
 - **Inventory Tab:** Show items equipped by pawns in a separate tab on caravan/trade UI. The original tabs only show cargo inventory.
 - **Closer Buttons:** Reorder the columns of the item list UI to move the +/- buttons closer to the title.
+
+### Job Refusal Reasons
+- **Description:** When the player wants to assign a forced job to a pawn, the vanilla game usually displays a greyed-out menu with a reason when a pawn can't perform a job. But this doesn't cover all cases. Sometimes, the menu simply doesn't show such an option without any explanation, which can be confusing for players. This feature intends to extend the vanilla job refusal reason system to cover as many cases as possible.
+
+### No Auto-Draft
+- **Description:** In vanilla, when a colonist is forcibly assigned jobs like rescuing or capturing, they will be automatically drafted, and the player need to manually undraft them after they finish the job. This feature aims to disable the auto-drafting behavior in such cases.
+
+### Out Of Ammo Alert
+- **Description:** Add a new alert, "Out of Ammo", which is triggered when a pawn's equipped weapon runs out of ammo.
+- **Mod Requirements:** Combat Extended
