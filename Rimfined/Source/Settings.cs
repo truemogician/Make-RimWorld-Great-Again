@@ -34,7 +34,10 @@ public enum Features : ulong {
 	ConstructionPriority = 1 << 5,
 
 	[Feature(ModDependencies = [ModIds.VehicleFramework])]
-	PendingPassenger = 1 << 6
+	PendingPassenger = 1 << 6,
+
+	[Feature(DefaultEnabled = false)]
+	NoCorpseAutoForbid = 1 << 7
 }
 
 [Translation("Rimfined.Settings")]
@@ -99,6 +102,7 @@ public class Settings : FeatureSettings<Features> {
 		AddFeaturePatches(Features.ShipChunkAutoDeconstruct, typeof(ShipChunkAutoDeconstructPatches));
 		AddFeaturePatches(Features.DelayedQuestAcceptance, typeof(DelayedQuestAcceptancePatches));
 		AddFeaturePatches(Features.ConstructionPriority, typeof(ConstructionPriorityPatches));
+		AddFeaturePatches(Features.NoCorpseAutoForbid, typeof(NoCorpseAutoForbidPatches));
 	}
 
 	public static Settings Default { get; internal set; } = null!;
@@ -121,6 +125,5 @@ public class Settings : FeatureSettings<Features> {
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static string? Translate(string memberName, string? subField = null)
-		=> typeof(Settings).TranslateMember(memberName, subField);
+	private static string? Translate(string memberName, string? subField = null) => typeof(Settings).TranslateMember(memberName, subField);
 }

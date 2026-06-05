@@ -33,6 +33,10 @@
 				<label>Pending passenger</label>
 				<description>In the vehicle passenger tab, show pawns currently boarding (or queued to board) as pending entries with a cancel button. Requires Vehicle Framework.</description>
 			</PendingPassenger>
+			<NoCorpseAutoForbid>
+				<label>No Corpse Auto Forbid</label>
+				<description>Prevents corpses and gear dropped when pawns die from being automatically forbidden.</description>
+			</NoCorpseAutoForbid>
 		</Features>
 		<AutoNoTargetForPrisonerRelatives>
 			<label>Include prisoner relations</label>
