@@ -21,10 +21,11 @@
 ### Don't Ignore Equipped Weapons
 - **Description:** The "Drop Undefined" option for loadouts currently applies to equipped weapons as well, meaning enabling it without a weapon in the loadout will make pawns unequip their weapons. Change this behavior to only unequip weapons if there is a weapon in the loadout.
 
-### No Corpse Auto-Forbid
+### ~~No Corpse Auto-Forbid~~
 - **Description:** Don't auto-forbid corpses of enemies/animals or apparels and items dropped by dead enemies/neutrals.
 - **Mod Compatibilty:**
   - [x] Non Uno Pinata
+- **Completion Date:** 2026-06-04
 
 ### ~~No Target~~
 - **Description:** Add a gizmo to enemy pawns to mark them as "No Target", preventing turrets and vehicles from firing at them. Enemies with relationships to colony pawns are automatically marked as "No Target".
