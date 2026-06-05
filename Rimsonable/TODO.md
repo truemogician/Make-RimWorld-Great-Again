@@ -78,3 +78,6 @@
 ### ~~Emergency Jobs Override Schedule~~
 - **Description:** Make an exception in the normal job dispatching system for emergency jobs (e.g., firefighting, rescue). The system should prioritize timely response, which means looking for the closest pawn capable of performing the job, even if they are currently on a break or sleeping, or even doing another job (allowance for interruption of the current job will be controlled by a separate toggle, which will be off by default).
 - **Completion Date:** 2026-05-26
+
+### No Prisoner Bed Propagation
+- **Description:** In vanilla game, once a bed is designated as prisoner bed, the room will be considered as a prisoner barrack, and all other beds in the room will automatically switch to prisoner beds, like a plague. This feature intends to fix that by making prisoner bed designations behave the same way as colonist beds and slave beds: only independent designations, no room-level "infection". Instead, non-prisoners sleeping in the same room with prisoners will get a mood debuff.

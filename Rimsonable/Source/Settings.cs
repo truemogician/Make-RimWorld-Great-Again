@@ -31,7 +31,9 @@ public enum Features : ulong {
 
 	BuildAtCorners = 1 << 5,
 
-	EmergencyJobOverride = 1 << 6
+	EmergencyJobOverride = 1 << 6,
+
+	NoPrisonerBedPropagation = 1 << 7
 }
 
 [Translation("Rimsonable.Settings")]
@@ -64,6 +66,7 @@ public class Settings : FeatureSettings<Features> {
 		AddFeaturePatches(Features.AutoAvoidProximityActivators, typeof(AutoAvoidProximityActivators));
 		AddFeaturePatches(Features.BuildAtCorners, typeof(BuildAtCorners));
 		AddFeaturePatches(Features.EmergencyJobOverride, typeof(EmergencyJobOverride));
+		AddFeaturePatches(Features.NoPrisonerBedPropagation, typeof(NoPrisonerBedPropagation));
 	}
 
 	public static Settings Default { get; internal set; } = null!;

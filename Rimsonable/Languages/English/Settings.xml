@@ -27,6 +27,10 @@
 				<label>Emergency Jobs Override Schedule</label>
 				<description>For emergency work (any WorkGiver flagged "[E]" — vanilla covers firefighting and urgent medical tending; mods may add more), dispatch the closest capable colonist regardless of schedule, waking them from sleep or pulling them off recreation as needed. Each emergency target is handled by at most one pawn, so the colony doesn't swarm a single fire.</description>
 			</EmergencyJobOverride>
+			<NoPrisonerBedPropagation>
+				<label>No Prisoner Bed Propagation</label>
+				<description>Marking a bed as a prisoner bed no longer converts every other bed in the same room into a prisoner bed. Each bed keeps its own designation, just like colonist and slave beds. Free colonists who sleep in a room that still holds a sleeping prisoner get a mood penalty.</description>
+			</NoPrisonerBedPropagation>
 		</Features>
 		<AutoTargetMarksOnNonHostile>
 			<label>Auto Target Artillery Markers on Non-Hostile Entities</label>
