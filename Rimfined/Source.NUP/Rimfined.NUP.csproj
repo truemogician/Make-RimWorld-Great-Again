@@ -1,0 +1,60 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net472</TargetFramework>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<Authors>true_mogician</Authors>
+		<PackageId>TrueMogician.Rimfined.NUP</PackageId>
+		<Version>0.0.1</Version>
+		<Title>Rimfined for Non Uno Pinata</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
+		<RootNamespace>TrueMogician.RimWorld.Rimfined.NUP</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ProjectRoot>$(ProjectDir)..\</ProjectRoot>
+		<DistDir>$(ProjectRoot)Dist\</DistDir>
+		<AssemblyDistDir>$(DistDir)NUP\1.6\Assemblies\</AssemblyDistDir>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="5.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ThisAssembly.AssemblyInfo" Version="2.1.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ThisAssembly.Project" Version="2.1.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<ProjectReference Include="..\Source\Rimfined.csproj" />
+		<ProjectReference Include="$(UtilityProjectPath)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="References\*.dll" />
+		<Reference Include="NonUnoPinata" HintPath="References\NonUnoPinata.dll" />
+	</ItemGroup>
+
+	<Target Name="Distribute" AfterTargets="Build">
+		<Copy SourceFiles="$(TargetPath)" DestinationFiles="$(AssemblyDistDir)$(AssemblyName).dll" />
+		<Message Importance="High" Text="Distributed $(TargetPath) -&gt; $(AssemblyDistDir)" />
+	</Target>
+
+	<Target Name="CustomClean" AfterTargets="Clean">
+		<ItemGroup>
+			<DirsToDelete Include="$(DistDir)NUP" />
+		</ItemGroup>
+		<RemoveDir Directories="@(DirsToDelete)" />
+		<Message Text="Custom files and directories cleaned" Importance="High" />
+	</Target>
+</Project>

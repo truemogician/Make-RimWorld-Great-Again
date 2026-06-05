@@ -8,7 +8,7 @@ using Verse;
 
 namespace TrueMogician.RimWorld.Rimfined.Patches;
 
-internal static class NoCorpseAutoForbidPatches {
+public static class NoCorpseAutoForbidPatches {
 	private static readonly MethodInfo _dropAllEquipment = AccessTools.Method(
 		typeof(Pawn_EquipmentTracker),
 		nameof(Pawn_EquipmentTracker.DropAllEquipment),
@@ -20,6 +20,14 @@ internal static class NoCorpseAutoForbidPatches {
 		nameof(Pawn_InventoryTracker.DropAllNearPawn),
 		[typeof(IntVec3), typeof(bool), typeof(bool)]
 	);
+
+	public static bool ReplaceTrueWithFalse(CodeInstruction inst) {
+		if (!LoadsTrue(inst))
+			return false;
+		inst.opcode = OpCodes.Ldc_I4_0;
+		inst.operand = null;
+		return true;
+	}
 
 	[HarmonyPatch(typeof(Pawn), nameof(Pawn.Kill))]
 	[HarmonyTranspiler]
@@ -58,14 +66,6 @@ internal static class NoCorpseAutoForbidPatches {
 		if (replacements != 2)
 			Helper.Logger.Error($"Expected to neutralize 2 death drop auto-forbid calls, neutralized {replacements}.");
 		return codes;
-	}
-
-	private static bool ReplaceTrueWithFalse(CodeInstruction inst) {
-		if (!LoadsTrue(inst))
-			return false;
-		inst.opcode = OpCodes.Ldc_I4_0;
-		inst.operand = null;
-		return true;
 	}
 
 	private static bool LoadsTrue(CodeInstruction inst)

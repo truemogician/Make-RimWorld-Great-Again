@@ -17,6 +17,7 @@
 	<Folder Name="/Rimfined/">
 		<Project Path="Rimfined/Source/Rimfined.csproj" />
 		<Project Path="Rimfined/Source.CE/Rimfined.CE.csproj" />
+		<Project Path="Rimfined/Source.NUP/Rimfined.NUP.csproj" />
 		<Project Path="Rimfined/Source.VF/Rimfined.VF.csproj" />
 	</Folder>
 	<Folder Name="/AnimalHaulExtended/">

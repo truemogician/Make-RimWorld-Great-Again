@@ -24,7 +24,7 @@
 ### No Corpse Auto-Forbid
 - **Description:** Don't auto-forbid corpses of enemies/animals or apparels and items dropped by dead enemies/neutrals.
 - **Mod Compatibilty:**
-  - [ ] Non Uno Pinata
+  - [x] Non Uno Pinata
 
 ### ~~No Target~~
 - **Description:** Add a gizmo to enemy pawns to mark them as "No Target", preventing turrets and vehicles from firing at them. Enemies with relationships to colony pawns are automatically marked as "No Target".
