@@ -15,11 +15,11 @@ namespace TrueMogician.RimWorld.Rimfined.Patches;
 
 [StaticConstructorOnStartup]
 internal static class NoTargetPatches {
+	internal const string TRANSLATION_KEY_PREFIX = "Rimfined.Commands.NoTarget";
+
 	internal static NoTargetMarks NoTargetPawns => CachedGameComponent<NoTargetMarks>.Component;
 
 	internal static Texture2D NoTargetIcon => field ??= ContentFinder<Texture2D>.Get("UI/Commands/NoTarget");
-
-	internal const string TRANSLATION_KEY_PREFIX = "Rimfined.Commands.NoTarget";
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	internal static bool SkipTargetFor(Pawn target, IAttackTargetSearcher? searcher) {

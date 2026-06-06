@@ -27,6 +27,8 @@ public sealed class SetConstructionPriority : Verse.Command {
 
 	public override string TopRightLabel => Manager[_target].Label().CapitalizeFirst();
 
+	private IEnumerable<Thing> Targets => _targets ?? [_target];
+
 	public override void ProcessInput(Event ev) {
 		base.ProcessInput(ev);
 		var targets = Targets.ToArray();
@@ -55,6 +57,4 @@ public sealed class SetConstructionPriority : Verse.Command {
 		_targets.AddRange(command.Targets);
 		return false;
 	}
-
-	private IEnumerable<Thing> Targets => _targets ?? [_target];
 }

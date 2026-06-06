@@ -38,6 +38,28 @@ public sealed class ConstructDeliverResourcesToConstruction : WorkGiver_Construc
 		return job!;
 	}
 
+	private static Job? NoCostFrameMakeJobFor(IConstructible c) {
+		if (c is Blueprint_Install)
+			return null;
+		if (c is not Blueprint || c.TotalMaterialCost().Count != 0)
+			return null;
+		var job = JobMaker.MakeJob(JobDefOf.PlaceNoCostFrame);
+		job.targetA = (Thing)c;
+		return job;
+	}
+
+	private static void PrioritizePrimaryDeliveryTarget(Job? job) {
+		if (job?.def != JobDefOf.HaulToContainer || job.targetC.Thing is not { } primary || job.targetB.Thing is not { } dest)
+			return;
+		if (ConstructionPriorityUtility.GetPriority(primary) <= ConstructionPriorityUtility.GetPriority(dest))
+			return;
+		job.targetQueueB ??= [];
+		job.targetQueueB.RemoveAll(target => target.Thing == primary);
+		if (dest != primary)
+			job.targetQueueB.Insert(0, dest);
+		job.targetB = primary;
+	}
+
 	private Job? JobOnFrame(Pawn pawn, Frame frame, bool forced) {
 		if (frame.Faction != pawn.Faction)
 			return null;
@@ -70,27 +92,5 @@ public sealed class ConstructDeliverResourcesToConstruction : WorkGiver_Construc
 		if (job != null)
 			return job;
 		return def.workType == WorkTypeDefOf.Hauling ? null : NoCostFrameMakeJobFor(blueprint);
-	}
-
-	private static Job? NoCostFrameMakeJobFor(IConstructible c) {
-		if (c is Blueprint_Install)
-			return null;
-		if (c is not Blueprint || c.TotalMaterialCost().Count != 0)
-			return null;
-		var job = JobMaker.MakeJob(JobDefOf.PlaceNoCostFrame);
-		job.targetA = (Thing)c;
-		return job;
-	}
-
-	private static void PrioritizePrimaryDeliveryTarget(Job? job) {
-		if (job?.def != JobDefOf.HaulToContainer || job.targetC.Thing is not { } primary || job.targetB.Thing is not { } dest)
-			return;
-		if (ConstructionPriorityUtility.GetPriority(primary) <= ConstructionPriorityUtility.GetPriority(dest))
-			return;
-		job.targetQueueB ??= [];
-		job.targetQueueB.RemoveAll(target => target.Thing == primary);
-		if (dest != primary)
-			job.targetQueueB.Insert(0, dest);
-		job.targetB = primary;
 	}
 }

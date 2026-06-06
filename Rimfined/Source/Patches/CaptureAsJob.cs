@@ -9,9 +9,9 @@ namespace TrueMogician.RimWorld.Rimfined.Patches;
 
 [StaticConstructorOnStartup]
 internal static class CaptureAsJobPatches {
-	internal static readonly Texture2D CaptureIcon = ContentFinder<Texture2D>.Get("UI/Commands/Capture");
-
 	internal const string TRANSLATION_KEY_PREFIX = "Rimfined.Commands.Capture";
+
+	internal static readonly Texture2D CaptureIcon = ContentFinder<Texture2D>.Get("UI/Commands/Capture");
 
 	[HarmonyPatch(typeof(Pawn), nameof(Pawn.GetGizmos))]
 	[HarmonyPostfix]
