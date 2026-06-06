@@ -43,6 +43,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<ProjectReference Include="$(UtilityProjectPath)" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -50,6 +51,16 @@
 		<Reference Include="SmashTools" HintPath="..\References\SmashTools.dll" Private="false" />
 		<Reference Include="Vehicles" HintPath="..\References\Vehicles.dll" Private="false" />
 	</ItemGroup>
+
+	<UsingTask TaskName="ProcessTranslations" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+		<ParameterGroup />
+		<Task>
+			<Reference Include="Microsoft.Build" />
+			<Reference Include="Microsoft.Build.Framework" />
+			<Reference Include="Microsoft.Build.Utilities.Core" />
+			<Code Type="Class" Language="cs" Source="$(UtilityTasksDir)ProcessTranslations.cs" />
+		</Task>
+	</UsingTask>
 
 	<UsingTask TaskName="BuildXml" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
 		<ParameterGroup />
@@ -87,7 +98,9 @@
 		<Copy SourceFiles="@(ModAssets)" DestinationFolder="$(DistDir)%(RecursiveDir)" SkipUnchangedFiles="true" />
 		<!-- 2. Generate About.xml -->
 		<BuildXml Template="$(ProjectRoot)Template\About.xml" Destination="$(DistDir)About\About.xml" Tokens="@(AboutToken)" />
-		<!-- 3. Copy Assemblies -->
+		<!-- 3. Process Language Files -->
+		<ProcessTranslations SourceFolder="$(ProjectRoot)Languages" DestinationFolder="$(DistDir)1.6\Languages" />
+		<!-- 4. Copy Assemblies -->
 		<Copy SourceFiles="@(Assemblies)" DestinationFolder="$(AssemblyDistDir)" SkipUnchangedFiles="true" />
 		<Message Importance="High" Text="Distributed $(TargetPath) -&gt; $(AssemblyDistDir)" />
 	</Target>

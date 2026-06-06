@@ -5,7 +5,6 @@ using CaseExtensions;
 using HarmonyLib;
 using RimWorld;
 using TrueMogician.RimWorld.Rimfined.Patches;
-using TrueMogician.RimWorld.Rimfined.Static;
 using TrueMogician.RimWorld.Utility;
 using TrueMogician.RimWorld.Utility.Attributes;
 using TrueMogician.RimWorld.Utility.Extensions;
@@ -33,11 +32,8 @@ public enum Features : ulong {
 
 	ConstructionPriority = 1 << 5,
 
-	[Feature(ModDependencies = [ModIds.VehicleFramework])]
-	PendingPassenger = 1 << 6,
-
 	[Feature(DefaultEnabled = false)]
-	NoCorpseAutoForbid = 1 << 7
+	NoCorpseAutoForbid = 1 << 6
 }
 
 [Translation("Rimfined.Settings")]

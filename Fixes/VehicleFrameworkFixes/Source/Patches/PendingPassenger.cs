@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using SmashTools;
@@ -9,10 +8,10 @@ using Verse;
 using Verse.AI;
 using Verse.Sound;
 
-namespace TrueMogician.RimWorld.Rimfined.VF.Patches;
+namespace TrueMogician.RimWorld.VehicleFrameworkFixes.Patches;
 
 internal static class PendingPassengerPatches {
-	internal const string TRANSLATION_KEY_PREFIX = "Rimfined.VF.PendingPassenger";
+	internal const string TRANSLATION_KEY_PREFIX = "VehicleFrameworkFixes.PendingPassenger";
 
 	private const float _CANCEL_BUTTON_SIZE = 24f;
 
@@ -37,10 +36,13 @@ internal static class PendingPassengerPatches {
 	) {
 		if (holder is not VehicleRoleHandler handler)
 			return;
-		foreach (var seat in GetPendingSeats(handler)) {
-			if (seat.pawn is null || pawns.Contains(seat.pawn))
+		if (GetBoardingAssignments(handler.vehicle) is not { } assignments)
+			return;
+		PurgeStaleAssignments(handler.vehicle, assignments);
+		foreach (var seat in assignments) {
+			if (seat?.handler != handler || seat.pawn is not { } pawn || pawns.Contains(pawn))
 				continue;
-			DrawPendingRow(curY, viewRect, seat.Vehicle, handler, seat.pawn);
+			DrawPendingRow(curY, viewRect, handler.vehicle, handler, pawn);
 			curY += _PAWN_ROW_HEIGHT;
 		}
 	}
@@ -50,7 +52,10 @@ internal static class PendingPassengerPatches {
 	internal static void GetSize_Postfix(float paneTopY, ref Vector2 __result) {
 		if (Find.Selector.SingleSelectedThing is not VehiclePawn vehicle)
 			return;
-		int pendingCount = vehicle.handlers.Sum(handler => GetPendingSeats(handler).Count);
+		if (GetBoardingAssignments(vehicle) is not { } assignments)
+			return;
+		PurgeStaleAssignments(vehicle, assignments);
+		int pendingCount = CountPendingSeats(vehicle, assignments);
 		if (pendingCount == 0)
 			return;
 		__result.y = Mathf.Min(
@@ -113,23 +118,35 @@ internal static class PendingPassengerPatches {
 	private static void CancelPending(VehiclePawn vehicle, VehicleRoleHandler handler, Pawn pawn) {
 		RemovePendingAssignment(vehicle, pawn, handler);
 		if (pawn.jobs is { } jobs) {
-			if (jobs.curJob is { def: var def } curJob && def == JobDefOf_Vehicles.Board && curJob.targetA.Thing == vehicle)
+			if (IsBoardJobFor(jobs.curJob, vehicle))
 				jobs.EndCurrentJob(JobCondition.InterruptForced);
-			jobs.jobQueue?.RemoveAll(pawn, job => job?.def == JobDefOf_Vehicles.Board && job.targetA.Thing == vehicle);
+			jobs.jobQueue?.RemoveAll(pawn, job => IsBoardJobFor(job, vehicle));
 		}
 		if (vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>() is { } resMgr)
 			resMgr.ReleaseAllClaimedBy(pawn);
 	}
 
-	private static List<AssignedSeat> GetPendingSeats(VehicleRoleHandler handler) {
-		var vehicle = handler.vehicle;
+	private static List<AssignedSeat>? GetBoardingAssignments(VehiclePawn? vehicle) {
 		if (vehicle is null)
-			return [];
+			return null;
 		var assignments = _boardingAssignmentsRef(vehicle);
-		if (assignments is null || assignments.Count == 0)
-			return [];
-		PurgeStaleAssignments(vehicle, assignments);
-		return assignments.Where(seat => seat?.handler == handler && seat.pawn is not null).ToList();
+		return assignments.NullOrEmpty() ? null : assignments;
+	}
+
+	private static int CountPendingSeats(VehiclePawn vehicle, List<AssignedSeat> assignments) {
+		var pendingCount = 0;
+		foreach (var handler in vehicle.handlers)
+			pendingCount += CountPendingSeats(handler, assignments);
+		return pendingCount;
+	}
+
+	private static int CountPendingSeats(VehicleRoleHandler handler, List<AssignedSeat> assignments) {
+		var pendingCount = 0;
+		foreach (var seat in assignments) {
+			if (seat?.handler == handler && seat.pawn is not null)
+				pendingCount++;
+		}
+		return pendingCount;
 	}
 
 	private static void PurgeStaleAssignments(VehiclePawn vehicle, List<AssignedSeat> assignments) {
@@ -147,9 +164,9 @@ internal static class PendingPassengerPatches {
 			return false;
 		if (pawn.jobs is not { } jobs)
 			return false;
-		if (jobs.curJob?.def == JobDefOf_Vehicles.Board && jobs.curJob.targetA.Thing == vehicle)
+		if (IsBoardJobFor(jobs.curJob, vehicle))
 			return true;
-		if (jobs.jobQueue?.Any(job => job.job?.def == JobDefOf_Vehicles.Board && job.job.targetA.Thing == vehicle) == true)
+		if (HasBoardJobQueued(jobs, vehicle))
 			return true;
 		if (vehicle.Map?.GetCachedMapComponent<VehicleReservationManager>()?.GetReservation<VehicleHandlerReservation>(vehicle)
 			is { } reservation)
@@ -157,8 +174,26 @@ internal static class PendingPassengerPatches {
 		return false;
 	}
 
+	private static bool HasBoardJobQueued(Pawn_JobTracker jobs, VehiclePawn vehicle) {
+		if (jobs.jobQueue is not { } jobQueue)
+			return false;
+		foreach (var job in jobQueue) {
+			if (IsBoardJobFor(job.job, vehicle))
+				return true;
+		}
+		return false;
+	}
+
+	private static bool IsBoardJobFor(Job? job, VehiclePawn vehicle)
+		=> job?.def == JobDefOf_Vehicles.Board && job.targetA.Thing == vehicle;
+
 	private static void RemovePendingAssignment(VehiclePawn vehicle, Pawn pawn, VehicleRoleHandler? handler = null) {
-		var assignments = _boardingAssignmentsRef(vehicle);
-		assignments?.RemoveAll(seat => seat?.pawn == pawn && (handler is null || seat.handler == handler));
+		if (GetBoardingAssignments(vehicle) is not { } assignments)
+			return;
+		for (int i = assignments.Count - 1; i >= 0; i--) {
+			var seat = assignments[i];
+			if (seat?.pawn == pawn && (handler is null || seat.handler == handler))
+				assignments.RemoveAt(i);
+		}
 	}
 }

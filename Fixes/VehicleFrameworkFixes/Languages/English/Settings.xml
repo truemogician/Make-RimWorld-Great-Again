@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<VehicleFrameworkFixes.Settings>
+		<Features>
+			<PendingPassenger>
+				<label>Pending passenger</label>
+				<description>In the vehicle passenger tab, show pawns currently boarding (or queued to board) as pending entries with a cancel button.</description>
+			</PendingPassenger>
+		</Features>
+	</VehicleFrameworkFixes.Settings>
+	<VehicleFrameworkFixes.PendingPassenger>
+		<statusLabel>Pending</statusLabel>
+		<rowTooltip>{0} is on their way to board {1}.</rowTooltip>
+		<cancelTooltip>Cancel boarding for {0}.</cancelTooltip>
+	</VehicleFrameworkFixes.PendingPassenger>
+</LanguageData>

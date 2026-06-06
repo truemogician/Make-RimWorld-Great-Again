@@ -29,10 +29,6 @@
 				<label>建造优先级</label>
 				<description>为玩家阵营的建造蓝图和框架添加优先级指令，让建造者和搬运者优先处理更高优先级的建造目标。</description>
 			</ConstructionPriority>
-			<PendingPassenger>
-				<label>待搭乘乘客</label>
-				<description>在载具乘员标签页中，将正在前往（或排队等待）搭乘的角色显示为“待搭乘”条目，并提供取消按钮。需要载具框架（Vehicle Framework）。</description>
-			</PendingPassenger>
 		</Features>
 		<AutoNoTargetForPrisonerRelatives>
 			<label>包含囚犯关系</label>
@@ -112,9 +108,4 @@
 			<CanceledInvalid>已取消 {0} 的延迟接受：所选奖励已不可用。</CanceledInvalid>
 		</Messages>
 	</Rimfined.DelayedQuestAcceptance>
-	<Rimfined.VF.PendingPassenger>
-		<statusLabel>待搭乘</statusLabel>
-		<rowTooltip>{0} 正在前往搭乘 {1}。</rowTooltip>
-		<cancelTooltip>取消 {0} 的搭乘任务。</cancelTooltip>
-	</Rimfined.VF.PendingPassenger>
 </LanguageData>

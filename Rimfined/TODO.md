@@ -51,11 +51,6 @@
 - **Description:** Add a button in the quest dialog to set the time to accept the quest. When clicked, it should show a list of time options (e.g. 1 day, 3 days, 1 week, right before expiration) and a "Cancel" button. The quest will be automatically accepted after the selected time has passed, or can be accepted manually before that.
 - **Completion Date:** 2026-04-24
 
-### ~~Pending Passenger~~
-- **Description:** Show pawns entering a vehicle on the passenger list with a "pending" status, and a "cancel" button next to it.
-- **Mod Requirements:** Vehicle Framework
-- **Completion Date:** 2026-05-04
-
 ### UI Improvements
 - **Inventory Tab:** Show items equipped by pawns in a separate tab on caravan/trade UI. The original tabs only show cargo inventory.
 - **Closer Buttons:** Reorder the columns of the item list UI to move the +/- buttons closer to the title.
