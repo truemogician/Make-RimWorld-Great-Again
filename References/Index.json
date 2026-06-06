@@ -1,0 +1,62 @@
+{
+	"ColonyGroups": {
+		"Id": 2345493945,
+		"Assemblies": [
+			"1.6/Assemblies/*"
+		]
+	},
+	"CombatExtended": {
+		"Id": 2890901044,
+		"Assemblies": [
+			"Assemblies/*"
+		]
+	},
+	"NonUnoPinata": {
+		"Id": 1778821244,
+		"Assemblies": [
+			"1.6/Assemblies/*"
+		]
+	},
+	"PickUpAndHaul": {
+		"Id": 1279012058,
+		"Assemblies": [
+			"1.6/Assemblies/*"
+		]
+	},
+	"RimHUD": {
+		"Id": 1508850027,
+		"Assemblies": [
+			"Assemblies/*"
+		]
+	},
+	"SaveStorageSettings": {
+		"Id": 3222246658,
+		"Assemblies": [
+			"1.6/Assemblies/*"
+		]
+	},
+	"StorageRefillHysteresis": {
+		"Id": 3273463237,
+		"Assemblies": [
+			"1.6/Assemblies/*"
+		]
+	},
+	"UsefulMarks": {
+		"Id": 3506573327,
+		"Assemblies": [
+			"1.6/Assemblies/*"
+		]
+	},
+	"VanillaExpandedFramework": {
+		"Id": 2023507013,
+		"Assemblies": [
+			"1.6/Assemblies/*"
+		]
+	},
+	"VehicleFramework": {
+		"Id": 3014915404,
+		"Assemblies": [
+			"1.6/Assemblies/*"
+		]
+	}
+}

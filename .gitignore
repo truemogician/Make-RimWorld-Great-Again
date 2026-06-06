@@ -16,3 +16,5 @@ Directory.Build.user.props
 *.dll
 *.pdb
 *.log
+
+!/References/**/*

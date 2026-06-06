@@ -1,6 +1,7 @@
 <Project>
 	<PropertyGroup>
 		<RepositoryRoot>$([MSBuild]::EnsureTrailingSlash('$(MSBuildThisFileDirectory)'))</RepositoryRoot>
+		<ReferenceDir>$(RepositoryRoot)References\</ReferenceDir>
 		<SolutionDir Condition="'$(SolutionDir)' == ''">$(RepositoryRoot)</SolutionDir>
 		<UtilityProjectPath>$(RepositoryRoot)Utility\Utility.csproj</UtilityProjectPath>
 		<UtilityTasksDir>$(RepositoryRoot)Utility\Tasks\</UtilityTasksDir>

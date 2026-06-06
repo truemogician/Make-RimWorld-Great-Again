@@ -1,0 +1,16 @@
+<Project>
+	<PropertyGroup>
+		<RefreshReferencesOnBuild Condition="'$(RefreshReferencesOnBuild)' == ''">true</RefreshReferencesOnBuild>
+		<WorkshopReferenceRoot Condition="'$(WorkshopReferenceRoot)' == '' and Exists('$(RepositoryRoot)Knowledge Base\Steam Workshop')">$(RepositoryRoot)Knowledge Base\Steam Workshop</WorkshopReferenceRoot>
+	</PropertyGroup>
+
+	<Target Name="RefreshWorkshopReferences" BeforeTargets="ResolveReferences" Condition="'$(RefreshReferencesOnBuild)' == 'true' and '$(WorkshopReferenceRoot)' != ''">
+		<ItemGroup>
+			<_WorkshopReference Include="@(Reference)" Condition="'%(Reference.HintPath)' != '' and $([System.String]::Copy('%(Reference.HintPath)').StartsWith('$(ReferenceDir)'))" />
+		</ItemGroup>
+
+		<Exec
+			Condition="'@(_WorkshopReference)' != ''"
+			Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(RepositoryRoot)Scripts\Build-References.ps1&quot; &quot;$(WorkshopReferenceRoot)&quot; -AllowMissing" />
+	</Target>
+</Project>
