@@ -45,8 +45,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Remove="References\*.dll" />
-		<Reference Include="SaveStorageSettings" HintPath="References\SaveStorageSettings.dll" Private="false" />
+		<Reference Include="SaveStorageSettings" HintPath="$(ReferenceDir)SaveStorageSettings\SaveStorageSettings.dll" Private="false" />
 	</ItemGroup>
 
 	<Target Name="Distribute" AfterTargets="Build">

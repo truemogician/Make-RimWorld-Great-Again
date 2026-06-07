@@ -45,8 +45,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Remove="References\*.dll" />
-		<Reference Include="StorageRefillHysteresis" HintPath="References\StorageRefillHysteresis.dll" Private="false" />
+		<Reference Include="StorageRefillHysteresis" HintPath="$(ReferenceDir)StorageRefillHysteresis\StorageRefillHysteresis.dll" Private="false" />
 	</ItemGroup>
 
 	<Target Name="Distribute" AfterTargets="Build">

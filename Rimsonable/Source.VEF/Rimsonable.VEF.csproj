@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net472</TargetFramework>
@@ -41,8 +41,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Remove="References\*.dll" />
-		<Reference Include="VEF" HintPath="References\VEF.dll" />
+		<Reference Include="VEF" HintPath="$(ReferenceDir)VanillaExpandedFramework\VEF.dll" />
 	</ItemGroup>
 
 	<Target Name="Distribute" AfterTargets="Build">

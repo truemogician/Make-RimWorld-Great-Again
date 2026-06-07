@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net48</TargetFramework>
@@ -41,9 +41,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Remove="References\*.dll" />
-		<Reference Include="Vehicles" HintPath="References\Vehicles.dll" />
-		<Reference Include="SmashTools" HintPath="References\SmashTools.dll" />
+		<Reference Include="Vehicles" HintPath="$(ReferenceDir)VehicleFramework\Vehicles.dll" />
+		<Reference Include="SmashTools" HintPath="$(ReferenceDir)VehicleFramework\SmashTools.dll" />
 	</ItemGroup>
 
 	<Target Name="Distribute" AfterTargets="Build">

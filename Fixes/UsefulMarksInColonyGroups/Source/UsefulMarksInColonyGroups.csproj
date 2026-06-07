@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net48</TargetFramework>
@@ -46,12 +46,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Remove="..\References\**\*.dll" />
-		<Reference Include="CompatUtils" HintPath="..\References\ColonyGroups\CompatUtils.dll" Private="false" />
-		<Reference Include="0MultiplayerAPI" HintPath="..\References\UsefulMarks\0MultiplayerAPI.dll" Private="false" />
-		<Reference Include="FloatSubMenu" HintPath="..\References\UsefulMarks\FloatSubMenu.dll" Private="false" />
-		<Reference Include="TacticalGroups" HintPath="..\References\ColonyGroups\TacticalGroups.dll" Private="false" />
-		<Reference Include="UsefulColonistBar" HintPath="..\References\UsefulMarks\UsefulColonistBar.dll" Private="false" />
+		<Reference Include="CompatUtils" HintPath="$(ReferenceDir)ColonyGroups\CompatUtils.dll" Private="false" />
+		<Reference Include="0MultiplayerAPI" HintPath="$(ReferenceDir)UsefulMarks\0MultiplayerAPI.dll" Private="false" />
+		<Reference Include="FloatSubMenu" HintPath="$(ReferenceDir)UsefulMarks\FloatSubMenu.dll" Private="false" />
+		<Reference Include="TacticalGroups" HintPath="$(ReferenceDir)ColonyGroups\TacticalGroups.dll" Private="false" />
+		<Reference Include="UsefulColonistBar" HintPath="$(ReferenceDir)UsefulMarks\UsefulColonistBar.dll" Private="false" />
 	</ItemGroup>
 
 	<UsingTask TaskName="BuildXml" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">

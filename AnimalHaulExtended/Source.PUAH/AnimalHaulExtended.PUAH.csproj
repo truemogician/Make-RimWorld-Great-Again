@@ -45,9 +45,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Remove="References\*.dll" />
-		<Reference Include="IHoldMultipleThings" HintPath="References\IHoldMultipleThings.dll" Private="false" />
-		<Reference Include="PickUpAndHaul" HintPath="References\PickUpAndHaul.dll" Private="false" />
+		<Reference Include="IHoldMultipleThings" HintPath="$(ReferenceDir)PickUpAndHaul\IHoldMultipleThings.dll" Private="false" />
+		<Reference Include="PickUpAndHaul" HintPath="$(ReferenceDir)PickUpAndHaul\PickUpAndHaul.dll" Private="false" />
 	</ItemGroup>
 
 	<Target Name="Distribute" AfterTargets="Build">
