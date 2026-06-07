@@ -34,6 +34,7 @@
 	</Folder>
 	<Folder Name="/Fixes/VehicleFrameworkFixes/">
 		<Project Path="Fixes/VehicleFrameworkFixes/Source/VehicleFrameworkFixes.csproj" />
+		<Project Path="Fixes/VehicleFrameworkFixes/Source.CG/VehicleFrameworkFixes.CG.csproj" />
 	</Folder>
 	<Project Path="Utility/Utility.csproj" Id="9535d14c-5dda-4c64-8651-ac260e5e792a" />
 </Solution>
