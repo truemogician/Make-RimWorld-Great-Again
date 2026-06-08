@@ -31,6 +31,10 @@
 				<label>No Prisoner Bed Propagation</label>
 				<description>Marking a bed as a prisoner bed no longer converts every other bed in the same room into a prisoner bed. Each bed keeps its own designation, just like colonist and slave beds. Free colonists who sleep in a room that still holds a sleeping prisoner get a mood penalty.</description>
 			</NoPrisonerBedPropagation>
+			<IngredientAwareNutrientPastePolicies>
+				<label>Ingredient-Aware Nutrient Paste Policies</label>
+				<description>Pawns respect ingredient-based food policy restrictions when choosing nutrient paste from dispensers, avoiding paste that would be made from forbidden feedstock such as human meat.</description>
+			</IngredientAwareNutrientPastePolicies>
 		</Features>
 		<AutoTargetMarksOnNonHostile>
 			<label>Auto Target Artillery Markers on Non-Hostile Entities</label>

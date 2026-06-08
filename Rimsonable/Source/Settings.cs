@@ -33,7 +33,9 @@ public enum Features : ulong {
 
 	EmergencyJobOverride = 1 << 6,
 
-	NoPrisonerBedPropagation = 1 << 7
+	NoPrisonerBedPropagation = 1 << 7,
+
+	IngredientAwareNutrientPastePolicies = 1 << 8
 }
 
 [Translation("Rimsonable.Settings")]
@@ -67,6 +69,7 @@ public class Settings : FeatureSettings<Features> {
 		AddFeaturePatches(Features.BuildAtCorners, typeof(BuildAtCorners));
 		AddFeaturePatches(Features.EmergencyJobOverride, typeof(EmergencyJobOverride));
 		AddFeaturePatches(Features.NoPrisonerBedPropagation, typeof(NoPrisonerBedPropagation));
+		AddFeaturePatches(Features.IngredientAwareNutrientPastePolicies, typeof(IngredientAwareNutrientPastePolicies));
 	}
 
 	public static Settings Default { get; internal set; } = null!;
