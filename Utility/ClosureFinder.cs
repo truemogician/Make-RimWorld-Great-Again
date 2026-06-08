@@ -29,42 +29,50 @@ public abstract class ClosureFinder {
 }
 
 public class AssignmentClosureFinder : ClosureFinder {
-	private readonly MemberInfo _target;
+	private readonly Predicate<MemberInfo> _predicate;
 
-	public AssignmentClosureFinder(MemberInfo target) => _target = target;
+	public AssignmentClosureFinder(MemberInfo target) => _predicate = member => member == target;
+
+	public AssignmentClosureFinder(Predicate<MemberInfo> predicate) => _predicate = predicate;
 
 	public AssignmentClosureFinder(Type targetType, string targetName) {
 		if (AccessTools.Field(targetType, targetName) is { } field)
-			_target = field;
+			_predicate = member => member == field;
 		else if (AccessTools.Property(targetType, targetName) is { } property)
-			_target = property;
+			_predicate = member => member == property;
 		else
 			throw new ArgumentException($"No field or property named {targetName} found in {targetType}");
 	}
 
 	public override IEnumerable<MethodBase> FindClosures(IReadOnlyList<CodeInstruction> insts) {
-		switch (_target) {
-			case FieldInfo field: {
-				for (var i = 0; i < insts.Count; i++) {
-					if (!insts[i].StoresField(field))
-						continue;
-					if (ClosureFinderUtility.TryExtractClosure(insts, i - 1, out var closure))
-						yield return closure;
-				}
-				yield break;
-			}
-			case PropertyInfo property: {
-				var setter = property.GetSetMethod(true) ?? throw new ArgumentException($"Property {_target.Name} does not have a setter.");
-				for (var i = 0; i < insts.Count; i++) {
-					if (!insts[i].Calls(setter))
-						continue;
-					if (ClosureFinderUtility.TryExtractClosure(insts, i - 1, out var closure))
-						yield return closure;
-				}
-				yield break;
-			}
-			default: throw new ArgumentException($"Unsupported target member type: {_target.GetType().Name}");
+		for (var i = 0; i < insts.Count; i++) {
+			if (!TryGetAssignedMember(insts[i], out var member) || !_predicate(member))
+				continue;
+			if (ClosureFinderUtility.TryExtractClosure(insts, i - 1, out var closure))
+				yield return closure;
 		}
+	}
+
+	private static bool TryGetAssignedMember(CodeInstruction inst, out MemberInfo member) {
+		if (inst.operand is FieldInfo field && inst.StoresField(field)) {
+			member = field;
+			return true;
+		}
+		if (inst.operand is MethodInfo method && TryGetPropertyFromSetter(method, out var property)) {
+			member = property;
+			return true;
+		}
+		member = null!;
+		return false;
+	}
+
+	private static bool TryGetPropertyFromSetter(MethodInfo method, out PropertyInfo property) {
+		property = null!;
+		if (!method.IsSpecialName || !method.Name.StartsWith("set_", StringComparison.Ordinal) || method.DeclaringType is null)
+			return false;
+		var propertyName = method.Name[4..];
+		property = AccessTools.Property(method.DeclaringType, propertyName);
+		return property?.GetSetMethod(true) == method;
 	}
 }
 
@@ -139,7 +147,10 @@ internal static class ClosureFinderUtility {
 	public static bool TryExtractClosure(IReadOnlyList<CodeInstruction> insts, int endIndex, int lowerBound, out MethodBase closure) {
 		closure = null!;
 		int ctorIndex = FindPreviousNonNopInstruction(insts, endIndex, lowerBound);
-		if (ctorIndex < lowerBound || insts[ctorIndex].opcode != OpCodes.Newobj || insts[ctorIndex].operand is not ConstructorInfo ctor || !IsDelegateConstructor(ctor))
+		if (ctorIndex < lowerBound
+			|| insts[ctorIndex].opcode != OpCodes.Newobj
+			|| insts[ctorIndex].operand is not ConstructorInfo ctor
+			|| !IsDelegateConstructor(ctor))
 			return false;
 		int ldftnIndex = FindPreviousNonNopInstruction(insts, ctorIndex - 1, lowerBound);
 		if (ldftnIndex < lowerBound)
@@ -180,20 +191,37 @@ internal static class ClosureFinderUtility {
 	private static bool IsDelegateConstructor(ConstructorInfo ctor) => typeof(Delegate).IsAssignableFrom(ctor.DeclaringType);
 
 	private static int GetPopCount(CodeInstruction inst) => inst.opcode.StackBehaviourPop switch {
-		StackBehaviour.Pop0 => 0,
+		StackBehaviour.Pop0                                                 => 0,
 		StackBehaviour.Pop1 or StackBehaviour.Popi or StackBehaviour.Popref => 1,
-		StackBehaviour.Pop1_pop1 or StackBehaviour.Popi_pop1 or StackBehaviour.Popi_popi or StackBehaviour.Popi_popi8 or StackBehaviour.Popi_popr4 or StackBehaviour.Popi_popr8 or StackBehaviour.Popref_pop1 or StackBehaviour.Popref_popi => 2,
-		StackBehaviour.Popi_popi_popi or StackBehaviour.Popref_popi_popi or StackBehaviour.Popref_popi_popi8 or StackBehaviour.Popref_popi_popr4 or StackBehaviour.Popref_popi_popr8 or StackBehaviour.Popref_popi_popref => 3,
+		StackBehaviour.Pop1_pop1
+			or StackBehaviour.Popi_pop1
+			or StackBehaviour.Popi_popi
+			or StackBehaviour.Popi_popi8
+			or StackBehaviour.Popi_popr4
+			or StackBehaviour.Popi_popr8
+			or StackBehaviour.Popref_pop1
+			or StackBehaviour.Popref_popi => 2,
+		StackBehaviour.Popi_popi_popi
+			or StackBehaviour.Popref_popi_popi
+			or StackBehaviour.Popref_popi_popi8
+			or StackBehaviour.Popref_popi_popr4
+			or StackBehaviour.Popref_popi_popr8
+			or StackBehaviour.Popref_popi_popref => 3,
 		StackBehaviour.Varpop => GetVariablePopCount(inst),
-		_ => throw new NotSupportedException($"Unsupported pop behavior {inst.opcode.StackBehaviourPop} for {inst}")
+		_                     => throw new NotSupportedException($"Unsupported pop behavior {inst.opcode.StackBehaviourPop} for {inst}")
 	};
 
 	private static int GetPushCount(CodeInstruction inst) => inst.opcode.StackBehaviourPush switch {
 		StackBehaviour.Push0 => 0,
-		StackBehaviour.Push1 or StackBehaviour.Pushi or StackBehaviour.Pushi8 or StackBehaviour.Pushr4 or StackBehaviour.Pushr8 or StackBehaviour.Pushref => 1,
+		StackBehaviour.Push1
+			or StackBehaviour.Pushi
+			or StackBehaviour.Pushi8
+			or StackBehaviour.Pushr4
+			or StackBehaviour.Pushr8
+			or StackBehaviour.Pushref => 1,
 		StackBehaviour.Push1_push1 => 2,
-		StackBehaviour.Varpush => GetVariablePushCount(inst),
-		_ => throw new NotSupportedException($"Unsupported push behavior {inst.opcode.StackBehaviourPush} for {inst}")
+		StackBehaviour.Varpush     => GetVariablePushCount(inst),
+		_                          => throw new NotSupportedException($"Unsupported push behavior {inst.opcode.StackBehaviourPush} for {inst}")
 	};
 
 	private static int GetVariablePopCount(CodeInstruction inst) {
