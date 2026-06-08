@@ -53,6 +53,12 @@
 			"1.6/Assemblies/*"
 		]
 	},
+	"VanillaNutrientPasteExpanded": {
+		"Id": 2920385763,
+		"Assemblies": [
+			"1.6/Assemblies/*"
+		]
+	},
 	"VehicleFramework": {
 		"Id": 3014915404,
 		"Assemblies": [
