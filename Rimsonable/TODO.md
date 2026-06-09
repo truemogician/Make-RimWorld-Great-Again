@@ -83,5 +83,6 @@
 - **Description:** In vanilla game, once a bed is designated as prisoner bed, the room will be considered as a prisoner barrack, and all other beds in the room will automatically switch to prisoner beds, like a plague. This feature intends to fix that by making prisoner bed designations behave the same way as colonist beds and slave beds: only independent designations, no room-level "infection". Instead, non-prisoners sleeping in the same room with prisoners will get a mood debuff.
 - **Completion Date:** 2026-06-04
 
-### Ingredient-Aware Nutrient Paste Policies
+### ~~Ingredient-Aware Nutrient Paste Policies~~
 - **Description:** Pawns should respect ingredient-based food policy restrictions when choosing nutrient paste from dispensers.
+- **Completion Date:** 2026-06-08
