@@ -1,7 +1,3 @@
-# CLAUDE.md
-
-This file provides guidance to LLM code agents when working with code in this repository.
-
 ## Project Overview
 
 Rimsonable is a RimWorld mod that overhauls various game mechanics to be more realistic/reasonable. Each feature is individually toggleable in mod settings. The mod has optional compatibility modules for Combat Extended and Vanilla Expanded Framework.

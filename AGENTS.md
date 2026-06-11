@@ -73,22 +73,23 @@ Use existing utility pieces when they fit naturally:
 
 ## Knowledge Base Policy
 
-`Knowledge Base/` is Git-ignored but safe to read and is the primary RimWorld reference corpus.
+`Knowledge Base/` is a Git-ignored symlink, safe to read, and is the primary RimWorld reference corpus.
 
-- `Knowledge Base/Decompiled` and `Knowledge Base/Definition`: authoritative vanilla RimWorld 1.6 API and behavior reference.
-- `Knowledge Base/Mod Repository`: reference implementations from mods such as Combat Extended and Vehicle Framework.
-- `Knowledge Base/Steam Workshop`: locally installed workshop mods for behavior comparisons and compatibility research.
+- `Knowledge Base/RimWorld`: authoritative vanilla RimWorld 1.6 C# API and behavior reference.
+- `Knowledge Base/RimWorld/Public`: authoritative vanilla XML definitions and language files. Vanilla language files live under `Knowledge Base/RimWorld/Public/*/Languages`.
+- `Knowledge Base/Mods`: reference implementations from mods such as Combat Extended and Vehicle Framework.
+- `Knowledge Base/Workshop`: locally installed workshop mods for behavior comparisons and compatibility research.
 
-Always consult `Knowledge Base/Decompiled` or `Knowledge Base/Definition` before implementing patches or reasoning about vanilla game types.
+Always consult `Knowledge Base/RimWorld` or `Knowledge Base/RimWorld/Public` before implementing patches or reasoning about vanilla game types.
 
 ### Decompiled Source Rule
 
 - Never run decompilers on RimWorld DLLs or assemblies under `RimWorld/` to inspect vanilla game code.
-- Use `Knowledge Base/Decompiled` instead; it is curated, authoritative, and has better semantics than fresh decompiler output.
+- Use `Knowledge Base/RimWorld` instead; it is curated, authoritative, and has better semantics than fresh decompiler output.
 - Do not invoke ILSpy, dnSpy, dotPeek, command-line decompilers, IDE decompiler views, or scripts that regenerate decompiled C# for RimWorld assemblies.
-- This prohibition still applies when context about `Knowledge Base/` was missed. There is no fallback decompilation path for vanilla code because it is fully available under `Knowledge Base/Decompiled`.
+- This prohibition still applies when context about `Knowledge Base/` was missed. There is no fallback decompilation path for vanilla code because it is fully available under `Knowledge Base/RimWorld`.
 - Missing-source scenarios usually involve integration or dependency mods, not vanilla RimWorld. If needed third-party mod source is missing or incomplete, ask the user with the built-in question tool when available; otherwise stop the iteration and explicitly state which mod source, type, or member is missing.
-- If vanilla API or behavior is needed, search `Knowledge Base/Decompiled` and `Knowledge Base/Definition` first. Re-decompiling the same DLLs wastes time and can reduce accuracy.
+- If vanilla API or behavior is needed, search `Knowledge Base/RimWorld` and `Knowledge Base/RimWorld/Public` first. Re-decompiling the same DLLs wastes time and can reduce accuracy.
 
 ## Agent Configuration
 
