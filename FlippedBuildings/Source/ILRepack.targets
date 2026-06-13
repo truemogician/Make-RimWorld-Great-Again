@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Target Name="Merge" AfterTargets="Distribute">
+		<ItemGroup>
+			<!-- ILRepack treats the first assembly as the primary assembly -->
+			<InputAssemblies Include="$(TargetPath)" />
+		</ItemGroup>
+		<ILRepack
+			Parallel="true"
+			DebugInfo="true"
+			Internalize="true"
+			LibraryPath="$(TargetDir);$(GameDir)\RimWorldWin64_Data\Managed"
+			InputAssemblies="@(InputAssemblies)"
+			TargetKind="Dll"
+			OutputFile="$(AssemblyDistDir)$(AssemblyName).dll" />
+	</Target>
+</Project>

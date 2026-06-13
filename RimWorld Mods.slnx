@@ -35,6 +35,7 @@
 		<Project Path="WorkMemory/Source.RimHUD/WorkMemory.RimHUD.csproj" />
 	</Folder>
 	<Project Path="RemedialAlgorithms/RemedialAlgorithms.csproj" />
+	<Project Path="FlippedBuildings/Source/FlippedBuildings.csproj" />
 	<Project Path="PriorityLoadController/Source/PriorityLoadController.csproj" />
 	<Project Path="Profiler/Profiler.csproj" Id="fa15e426-6d12-41e0-88ea-761a050ed5c1" />
 	<Project Path="Utility/Utility.csproj" Id="9535d14c-5dda-4c64-8651-ac260e5e792a" />
