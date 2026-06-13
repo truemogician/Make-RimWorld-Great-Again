@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<FlippedBuildings>
+		<Title>Flipped Buildings</Title>
+		<Flip>Flip</Flip>
+		<FlipTip>Flip the building horizontally ({0}).</FlipTip>
+		<FlippedLabel>{0} (flipped)</FlippedLabel>
+		<Settings>
+			<Master>Enable building flipping</Master>
+			<MasterDesc>Generate flipped versions of asymmetrical buildings. This master switch is read at startup, so turning it on requires a restart.</MasterDesc>
+			<RestartNote>Per-building changes apply immediately. The master switch above takes effect after a restart.</RestartNote>
+			<Count>{0} flippable building(s) detected</Count>
+			<EnableAll>Enable all</EnableAll>
+			<DisableAll>Disable all</DisableAll>
+			<NoneDetected>No flippable buildings were detected. Enable flipping and restart to populate this list.</NoneDetected>
+		</Settings>
+	</FlippedBuildings>
+</LanguageData>

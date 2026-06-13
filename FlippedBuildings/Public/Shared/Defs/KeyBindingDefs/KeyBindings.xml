@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+	<KeyBindingDef>
+		<defName>FlippedBuildings_Flip</defName>
+		<label>flip building</label>
+		<category>Architect</category>
+		<defaultKeyCodeA>F</defaultKeyCodeA>
+	</KeyBindingDef>
+</Defs>
