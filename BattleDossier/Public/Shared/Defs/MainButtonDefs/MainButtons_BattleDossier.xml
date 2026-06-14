@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+	<MainButtonDef>
+		<defName>BattleDossier</defName>
+		<label>battles</label>
+		<description>Review battle dossiers: per-participant combat performance, casualties, and a timeline for every battle your colony has fought.</description>
+		<tabWindowClass>TrueMogician.RimWorld.BattleDossier.UI.BattleDossierWindow</tabWindowClass>
+		<order>75</order>
+		<validWithoutMap>true</validWithoutMap>
+	</MainButtonDef>
+</Defs>

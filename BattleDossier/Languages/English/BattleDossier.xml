@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<BattleDossier>
+		<Title>Battle Dossier</Title>
+		<UnknownBattle>Unknown battle</UnknownBattle>
+		<UnknownParticipant>Someone</UnknownParticipant>
+		<NoSelection>Select a battle from the list on the left.</NoSelection>
+		<KeyBinding>
+			<OpenBrowser>
+				<label>Open battle dossiers</label>
+				<description>Opens the battle dossier browser.</description>
+			</OpenBrowser>
+		</KeyBinding>
+		<Log>
+			<Started>The battle began.</Started>
+			<Ended>The battle ended.</Ended>
+			<FrontMerged>A second front joined the battle: {0}</FrontMerged>
+			<Hit>{0} hit {1} ({2})</Hit>
+			<HitUnattributed>{0} took {1} damage</HitUnattributed>
+			<Sourced>{0}: {1}</Sourced>
+			<Captured>{0} was captured.</Captured>
+			<Fled>{0} fled.</Fled>
+			<Destroyed>{0} was destroyed.</Destroyed>
+		</Log>
+		<Letter>
+			<Label>Battle ended: {0}</Label>
+			<Text>The battle "{0}" has ended. The battle dossier is ready for review.</Text>
+			<ViewDossier>View dossier</ViewDossier>
+		</Letter>
+		<Browser>
+			<Title>Battle dossiers</Title>
+			<InProgress>{0} (ongoing)</InProgress>
+			<Tooltip>{0} participants, ended {1} ago</Tooltip>
+			<DeleteConfirm>Delete the dossier "{0}"? This cannot be undone.</DeleteConfirm>
+			<UnpinFirst>Unpin the dossier before deleting it.</UnpinFirst>
+		</Browser>
+		<Detail>
+			<PinTooltip>Pinned dossiers are exempt from the rolling storage window and must be unpinned before deletion.</PinTooltip>
+			<JumpTooltip>Select and jump to this participant.</JumpTooltip>
+			<CorpseTooltip>Select and jump to this participant's corpse.</CorpseTooltip>
+			<RenameTooltip>Rename this battle.</RenameTooltip>
+			<ParticipantSummary>Dealt {0} · Kills {1} · Downs {2} · Taken {3}</ParticipantSummary>
+		</Detail>
+		<Timeline>
+			<ShowNonLethal>Show non-lethal hits</ShowNonLethal>
+		</Timeline>
+		<Tab>
+			<Overview>Overview</Overview>
+			<Leaderboard>Leaderboard</Leaderboard>
+			<Timeline>Timeline</Timeline>
+		</Tab>
+		<Outcome>
+			<InProgress>In progress</InProgress>
+			<Victory>Victory</Victory>
+			<Defeat>Defeat</Defeat>
+			<Expired>Expired</Expired>
+		</Outcome>
+		<Side>
+			<Colony>Colony</Colony>
+			<Ally>Ally</Ally>
+			<Enemy>Enemy</Enemy>
+			<Wild>Wild</Wild>
+		</Side>
+		<Fate>
+			<Intact>Intact</Intact>
+			<Hit>Hit</Hit>
+			<Downed>Downed</Downed>
+			<Dead>Dead</Dead>
+			<Fled>Fled</Fled>
+			<Captured>Captured</Captured>
+		</Fate>
+		<Overview>
+			<Began>Began: {0}</Began>
+			<Duration>Duration: {0}</Duration>
+			<Maps>Maps: {0}</Maps>
+			<EnemyCombatPower>Total enemy combat power: {0}</EnemyCombatPower>
+			<CasualtyHeader>Casualties by faction</CasualtyHeader>
+			<TotalDamage>Total damage exchanged: {0}</TotalDamage>
+			<UnattributedDamage>Unattributed damage (fires, collapses, …): {0}</UnattributedDamage>
+		</Overview>
+		<Casualty>
+			<Faction>Faction</Faction>
+			<Participants>Fighters</Participants>
+			<Dead>Dead</Dead>
+			<Downed>Downed</Downed>
+			<Captured>Captured</Captured>
+			<Fled>Fled</Fled>
+		</Casualty>
+		<Filter>
+			<All>All</All>
+			<Faction>Faction: {0}</Faction>
+			<Type>Type: {0}</Type>
+		</Filter>
+		<Kind>
+			<Humanlike>Humanlikes</Humanlike>
+			<Animal>Animals</Animal>
+			<Mechanoid>Mechanoids</Mechanoid>
+			<Building>Buildings</Building>
+			<Other>Other</Other>
+		</Kind>
+		<Column>
+			<Name>Participant</Name>
+			<Side>Side</Side>
+			<DamageDealt>Dmg dealt</DamageDealt>
+			<Kills>Kills</Kills>
+			<Downs>Downs</Downs>
+			<DamageTaken>Dmg taken</DamageTaken>
+			<FriendlyFire>FF dmg</FriendlyFire>
+			<Fate>Fate</Fate>
+		</Column>
+		<Settings>
+			<AutoOpenWindow>Open the dossier window automatically when a battle ends</AutoOpenWindow>
+			<AutoOpenWindow.Tooltip>The battle-end letter is sent either way.</AutoOpenWindow.Tooltip>
+			<EndCapTicks>Battle end safety cap: {0} ticks</EndCapTicks>
+			<EndCapTicks.Tooltip>Battles normally conclude shortly after the last active threat is gone. This is only a fallback: if combat falls silent for this long while a threat lingers (e.g. an unreachable enemy turret), the session ends anyway.</EndCapTicks.Tooltip>
+			<MinBattleScale>Minimum battle scale: {0} combat power</MinBattleScale>
+			<MinBattleScale.Tooltip>A new fight only opens its own dossier once the hostile force on the map reaches this combined combat power. Smaller skirmishes (a lone manhunter, a stray maddened animal) are ignored — unless they happen during a battle that is already being recorded.</MinBattleScale.Tooltip>
+			<MaxStoredDossiers>Stored dossiers limit: {0}</MaxStoredDossiers>
+			<MaxStoredDossiers.Unlimited>Stored dossiers limit: unlimited</MaxStoredDossiers.Unlimited>
+			<MaxStoredDossiers.Tooltip>When set, the oldest unpinned dossiers are deleted as new battles finish. 0 means unlimited. Pinned dossiers are always kept.</MaxStoredDossiers.Tooltip>
+		</Settings>
+	</BattleDossier>
+</LanguageData>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+	<KeyBindingCategoryDef>
+		<defName>BattleDossier</defName>
+		<label>Battle Dossier</label>
+		<description>Keys for the Battle Dossier mod.</description>
+		<isGameUniversal>true</isGameUniversal>
+	</KeyBindingCategoryDef>
+
+	<KeyBindingDef>
+		<defName>BattleDossier_OpenBrowser</defName>
+		<label>open battle dossiers</label>
+		<category>BattleDossier</category>
+		<defaultKeyCodeA>None</defaultKeyCodeA>
+	</KeyBindingDef>
+
+</Defs>
