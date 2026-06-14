@@ -34,6 +34,7 @@
 		<Project Path="WorkMemory/Source/WorkMemory.csproj" />
 		<Project Path="WorkMemory/Source.RimHUD/WorkMemory.RimHUD.csproj" />
 	</Folder>
+	<Project Path="BattleDossier/Source/BattleDossier.csproj" />
 	<Project Path="RemedialAlgorithms/RemedialAlgorithms.csproj" />
 	<Project Path="FlippedBuildings/Source/FlippedBuildings.csproj" />
 	<Project Path="PriorityLoadController/Source/PriorityLoadController.csproj" />
