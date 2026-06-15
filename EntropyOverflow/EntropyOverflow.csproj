@@ -24,7 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.44.1">
+		<PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.45">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
@@ -32,9 +32,9 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4633" />
+		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4850" />
 		<PackageReference Include="Lib.Harmony" Version="2.4.2" />
-		<PackageReference Include="Microsoft.Build.Framework" Version="18.0.2">
+		<PackageReference Include="Microsoft.Build.Framework" Version="18.7.1">
 			<PrivateAssets>all</PrivateAssets>
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
