@@ -7,6 +7,7 @@ namespace TrueMogician.RimWorld.FlippedBuildings.Patches;
 
 // Single-def comparison sites where a twin would read as a different building. List-driven systems
 // (recipes, facility links) are bridged at generation time; only these direct def-equality checks remain.
+[HarmonyPatch]
 internal static class IdentityBridgingPatches {
 	[HarmonyPatch(typeof(ListerBuildings), nameof(ListerBuildings.ColonistsHaveBuilding), typeof(ThingDef))]
 	[HarmonyPostfix]
@@ -65,5 +66,20 @@ internal static class IdentityBridgingPatches {
 			return;
 		if (FlipRegistry.GetCanonical(def) is { } canonical && __instance.Allows(canonical))
 			__result = true;
+	}
+
+	// Twins are hidden from the architect via canGenerateDefaultDesignator=false, but vanilla Ideology reads that
+	// same flag as "freely buildable by any ideoligion". Mirror the canonical so colonists deliver and construct.
+	[HarmonyPatch(typeof(Ideo), nameof(Ideo.MembersCanBuild), typeof(Thing))]
+	[HarmonyPostfix]
+	internal static void Ideo_MembersCanBuild_Postfix(Thing thing, Ideo __instance, ref bool __result) {
+		if (__result)
+			return;
+		var built = thing.def.entityDefToBuild as ThingDef ?? thing.def;
+		if (FlipRegistry.GetCanonical(built) is not { } canonical)
+			return;
+		__result = canonical.canGenerateDefaultDesignator
+			|| __instance.cachedPossibleBuildables.Contains(canonical)
+			|| __instance.HasPreceptForBuilding(canonical);
 	}
 }
