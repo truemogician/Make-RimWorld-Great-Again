@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net472</TargetFramework>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<Authors>true_mogician</Authors>
+		<PackageId>TrueMogician.FlippedBuildings.VEF</PackageId>
+		<Version>0.0.1</Version>
+		<Title>Flipped Buildings for Vanilla Expanded Framework</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
+		<RootNamespace>TrueMogician.RimWorld.FlippedBuildings.VEF</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ProjectRoot>$(ProjectDir)..\</ProjectRoot>
+		<DistDir>$(ProjectRoot)Dist\</DistDir>
+		<AssemblyDistDir>$(DistDir)VEF\1.6\Assemblies\</AssemblyDistDir>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="5.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ThisAssembly.AssemblyInfo" Version="2.1.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ThisAssembly.Project" Version="2.1.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<ProjectReference Include="..\Source\FlippedBuildings.csproj" />
+		<ProjectReference Include="$(UtilityProjectPath)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="PipeSystem" HintPath="$(ReferenceDir)VanillaExpandedFramework\PipeSystem.dll" />
+	</ItemGroup>
+
+	<Target Name="Distribute" AfterTargets="Build">
+		<Copy SourceFiles="$(TargetPath)" DestinationFiles="$(AssemblyDistDir)$(AssemblyName).dll" />
+		<Message Importance="High" Text="Distributed $(TargetPath) -&gt; $(AssemblyDistDir)" />
+	</Target>
+
+	<Target Name="CustomClean" AfterTargets="Clean">
+		<ItemGroup>
+			<DirsToDelete Include="$(DistDir)VEF" />
+		</ItemGroup>
+		<RemoveDir Directories="@(DirsToDelete)" />
+		<Message Text="Custom files and directories cleaned" Importance="High" />
+	</Target>
+</Project>
